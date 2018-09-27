@@ -7,12 +7,12 @@ var errorHandler = function (error) {
   if (error.response) {
     return error.response.data;
   } else if (error.request) {
-    return error.message;
+    return 'Sender error: ' + error.message;
   }
 };
 
 module.exports.sendMessage = function(message) {
-  return axios.get(`${apiUrl}&message=${message}`)
+  return axios.get(`${apiUrl}&message=${encodeURIComponent(message)}`)
     .then(function (response) {
       return response.data;
     })
