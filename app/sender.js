@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const axios = require('axios');
 const accessToken = process.env.ACCESS_TOKEN;
 const peerID = process.env.PEER_ID;

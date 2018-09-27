@@ -14,37 +14,27 @@ const stickersIDs = [
   16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535, 
 ];
 
-module.exports = function(app) {
-  app.get('/daily', (req, res) => {
+let currentWeather = weather.getCurrentWeather();
+let forecast = weather.getForecast();
+let weatherMessage;
 
-    let response = '';
-
-    let currentWeather = weather.getCurrentWeather();
-    let forecast = weather.getForecast();
-    let weatherMessage;
-
-    Promise.all([currentWeather, forecast])
-      .then(values => {
-        response += `Weather: ${ util.inspect(values[0]) }<br/>`;
-        response += `Forecast: ${ util.inspect(values[1]) }<br/>`;
-        weatherMessage = getWeatherMessage(values[0], values[1]);
-        response += `Weather message: ${weatherMessage}<br/>`;
-        
-        let randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
-        return sender.sendSticker(randomID);
-      })
-      .then(result => {
-        response += `Sticker sent response: ${util.inspect(result)}<br/>`;
-        return sender.sendMessage(weatherMessage);
-      })
-      .then(result => {
-        response += `Weather message sent response: ${util.inspect(result)}<br/>`;
-        res.send(response);
-      })
-      .catch((error) => {
-        response += `Error: ${error}`;
-        res.send(response);
-      });
+Promise.all([currentWeather, forecast])
+  .then(values => {
+    console.log(`Weather: ${ util.inspect(values[0]) }`);
+    console.log(`Forecast: ${ util.inspect(values[1]) }`);
+    weatherMessage = getWeatherMessage(values[0], values[1]);
+    console.log(`Weather message: ${weatherMessage}`);
     
+    let randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
+    return sender.sendSticker(randomID);
   })
-};
+  .then(result => {
+    console.log(`Sticker sent response: ${util.inspect(result)}`);
+    return sender.sendMessage(weatherMessage);
+  })
+  .then(result => {
+    console.log(`Weather message sent response: ${util.inspect(result)}`);
+  })
+  .catch((error) => {
+    console.log(`Error: ${error}`);
+  });
