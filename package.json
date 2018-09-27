@@ -7,18 +7,22 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "heroku local",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
     "npm-watch": "^0.4.0"
   },
   "watch": {
     "start": {
-      "patterns": ["app", "."],
+      "patterns": [
+        "app",
+        "."
+      ],
       "extensions": "js"
     }
   },
