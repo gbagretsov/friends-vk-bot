@@ -1,5 +1,6 @@
 const sender = require('./sender');
 const weather = require('./weather');
+const holidays = require('./holidays');
 const util = require('util')
 
 function getWeatherMessage(weather, forecast) {
@@ -8,6 +9,29 @@ function getWeatherMessage(weather, forecast) {
   Прогноз погоды на сегодня:
   - днём ${ forecast[1].weather[0].description }, температура ${ Math.round(forecast[1].main.temp) }°C, ветер ${ forecast[1].wind.speed.toFixed(1) } м/с
   - вечером ${ forecast[3].weather[0].description }, температура ${ Math.round(forecast[3].main.temp)}°C, ветер ${ forecast[3].wind.speed.toFixed(1) } м/с`;
+}
+
+function getHolidaysMessage(holidays) {
+  if (holidays.length) {
+    let concatenatedHolidays = holidays.reduce((sum, cur, i, arr) => {
+      if (i === arr.length - 1) {
+        return `${sum} и ${cur}`;
+      } else {
+        return `${sum}, ${cur}`;
+      };
+    });
+
+    let phrases = [
+      `🎉 A вы знали, что сегодня ${concatenatedHolidays}? Подробнее здесь: calend.ru`,
+      `🎉 Сегодня отмечается ${concatenatedHolidays}! Подробности на сайте calend.ru`,
+      `🎉 Готов поспорить, вы не могли дождаться, когда наступит ${concatenatedHolidays}. Этот день настал! Подробнее здесь: calend.ru`,
+      `🎉 Напишите мне в ответ, как вы будете отмечать ${concatenatedHolidays}. Если не знаете, что это, загляните сюда: calend.ru`,
+    ];
+
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  } else {
+    return '';
+  }
 }
 
 const stickersIDs = [
@@ -34,6 +58,14 @@ Promise.all([currentWeather, forecast])
   })
   .then(result => {
     console.log(`Weather message sent response: ${util.inspect(result)}`);
+    return holidays.getHolidays();
+  })
+  .then(result => {
+    console.log(`Holidays: ${util.inspect(result)}`);
+    return sender.sendMessage(getHolidaysMessage(result));
+  })
+  .then(result => {
+    console.log(`Holidays message sent response: ${util.inspect(result)}`);
   })
   .catch((error) => {
     console.log(`Error: ${error}`);
