@@ -18,13 +18,15 @@ module.exports.getHolidays = function() {
 
       const $ = cheerio.load(body);
 
-      // TODO: parse
-      let holidays = [
-        'Новый год',
-        'День защитника Отечества',
-        'Международный женский день',
-        'День программиста',
-      ];
+      let holidays = $('.famous-date').first().children('div')
+        .filter(function(i, el) {
+          let html = $(this).html();
+          return html.includes('/1.gif') || html.includes('/15.gif') || html.includes('/79.gif');
+        })
+        .map(function(i, el) {
+          return $(this).children('a').first().text();
+        })
+        .get();
 
       resolve(holidays);
     });
