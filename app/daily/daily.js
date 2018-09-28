@@ -1,4 +1,4 @@
-const sender = require('./sender');
+const sender = require('../sender');
 const weather = require('./weather');
 const holidays = require('./holidays');
 const util = require('util')

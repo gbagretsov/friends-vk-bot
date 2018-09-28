@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "heroku local",
-    "daily": "node app/daily.js",
+    "daily": "node app/daily/daily.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch"
   },
