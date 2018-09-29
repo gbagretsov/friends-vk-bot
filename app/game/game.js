@@ -1,4 +1,4 @@
-const sender = require('../sender');
+const sender = require('../vk');
 const dbClient = require('../db');
 
 const TABLE_STATE = 'state';

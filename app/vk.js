@@ -28,3 +28,11 @@ module.exports.sendSticker = function(stickerId) {
     })
     .catch(errorHandler);
 };
+
+module.exports.getUserName = function(uid) {
+  return axios.get(`https://api.vk.com/method/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`)
+    .then(function (response) {
+      return response.data.response[0].first_name;
+    })
+    .catch(errorHandler);
+};
