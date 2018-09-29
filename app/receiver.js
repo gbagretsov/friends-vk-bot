@@ -25,15 +25,18 @@ module.exports = function(app){
         // Если сообщение не распознано модулем, передаём его дальше по цепочке.
         // Таким образом, повляется возможность обрабатывать различные сценарии.
 
-        const handledByGameModule = require('./game/game');
-        const handledByChatModule = require('./chat/chat');
+        const handleByGameModule = require('./game/game');
+        const handleByChatModule = require('./chat/chat');
 
-        if (
-          !handledByGameModule(message) &&
-          !handledByChatModule(message)
-        ) {
-          console.log('I didn\'t understand this message :(');
-        }
+        handleByGameModule(message)
+          .then(handled => {
+            return handled || handleByChatModule(message);
+          })
+          .then(handled => {
+            if (!handled) {
+              console.log('I didn\'t understand this message :(');
+            }
+          });
 
       } else {
         console.log('This message is not for me');
