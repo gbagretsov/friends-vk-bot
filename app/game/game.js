@@ -1,4 +1,4 @@
-const sender = require('../vk');
+const vk = require('../vk');
 const dbClient = require('../db');
 
 const TABLE_STATE = 'state';
@@ -23,7 +23,7 @@ function getRandomTask() {
     .then(result => {
       return {
         category: category,
-        answer: result.rows[0].name.toLowerCase(),
+        answer: result.rows[0].name,
       };
     });
 }
@@ -74,7 +74,7 @@ function handleIdleState(resolve, reject) {
           `Я люблю играть! 😊 Перед вами ${task.category}, сможете угадать, кто это?`,
           `Конечно! Вот картинка, на картинке ${task.category}. Назовёте имя — победа за вами! ☺`,
         ];
-        sender.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
+        vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
         
         // TODO: отправлять картинку
         
@@ -102,9 +102,20 @@ function handlePlayingState(resolve, reject, state) {
 
   if (answerIsCorrect) {
     setGameState({state: STATE_IDLE, answer: ''});
-    // TODO: писать в ответном сообщении имя игрока
-    sender.sendMessage(`Это правильный ответ!`);
+    vk.getUserName(this.message.from_id)
+      .then(function (name) {
+        let successMessages = [
+          `Браво, ${name}! 👏`,
+          `${name}, ты умница! 😃`,
+          `Правильно, ${name}! 👍 Это действительно ${answer}`,
+          `И в этом раунде побеждает ${name}! 😎`,
+          `${name}, как тебе это удаётся? 🙀 `,
+        ];
+        let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
+        vk.sendMessage(successMessage);
+      });
     // TODO: отправлять полную картинку
+    // TODO: отправлять стикер
   }
   resolve(answerIsCorrect);
 }
@@ -121,7 +132,7 @@ function isGameRequestMessage(text) {
 
 function checkAnswer(entered, answer) {
   // TODO: более щадящая и интеллектуальная проверка корректности ответа
-  return entered === answer;
+  return entered === answer.toLowerCase();
 }
 
 module.exports = function(message) {  
