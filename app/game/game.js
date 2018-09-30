@@ -7,7 +7,10 @@ const TABLE_ACTORS = 'actors';
 const STATE_IDLE = 'idle';
 const STATE_PLAYING = 'playing';
 
-let message;
+const STEP_INTERVAL = 15000;
+
+let message, answer;
+let timeoutObj;
 
 function getRandomTask() {
   // TODO: поддержка других категорий
@@ -55,7 +58,7 @@ function handleMessage(resolve, reject) {
       if (state.state === STATE_IDLE) {
         handleIdleState(resolve, reject);
       } else if (state.state === STATE_PLAYING) {
-        handlePlayingState(resolve, reject, state);
+        handlePlayingState(resolve, reject);
       }
     });
 }
@@ -67,7 +70,9 @@ function handleIdleState(resolve, reject) {
   if (isGameRequestMessage(text)) {
     getRandomTask()
       .then(task => {
+        answer = task.answer;
         setGameState({state: STATE_PLAYING, answer: task.answer});
+        timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
         resolve(true);
         
         // TODO: больше приветственных сообщений
@@ -78,7 +83,7 @@ function handleIdleState(resolve, reject) {
         ];
 
         // TODO: получение фото с помощью API Google
-        photoPath = __dirname + '/full.jpg';
+        photoPath = __dirname + '/task.jpg';
 
         // TODO: обработка фотографии
 
@@ -92,9 +97,41 @@ function handleIdleState(resolve, reject) {
   }
 }
 
-// TODO: подсказка, ответ через n секунд 
+function giveHint() {
+  timeoutObj = setTimeout(sendAnswer, STEP_INTERVAL);
+  
+  // TODO: больше сообщений подсказок
+  let hintMessages = [
+    'Никто не знает? 😒 Вот подсказка!',
+    'Я не думал, что будет так сложно... 😥 Держите подсказку',
+  ];
 
-function handlePlayingState(resolve, reject, state) {
+  photoPath = __dirname + '/hint.jpg';
+
+  vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)])
+  .then(response => {
+    return vk.sendPhoto(photoPath);
+  });
+}
+
+function sendAnswer() {
+  setGameState({state: STATE_IDLE, answer: ''});
+
+  // TODO: больше сообщений ответов
+  let answerMessages = [
+    `Не узнали? Это же ${answer}!`,
+    `⏱ Время истекло! Правильный ответ — ${answer}`,
+  ];
+
+  photoPath = __dirname + '/full.jpg';
+
+  vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)])
+  .then(response => {
+    return vk.sendPhoto(photoPath);
+  });
+}
+
+function handlePlayingState(resolve, reject) {
   let text = this.message.text.toLowerCase();
 
   // Если игра уже идёт, но кто-то написал новый запрос на игру,
@@ -104,10 +141,10 @@ function handlePlayingState(resolve, reject, state) {
     resolve(true);
   }
 
-  let answer = state.answer;
-  let answerIsCorrect = checkAnswer(text, answer);
+  let answerIsCorrect = checkAnswer(text);
 
   if (answerIsCorrect) {
+    clearTimeout(timeoutObj);
     setGameState({state: STATE_IDLE, answer: ''});
     vk.getUserName(this.message.from_id)
       .then(function (name) {
@@ -119,9 +156,12 @@ function handlePlayingState(resolve, reject, state) {
           `${name}, как тебе это удаётся? 🙀 `,
         ];
         let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
-        vk.sendMessage(successMessage);
+        return vk.sendMessage(successMessage);
+      })
+      .then(response => {
+        let photoPath = __dirname + '/full.jpg';
+        return vk.sendPhoto(photoPath);
       });
-    // TODO: отправлять полную картинку
     // TODO: отправлять стикер
   }
   resolve(answerIsCorrect);
@@ -137,7 +177,7 @@ function isGameRequestMessage(text) {
   return botMentioned && gameRequested;
 }
 
-function checkAnswer(entered, answer) {
+function checkAnswer(entered) {
   // TODO: более щадящая и интеллектуальная проверка корректности ответа
   return entered === answer.toLowerCase();
 }
