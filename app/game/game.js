@@ -5,7 +5,7 @@ const vk = require('../vk');
 const dbClient = require('../db');
 
 const TABLE_STATE = 'state';
-const TABLE_ACTORS = 'actors';
+const TABLE_WORDS = 'words';
 
 const STATE_IDLE = 'idle';
 const STATE_PLAYING = 'playing';
@@ -16,9 +16,9 @@ let message, answer;
 let timeoutObj;
 
 function getRandomTask() {
-  // TODO: поддержка других категорий
-  let tableName = TABLE_ACTORS;
-  let category = 'актёр или актриса';
+  // TODO: поддержка категорий
+  let tableName = TABLE_WORDS;
+  let category = 'слово';
 
   let query = `
     SELECT name FROM friends_vk_bot.${tableName}
@@ -86,9 +86,8 @@ function handleIdleState(resolve, reject) {
         
         // TODO: больше приветственных сообщений
         let welcomeMessages = [
-          `Игра начинается, отгадывать могут все! 😏 Что это за ${category}?`,
-          `Я люблю играть! 😊 Перед вами ${category}, сможете угадать, кто это?`,
-          `Конечно! Вот картинка, на картинке ${category}. Назовёте имя — победа за вами! ☺`,
+          `Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?`,
+          `Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?`,
         ];
 
         return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
@@ -110,22 +109,25 @@ function generatePhotos() {
   let apiURL = 'https://www.googleapis.com/customsearch/v1';
   let key = 'AIzaSyBZpXR7QXyOiKoIVWGUolI7KSAQyZYSQSE';
   let cx = '004748128997979573008:xehngjvu_tg';
-  let start = randomInteger(1, 10);
+  let start = randomInteger(1, 5);
+  let hintImgURL;
 
-  let url = `${apiURL}?q=${encodeURIComponent(answer)}&cx=${cx}&fileType=jpg&num=1&safe=active&searchType=image&fields=items%2Flink&start=${start}&key=${key}`;
+  let url = `${apiURL}?q=${encodeURIComponent(answer)}&cx=${cx}&fileType=jpg&num=2&safe=active&searchType=image&fields=items%2Flink&start=${start}&key=${key}`;
   return needle('get', url)
     // TODO: обработка превышения квоты
     .then(response => {
       console.log(response.body);
-      let imgURL = response.body.items[0].link;
-      return needle('get', imgURL);
+      let taskImgURL = response.body.items[0].link;
+      hintImgURL = response.body.items[1].link;
+      return needle('get', taskImgURL);
     })
     .then(response => {
       fs.writeFileSync(__dirname + '/task.jpg', response.body);
+      return needle('get', hintImgURL);
+    })
+    .then(response => {
       fs.writeFileSync(__dirname + '/hint.jpg', response.body);
-      fs.writeFileSync(__dirname + '/full.jpg', response.body);
     });
-    // TODO: обработка фотографии
 }
 
 function randomInteger(min, max) {
@@ -156,16 +158,11 @@ function sendAnswer() {
 
   // TODO: больше сообщений ответов
   let answerMessages = [
-    `Не узнали? Это же ${answer}!`,
+    `Не разгадали? Это же ${answer}!`,
     `⏱ Время истекло! Правильный ответ — ${answer}`,
   ];
 
-  photoPath = __dirname + '/full.jpg';
-
-  vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)])
-  .then(response => {
-    return vk.sendPhoto(photoPath);
-  });
+  vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)]);
 }
 
 function handlePlayingState(resolve, reject) {
@@ -187,11 +184,11 @@ function handlePlayingState(resolve, reject) {
     vk.getUserName(this.message.from_id)
       .then(function (name) {
         let successMessages = [
-          `Браво, ${name}! 👏`,
-          `${name}, ты умница! 😃`,
+          `Браво, ${name}! Моё слово — ${answer} 👏`,
+          `${name}, ты умница! 😃 На картинке ${answer}`,
           `Правильно, ${name}! 👍 Это действительно ${answer}`,
-          `И в этом раунде побеждает ${name}! 😎`,
-          `${name}, как тебе это удаётся? 🙀 `,
+          `И в этом раунде побеждает ${name}, разгадав слово "${answer}"! 😎`,
+          `Я увидел правильный ответ — ${answer}! ${name}, как тебе это удаётся? 🙀`,
         ];
         let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
         return vk.sendMessage(successMessage);

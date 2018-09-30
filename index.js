@@ -10,17 +10,17 @@ app.get('/', (req, res) => res.render('pages/index'))
 
 require('./app/receiver')(app)
 
-app.get('/actors', (req, res) => {
+app.get('/words', (req, res) => {
 
   const client = require('./app/db')();
 
-  client.query('SELECT * FROM friends_vk_bot.actors;')
+  client.query('SELECT * FROM friends_vk_bot.words;')
     .then(r => {
-      let actors = r.rows.reduce((sum, cur) => sum += JSON.stringify(cur) + '<br/>', '');
+      let words = r.rows.reduce((sum, cur) => sum += JSON.stringify(cur) + '<br/>', '');
       for (let row of r.rows) {
         console.log(JSON.stringify(row));
       }
-      res.send(actors);
+      res.send(words);
     })
     .catch(error => {
       console.log(error);
