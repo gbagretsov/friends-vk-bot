@@ -19,7 +19,7 @@ function getRandomTask() {
 
   let query = `
     SELECT name FROM friends_vk_bot.${tableName}
-    WHERE 1 = 1;
+    ORDER BY RANDOM() LIMIT 1;
   `;
 
   return dbClient().query(query)
@@ -71,6 +71,7 @@ function handleIdleState(resolve, reject) {
     getRandomTask()
       .then(task => {
         answer = task.answer;
+        console.log(answer);
         setGameState({state: STATE_PLAYING, answer: task.answer});
         timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
         resolve(true);
