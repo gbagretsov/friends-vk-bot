@@ -97,8 +97,22 @@ function handleIdleState(resolve, reject) {
         return vk.sendPhoto(photoPath);
       })
       .catch(error => {
-        // TODO: бот устал
-        console.log(error);
+        // Бот устал
+        if (error.message === 'usageLimits') {
+          // TODO: больше сообщений
+          let limitsMessages = [
+            `Что-то я устал играть... 😫 Приходите завтра 😊`,
+            `Давай продолжим завтра? Сегодня больше не хочется 😳`,
+            `Я уже наигрался, мне надо отдохнуть`,
+          ];
+
+          let limitsStickers = [ 13, 85, 2091, 5135, 5629 ];
+
+          return vk.sendSticker(limitsStickers[Math.floor(Math.random() * limitsStickers.length)])
+            .then(response => {
+              return vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)]);
+            });
+        };
       });
   } else {
     resolve(false);
@@ -114,9 +128,11 @@ function generatePhotos() {
 
   let url = `${apiURL}?q=${encodeURIComponent(answer)}&cx=${cx}&fileType=jpg&num=2&safe=active&searchType=image&fields=items%2Flink&start=${start}&key=${key}`;
   return needle('get', url)
-    // TODO: обработка превышения квоты
     .then(response => {
       console.log(response.body);
+      if (response.body.error && response.body.error.errors[0].domain === 'usageLimits') {
+        throw new Error('usageLimits');
+      }
       let taskImgURL = response.body.items[0].link;
       hintImgURL = response.body.items[1].link;
       return needle('get', taskImgURL);
