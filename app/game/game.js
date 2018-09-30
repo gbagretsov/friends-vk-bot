@@ -1,3 +1,6 @@
+const needle = require('needle');
+const fs = require('fs');
+
 const vk = require('../vk');
 const dbClient = require('../db');
 
@@ -66,37 +69,69 @@ function handleMessage(resolve, reject) {
 
 function handleIdleState(resolve, reject) {
   let text = this.message.text.toLowerCase();
-  let photoPath;
+  let category;
 
   if (isGameRequestMessage(text)) {
+    resolve(true);
     getRandomTask()
       .then(task => {
         answer = task.answer;
+        category = task.category;
+        return generatePhotos();
+      })
+      .then(result => {
         console.log(answer);
-        setGameState({state: STATE_PLAYING, answer: task.answer});
+        setGameState({state: STATE_PLAYING, answer: answer});
         timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
-        resolve(true);
         
         // TODO: больше приветственных сообщений
         let welcomeMessages = [
-          `Игра начинается, отгадывать могут все! 😏 Что это за ${task.category}?`,
-          `Я люблю играть! 😊 Перед вами ${task.category}, сможете угадать, кто это?`,
-          `Конечно! Вот картинка, на картинке ${task.category}. Назовёте имя — победа за вами! ☺`,
+          `Игра начинается, отгадывать могут все! 😏 Что это за ${category}?`,
+          `Я люблю играть! 😊 Перед вами ${category}, сможете угадать, кто это?`,
+          `Конечно! Вот картинка, на картинке ${category}. Назовёте имя — победа за вами! ☺`,
         ];
-
-        // TODO: получение фото с помощью API Google
-        photoPath = __dirname + '/task.jpg';
-
-        // TODO: обработка фотографии
 
         return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
       })
       .then(response => {
+        let photoPath = __dirname + '/task.jpg';
         return vk.sendPhoto(photoPath);
+      })
+      .catch(error => {
+        // TODO: бот устал
+        console.log(error);
       });
   } else {
     resolve(false);
   }
+}
+
+function generatePhotos() {
+  let apiURL = 'https://www.googleapis.com/customsearch/v1';
+  let key = 'AIzaSyBZpXR7QXyOiKoIVWGUolI7KSAQyZYSQSE';
+  let cx = '004748128997979573008:xehngjvu_tg';
+  let start = randomInteger(1, 10);
+
+  let url = `${apiURL}?q=${encodeURIComponent(answer)}&cx=${cx}&fileType=jpg&num=1&safe=active&searchType=image&fields=items%2Flink&start=${start}&key=${key}`;
+  return needle('get', url)
+    // TODO: обработка превышения квоты
+    .then(response => {
+      console.log(response.body);
+      let imgURL = response.body.items[0].link;
+      return needle('get', imgURL);
+    })
+    .then(response => {
+      fs.writeFileSync(__dirname + '/task.jpg', response.body);
+      fs.writeFileSync(__dirname + '/hint.jpg', response.body);
+      fs.writeFileSync(__dirname + '/full.jpg', response.body);
+    });
+    // TODO: обработка фотографии
+}
+
+function randomInteger(min, max) {
+  let rand = min + Math.random() * (max + 1 - min);
+  rand = Math.floor(rand);
+  return rand;
 }
 
 function giveHint() {
