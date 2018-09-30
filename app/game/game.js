@@ -62,11 +62,13 @@ function handleMessage(resolve, reject) {
 
 function handleIdleState(resolve, reject) {
   let text = this.message.text.toLowerCase();
+  let photoPath;
 
   if (isGameRequestMessage(text)) {
     getRandomTask()
       .then(task => {
         setGameState({state: STATE_PLAYING, answer: task.answer});
+        resolve(true);
         
         // TODO: больше приветственных сообщений
         let welcomeMessages = [
@@ -74,11 +76,16 @@ function handleIdleState(resolve, reject) {
           `Я люблю играть! 😊 Перед вами ${task.category}, сможете угадать, кто это?`,
           `Конечно! Вот картинка, на картинке ${task.category}. Назовёте имя — победа за вами! ☺`,
         ];
-        vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
-        
-        // TODO: отправлять картинку
-        
-        resolve(true);
+
+        // TODO: получение фото с помощью API Google
+        photoPath = __dirname + '/full.jpg';
+
+        // TODO: обработка фотографии
+
+        return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
+      })
+      .then(response => {
+        return vk.sendPhoto(photoPath);
       });
   } else {
     resolve(false);
