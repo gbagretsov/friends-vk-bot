@@ -58,6 +58,7 @@ function handleMessage(resolve, reject) {
       if (state.state === STATE_IDLE) {
         handleIdleState(resolve, reject);
       } else if (state.state === STATE_PLAYING) {
+        answer = state.answer;
         handlePlayingState(resolve, reject);
       }
     });
