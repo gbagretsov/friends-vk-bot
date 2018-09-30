@@ -140,6 +140,7 @@ function handlePlayingState(resolve, reject) {
   if(isGameRequestMessage(text)) {
     console.log('game is already running');
     resolve(true);
+    return;
   }
 
   let answerIsCorrect = checkAnswer(text);
