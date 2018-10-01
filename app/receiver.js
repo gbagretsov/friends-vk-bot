@@ -1,11 +1,8 @@
-const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const peerID = process.env.PEER_ID;
 
 module.exports = function(app){
-
-  app.use(bodyParser.json());
 
   app.post('/receive', (req, res) => {
     

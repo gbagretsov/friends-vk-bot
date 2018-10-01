@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const vk = require('../vk');
 const dbClient = require('../db');
+const admin = require('./admin');
 
 const TABLE_STATE = 'state';
 const TABLE_WORDS = 'words';
@@ -69,13 +70,72 @@ function getGameState() {
 function handleMessage(resolve, reject) {
   getGameState()
     .then(state => {
-      if (state.state === STATE_IDLE) {
+      if (handleAddWordRequest() || handleDeleteWordRequest()) {
+        resolve(true);
+      } else if (state.state === STATE_IDLE) {
         handleIdleState(resolve, reject);
       } else if (state.state === STATE_PLAYING) {
         answer = state.answer;
         handlePlayingState(resolve, reject);
       }
     });
+}
+
+function handleAddWordRequest() {
+  let text = this.message.text.toLowerCase();
+  let botMentioned = text.startsWith('бот,') || text.includes('club171869330');
+  let isAddWordRequest = text.includes('запомни слово');
+
+  if (botMentioned && isAddWordRequest) {
+    let word = extractWord(text);
+
+    if (word) {
+      admin.addWord(word)
+        .then(result => {
+          if (result == 23505) {
+            vk.sendMessage(`Я уже знаю слово "${ word }"! 😊`);
+          } else {
+            vk.sendMessage(`👍 Я запомнил слово "${ word }"!`);
+          }
+        });
+    } else {
+      vk.getUserName(this.message.from_id)
+        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`));
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function handleDeleteWordRequest() {
+  let text = this.message.text.toLowerCase();
+  let botMentioned = text.startsWith('бот,') || text.includes('club171869330');
+  let isDeleteWordRequest = text.includes('забудь слово');
+
+  if (botMentioned && isDeleteWordRequest) {
+    let word = extractWord(text);
+    
+    if (word) {
+      admin.deleteWord(word)
+        .then(() => vk.sendMessage(`👍 Я забыл слово "${ word }"!`));
+    } else {
+      vk.getUserName(this.message.from_id)
+        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`));
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function extractWord(text) {
+  let parts = text.split(' ');
+  let word = parts[parts.length - 1];
+
+  word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()a-zA-Z\d]/g, '');
+
+  return word === '' ? false : word;
 }
 
 function handleIdleState(resolve, reject) {
