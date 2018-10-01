@@ -25,12 +25,19 @@ function getRandomTask() {
     ORDER BY RANDOM() LIMIT 1;
   `;
 
-  return dbClient().query(query)
+  let toReturn;
+  let client = dbClient();
+
+  return client.query(query)
     .then(result => {
-      return {
+      toReturn = {
         category: category,
         answer: result.rows[0].name,
       };
+      return client.end();
+    })
+    .then(result => {
+      return toReturn;
     });
 }
 
@@ -41,18 +48,22 @@ function setGameState(state) {
     UPDATE friends_vk_bot.state SET value = '${ state.answer }' WHERE key = 'answer';
     COMMIT TRANSACTION;
   `;
-  return dbClient().query(query);
+  let client = dbClient();
+  return client.query(query)
+    .then(() => client.end());
 }
 
 function getGameState() {
-  return dbClient().query('SELECT * FROM friends_vk_bot.state;')
+  let state = {};
+  let client = dbClient();
+  return client.query('SELECT * FROM friends_vk_bot.state;')
     .then(result => {
-      state = {};
       for (let row of result.rows) {
         state[row['key']] = row['value'];
       }
-      return state;
-    });
+      return client.end();
+    })
+    .then(() => state);
 }
 
 function handleMessage(resolve, reject) {
