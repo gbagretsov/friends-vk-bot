@@ -34,6 +34,10 @@ function getHolidaysMessage(holidays) {
   }
 }
 
+function getGameInfoMessage() {
+  return 'Теперь я умею играть в игру "Угадай слово"! Чтобы поиграть со мной, просто попросите меня об этом 😊 Например, так: "Бот, давай поиграем?"';
+}
+
 const stickersIDs = [
   16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535, 
 ];
@@ -66,6 +70,10 @@ Promise.all([currentWeather, forecast])
   })
   .then(result => {
     console.log(`Holidays message sent response: ${util.inspect(result)}`);
+    return sender.sendMessage(getGameInfoMessage());
+  })
+  .then(result => {
+    console.log(`Game info message sent response: ${util.inspect(result)}`);
   })
   .catch((error) => {
     console.log(`Error: ${error}`);
