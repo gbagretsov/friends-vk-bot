@@ -1,5 +1,6 @@
 const needle = require('needle');
 const fs = require('fs');
+require('dotenv').config();
 
 const vk = require('../vk');
 const dbClient = require('../db');
@@ -192,8 +193,8 @@ function handleIdleState(resolve, reject) {
 
 function generatePhotos() {
   let apiURL = 'https://www.googleapis.com/customsearch/v1';
-  let key = 'AIzaSyBZpXR7QXyOiKoIVWGUolI7KSAQyZYSQSE';
-  let cx = '004748128997979573008:xehngjvu_tg';
+  let key = process.env.GOOGLE_KEY;
+  let cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
   let start = randomInteger(1, 5);
   let hintImgURL;
 

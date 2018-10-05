@@ -1,4 +1,5 @@
 const axios = require('axios');
+require('dotenv').config();
 
 let errorHandler = function (error) {
   if (error.response) {
@@ -10,7 +11,7 @@ let errorHandler = function (error) {
 
 const params = {
   id: 532288,
-  APPID: '334b5949333f7866283a11f1312092c2',
+  APPID: process.env.OPENWEATHER_APPID,
   units: 'metric',
   lang: 'ru',
 };

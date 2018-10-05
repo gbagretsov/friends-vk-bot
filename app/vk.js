@@ -5,8 +5,8 @@ const needle = require('needle');
 const fs = require('fs');
 const path = require('path');
 
-const accessToken = process.env.ACCESS_TOKEN;
-const peerID = process.env.PEER_ID;
+const accessToken = process.env.VK_ACCESS_TOKEN;
+const peerID = process.env.VK_PEER_ID;
 const apiUrl = `https://api.vk.com/method/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}`;
 
 var errorHandler = function (error) {
