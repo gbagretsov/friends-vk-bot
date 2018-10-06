@@ -12,7 +12,7 @@ const TABLE_WORDS = 'words';
 const STATE_IDLE = 'idle';
 const STATE_PLAYING = 'playing';
 
-const STEP_INTERVAL = 15000;
+const STEP_INTERVAL = process.env.GAME_STEP_INTERVAL || 15000;
 
 let message, answer;
 let timeoutObj;
