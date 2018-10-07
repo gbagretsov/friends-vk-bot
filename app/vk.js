@@ -19,8 +19,26 @@ var errorHandler = function (error) {
   }
 };
 
-module.exports.sendMessage = function(message) {
-  return axios.get(`${apiUrl}&message=${encodeURIComponent(message)}`)
+let delay = function(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+module.exports.sendMessage = function(message, setTypingStatus) {
+  let setTypingStatusIfNeeded = function() {
+    if (setTypingStatus) {
+      return axios.get(`https://api.vk.com/method/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`)
+        .then(() => delay(5000));
+    } else {
+      return new Promise(resolve => resolve());
+    };
+  }
+
+  return setTypingStatusIfNeeded()
+    .then(function (response) {
+      return axios.get(`${apiUrl}&message=${encodeURIComponent(message)}`);
+    })
     .then(function (response) {
       return response.data;
     })

@@ -162,7 +162,7 @@ function handleIdleState(resolve, reject) {
           `Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?`,
         ];
 
-        return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
+        return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], true);
       })
       .then(response => {
         let photoPath = __dirname + '/task.jpg';
@@ -182,7 +182,7 @@ function handleIdleState(resolve, reject) {
 
           return vk.sendSticker(limitsStickers[Math.floor(Math.random() * limitsStickers.length)])
             .then(response => {
-              return vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)]);
+              return vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)], true);
             });
         };
       });
