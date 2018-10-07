@@ -154,7 +154,6 @@ function handleIdleState(resolve, reject) {
       .then(result => {
         console.log(answer);
         setGameState({state: STATE_PLAYING, answer: answer});
-        timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
         
         // TODO: больше приветственных сообщений
         let welcomeMessages = [
@@ -165,6 +164,7 @@ function handleIdleState(resolve, reject) {
         return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
       })
       .then(response => {
+        timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
         let photoPath = __dirname + '/task.jpg';
         return vk.sendPhoto(photoPath);
       })
