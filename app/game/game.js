@@ -94,14 +94,14 @@ function handleAddWordRequest() {
       admin.addWord(word)
         .then(result => {
           if (result == 23505) {
-            vk.sendMessage(`Я уже знаю слово "${ word }"! 😊`);
+            vk.sendMessage(`Я уже знаю слово "${ word }"! 😊`, 3000);
           } else {
-            vk.sendMessage(`👍 Я запомнил слово "${ word }"!`);
+            vk.sendMessage(`👍 Я запомнил слово "${ word }"!`, 3000);
           }
         });
     } else {
       vk.getUserName(this.message.from_id)
-        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`));
+        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
     return true;
   }
@@ -119,10 +119,10 @@ function handleDeleteWordRequest() {
     
     if (word) {
       admin.deleteWord(word)
-        .then(() => vk.sendMessage(`👍 Я забыл слово "${ word }"!`));
+        .then(() => vk.sendMessage(`👍 Я забыл слово "${ word }"!`, 3000));
     } else {
       vk.getUserName(this.message.from_id)
-        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`));
+        .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
     return true;
   }
@@ -162,7 +162,7 @@ function handleIdleState(resolve, reject) {
           `Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?`,
         ];
 
-        return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], true);
+        return vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
       })
       .then(response => {
         let photoPath = __dirname + '/task.jpg';
@@ -182,7 +182,7 @@ function handleIdleState(resolve, reject) {
 
           return vk.sendSticker(limitsStickers[Math.floor(Math.random() * limitsStickers.length)])
             .then(response => {
-              return vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)], true);
+              return vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)], 5000);
             });
         };
       });

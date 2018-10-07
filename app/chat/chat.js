@@ -8,7 +8,7 @@ module.exports = function(message) {
     let uid = message.from_id;
     vk.getUserName(uid)
       .then(function (response) {
-        vk.sendMessage(`Привет, ${ response }!`, true);
+        vk.sendMessage(`Привет, ${ response }!`, 5000);
       });
     return true;
   }
