@@ -7,7 +7,7 @@ const path = require('path');
 
 const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
-const apiUrl = `https://api.vk.com/method/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}`;
+const apiUrl = `https://api.vk.com/method`;
 
 var errorHandler = function (error) {
   if (error.response) {
@@ -28,7 +28,7 @@ let delayPromise = function(ms) {
 module.exports.sendMessage = function(message, delay) {
   let setTypingStatusIfNeeded = function() {
     if (delay) {
-      return axios.get(`https://api.vk.com/method/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`)
+      return axios.get(`${apiUrl}/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`)
         .then(() => delayPromise(delay));
     } else {
       return new Promise(resolve => resolve());
@@ -37,7 +37,7 @@ module.exports.sendMessage = function(message, delay) {
 
   return setTypingStatusIfNeeded()
     .then(function (response) {
-      return axios.get(`${apiUrl}&message=${encodeURIComponent(message)}`);
+      return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(message)}`);
     })
     .then(function (response) {
       return response.data;
@@ -46,7 +46,7 @@ module.exports.sendMessage = function(message, delay) {
 };
 
 module.exports.sendSticker = function(stickerId) {
-  return axios.get(`${apiUrl}&sticker_id=${stickerId}`)
+  return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}`)
     .then(function (response) {
       return response.data;
     })
@@ -54,7 +54,7 @@ module.exports.sendSticker = function(stickerId) {
 };
 
 module.exports.getUserName = function(uid) {
-  return axios.get(`https://api.vk.com/method/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`)
+  return axios.get(`${apiUrl}/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`)
     .then(function (response) {
       return response.data.response[0].first_name;
     })
@@ -63,7 +63,7 @@ module.exports.getUserName = function(uid) {
 
 module.exports.sendPhoto = function(pathToPhoto) {
   // Получаем адрес сервера для загрузки фото
-  return axios.get(`https://api.vk.com/method/photos.getMessagesUploadServer?v=5.85&access_token=${accessToken}&peer_id=${peerID}`)
+  return axios.get(`${apiUrl}/photos.getMessagesUploadServer?v=5.85&access_token=${accessToken}&peer_id=${peerID}`)
     .then(response => {
       // Загружаем фотографию
       let uploadUrl = response.data.response.upload_url;
@@ -85,7 +85,7 @@ module.exports.sendPhoto = function(pathToPhoto) {
       let server = data.server;
       let photo = data.photo;
       let hash = data.hash;
-      return axios.get(`https://api.vk.com/method/photos.saveMessagesPhoto?v=5.85&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+      return axios.get(`${apiUrl}/photos.saveMessagesPhoto?v=5.85&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
     })
     .then(response => {
       // Прикрепляем фотографию
@@ -93,7 +93,7 @@ module.exports.sendPhoto = function(pathToPhoto) {
       let ownerID = photoInfo.owner_id;
       let mediaID = photoInfo.id;
       let attachment = `photo${ownerID}_${mediaID}`;
-      return axios.get(`${apiUrl}&attachment=${attachment}`);
+      return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}`);
     })
     .catch(errorHandler);
 };
