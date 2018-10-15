@@ -7,10 +7,12 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "heroku local",
+    "start": "npm run build && heroku local",
     "daily": "node app/daily/daily.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "npm-watch"
+    "watch": "npm-watch",
+    "build": "webpack --mode development",
+    "prod": "webpack --mode production"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -21,20 +23,34 @@
     "needle": "^2.2.4",
     "npm-watch": "^0.4.0",
     "pg": "^7.4.3",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
     "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "css-loader": "^1.0.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2"
   },
   "watch": {
     "start": {
       "patterns": [
         "app",
-        "."
+        "front",
+        "./index.js"
       ],
-      "extensions": "js"
+      "extensions": "js,jsx,css"
     },
     "daily": {
       "patterns": [
         "app",
-        "."
+        "./index.js"
       ],
       "extensions": "js"
     }
