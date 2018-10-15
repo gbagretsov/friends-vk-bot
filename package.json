@@ -7,7 +7,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && heroku local",
+    "start": "node index.js",
+    "heroku-postbuild": "webpack --mode production",
+    "dev": "npm run build && heroku local",
     "daily": "node app/daily/daily.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch",
@@ -39,7 +41,7 @@
     "webpack-cli": "^3.1.2"
   },
   "watch": {
-    "start": {
+    "dev": {
       "patterns": [
         "app",
         "front",
