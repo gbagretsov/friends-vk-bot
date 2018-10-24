@@ -59,6 +59,12 @@ class Token extends Component{
     });  
   }
 
+  _handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      this.tryAuthorize();
+    }
+  }
+
   render(){
     let { token, pending, error } = this.state;
     return(
@@ -72,6 +78,7 @@ class Token extends Component{
           disabled={pending}
           error={error.length > 0}
           helperText={error}
+          onKeyPress={this._handleKeyPress}
         />
         <div className="button-wrapper">
           <Button variant="contained" color="primary" onClick={this.tryAuthorize} disabled={pending}>
