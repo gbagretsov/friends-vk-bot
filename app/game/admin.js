@@ -1,5 +1,4 @@
 const express = require('express');
-const router = express.Router();
 const db = require('../db');
 
 function addWord(word) {
@@ -22,22 +21,5 @@ function deleteWord(word) {
     .then(() => client.end());
 }
 
-router.get('/', (req, res) => {
-
-  const client = db();
-
-  client.query('SELECT * FROM friends_vk_bot.words;')
-    .then(r => {
-      let words = r.rows.reduce((sum, cur) => sum += JSON.stringify(cur) + '<br/>', '');
-      res.send(words);
-    })
-    .catch(error => {
-      console.log(error);
-      res.send(error);
-    })
-    .then(() => client.end());
-});
-
 module.exports.addWord = addWord;
 module.exports.deleteWord = deleteWord;
-module.exports.router = router;

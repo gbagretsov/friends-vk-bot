@@ -9,6 +9,6 @@ app.use(bodyParser.json())
 
 require('./app/receiver')(app)
 
-app.use('/words', require('./app/game/admin').router);
+app.use('/api', require('./app/api/api').router);
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
