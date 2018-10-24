@@ -1,16 +1,36 @@
 import React, { Component } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
-import Button from '@material-ui/core/Button';
 import './App.scss';
 
-class App extends Component{
+import Token from './token/Token.jsx';
+
+class App extends Component {
+  
+  constructor(props) {
+    super(props);
+    this.state = {
+      authorized: false,
+    };
+  }
+
+  saveToken = (token) => {
+    // TODO: cookies
+    this.setState({
+      authorized: true,
+      token,
+    });
+  }
+
   render(){
+    let authorized = this.state.authorized;
     return(
       <div className="App">
-        <h1>Hello from bot!</h1>
-        <p>TODO: страница администратора</p>
-        <Button variant="contained" color="primary">Кнопка</Button>
+        <CssBaseline/>
+        { !authorized && <Token onAuthorized={this.saveToken}/> }
+        { authorized &&
+            <p>Авторизация прошла успешна, токен: {this.state.token}</p>
+        }
       </div>
     );
   }

@@ -1,0 +1,17 @@
+.token-wrapper {
+  display: flex;
+  align-items: baseline;
+
+  .token-input {
+    width: 450px;
+  }
+
+  .button-wrapper {
+    position: relative;
+    margin-left: 6px;
+
+    .progress {
+      position: absolute;
+    }
+  }
+}
