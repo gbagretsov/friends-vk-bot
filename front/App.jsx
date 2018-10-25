@@ -16,7 +16,6 @@ class App extends Component {
   }
 
   saveToken = (token) => {
-    // TODO: cookies
     this.setState({
       authorized: true,
       token,
