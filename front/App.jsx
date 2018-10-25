@@ -4,6 +4,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import './App.scss';
 
 import Token from './token/Token.jsx';
+import Ads from './ads/Ads.jsx';
 
 class App extends Component {
   
@@ -29,7 +30,7 @@ class App extends Component {
         <CssBaseline/>
         { !authorized && <Token onAuthorized={this.saveToken}/> }
         { authorized &&
-            <p>Авторизация прошла успешна, токен: {this.state.token}</p>
+            <Ads token={this.state.token}/>
         }
       </div>
     );
