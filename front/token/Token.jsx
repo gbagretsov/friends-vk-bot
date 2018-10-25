@@ -23,6 +23,16 @@ class Token extends Component{
     });
   }
 
+  componentDidMount = () => {
+    let token = localStorage['t'];
+    if (token) {
+      this.setState(
+        { token },
+        () => this.tryAuthorize()
+      );
+    }
+  }
+
   tryAuthorize = () => {
     this.setState({
       pending: true,
@@ -49,6 +59,7 @@ class Token extends Component{
       this.setState({ pending: false, error });
 
       if (!error) {
+        localStorage['t'] = this.state.token;
         this.props.onAuthorized(this.state.token);
       }
     })
