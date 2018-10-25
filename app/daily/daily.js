@@ -2,6 +2,7 @@ const sender = require('../vk');
 const weather = require('./weather');
 const holidays = require('./holidays');
 const util = require('util')
+const db = require('../db');
 
 function getWeatherMessage(weather, forecast) {
   return `Доброе утро!
@@ -34,8 +35,10 @@ function getHolidaysMessage(holidays) {
   }
 }
 
-function getGameInfoMessage() {
-  return 'Теперь я умею играть в игру "Угадай слово"! Чтобы поиграть со мной, просто попросите меня об этом 😊 Например, так: "Бот, давай поиграем?"';
+function getAdsMessage() {
+  const client = db();
+  return client.query("SELECT value FROM friends_vk_bot.state WHERE key = 'ads';")
+    .then(r => r.rows[0].value);
 }
 
 const stickersIDs = [
@@ -70,10 +73,14 @@ Promise.all([currentWeather, forecast])
   })
   .then(result => {
     console.log(`Holidays message sent response: ${util.inspect(result)}`);
-    return sender.sendMessage(getGameInfoMessage());
+    return getAdsMessage();
   })
   .then(result => {
-    console.log(`Game info message sent response: ${util.inspect(result)}`);
+    console.log(`Ads: ${util.inspect(result)}`);
+    return result ? sender.sendMessage(result) : 'ads not set';
+  })
+  .then(result => {
+    console.log(`Ads message sent response: ${util.inspect(result)}`);
   })
   .catch((error) => {
     console.log(`Error: ${error}`);
