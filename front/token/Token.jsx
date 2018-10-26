@@ -36,6 +36,7 @@ class Token extends Component{
   tryAuthorize = () => {
     this.setState({
       pending: true,
+      error: false,
     });
 
     let url = 'api/';
@@ -55,19 +56,27 @@ class Token extends Component{
     fetch(url, params)
     .then(response => response.json())
     .then(data => {
-      let error = data.success ? false : 'Неправильный токен';      
-      this.setState({ pending: false, error });
-
-      if (!error) {
+      if (data.success) {
+        this.setState({ pending: false });
         localStorage['t'] = this.state.token;
         this.props.onAuthorized(this.state.token);
+      } else {
+        throw new Error('token');
       }
     })
     .catch(error => {
-      // TODO: всплывающее сообщение об ошибке
-      console.log(error);
-      this.setState({ pending: false });
-    });  
+      if (error.message === 'token') {
+        this.setState({
+          pending: false,
+          error: 'Неправильный токен',
+        });
+      } else {
+        this.props.onError('Произошла ошибка, попробуйте позднее');
+        this.setState({
+          pending: false,
+        });
+      }
+    });
   }
 
   _handleKeyPress = (e) => {

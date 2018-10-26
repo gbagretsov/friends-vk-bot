@@ -5,6 +5,7 @@ import './App.scss';
 
 import Token from './token/Token.jsx';
 import Ads from './ads/Ads.jsx';
+import Message from './message/Message.jsx';
 
 class App extends Component {
   
@@ -22,15 +23,25 @@ class App extends Component {
     });
   }
 
+  showMessage = (message) => {
+    this.setState({
+      message: {
+        text: message,
+        key: new Date().getTime(),
+      }
+    });
+  }
+
   render(){
-    let authorized = this.state.authorized;
+    let { authorized, message } = this.state;
     return(
       <div className="App">
         <CssBaseline/>
-        { !authorized && <Token onAuthorized={this.saveToken}/> }
+        { !authorized && <Token onAuthorized={this.saveToken} onError={this.showMessage}/> }
         { authorized &&
             <Ads token={this.state.token}/>
-        }
+        }        
+        <Message message={message}/>
       </div>
     );
   }
