@@ -1,4 +1,6 @@
+@import 'mixins';
+
 .App {
   font-family: Roboto, Arial, Helvetica, sans-serif;
-  padding: 6px 12px;
+  @include padding();
 }

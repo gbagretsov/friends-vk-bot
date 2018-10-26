@@ -39,7 +39,11 @@ class App extends Component {
         <CssBaseline/>
         { !authorized && <Token onAuthorized={this.saveToken} onError={this.showMessage}/> }
         { authorized &&
-            <Ads token={this.state.token}/>
+            <Ads
+              token={this.state.token}
+              onSaved={() => this.showMessage('Реклама сохранена')}
+              onError={this.showMessage}
+            />
         }        
         <Message message={message}/>
       </div>

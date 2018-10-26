@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Paper from '@material-ui/core/Paper';
 
 import './Ads.scss';
 
@@ -42,9 +43,8 @@ class Ads extends Component{
         throw new Error(data.error);
       }
     })
-    .catch(error => {
-      // TODO: всплывающее сообщение об ошибке
-      console.log(error);
+    .catch(error => {      
+      this.props.onError('Произошла ошибка, попробуйте позднее');
     })
     .then(() => {
       this.setState({ pending: false });
@@ -75,15 +75,13 @@ class Ads extends Component{
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // TODO: всплывающее сообщение об успехе
-        console.log('ads saved');
+        this.props.onSaved();
       } else {
         throw new Error(data.error);
       }
     })
     .catch(error => {
-      // TODO: всплывающее сообщение об ошибке
-      console.log(error);
+      this.props.onError('Произошла ошибка, попробуйте позднее');
     })
     .then(() => {  
       this.setState({ pending: false });
@@ -94,21 +92,23 @@ class Ads extends Component{
     let { ads, pending } = this.state;
     return(
       <div className="ads-wrapper">
-        <TextField
-          id="ads"
-          label="Реклама"
-          onChange={this.handleChange}
-          value={ads}
-          disabled={pending}
-          multiline={true}
-          fullWidth={true}
-        />
-        <div className="button-wrapper">
-          <Button variant="contained" color="primary" onClick={this.trySaveAds} disabled={pending}>
-            Сохранить рекламу
-            { pending && <CircularProgress size={24} className="progress"/>}
-          </Button>
-        </div>
+        <Paper className="paper">
+          <TextField
+            id="ads"
+            label="Реклама"
+            onChange={this.handleChange}
+            value={ads}
+            disabled={pending}
+            multiline={true}
+            fullWidth={true}
+          />
+          <div className="button-wrapper">
+            <Button variant="contained" color="primary" onClick={this.trySaveAds} disabled={pending}>
+              Сохранить
+              { pending && <CircularProgress size={24} className="progress"/>}
+            </Button>
+          </div>
+        </Paper>
       </div>
     );
   }

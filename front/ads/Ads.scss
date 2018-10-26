@@ -1,7 +1,12 @@
+@import '../mixins';
+
 .ads-wrapper {
+  .paper {
+    @include padding();
+  }
 
   .button-wrapper {
-    margin-top: 6px;
+    margin-top: 1em;
     position: relative;
 
     .progress {
