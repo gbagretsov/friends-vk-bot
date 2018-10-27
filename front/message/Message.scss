@@ -1,0 +1,9 @@
+.message {
+  &.success {
+    background-color: #090,
+  }
+  
+  &.error {
+    background-color: #c00,
+  }
+}

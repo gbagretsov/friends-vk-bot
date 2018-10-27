@@ -23,10 +23,11 @@ class App extends Component {
     });
   }
 
-  showMessage = (message) => {
+  showMessage = (message, variant) => {
     this.setState({
       message: {
         text: message,
+        variant,
         key: new Date().getTime(),
       }
     });
@@ -37,12 +38,17 @@ class App extends Component {
     return(
       <div className="App">
         <CssBaseline/>
-        { !authorized && <Token onAuthorized={this.saveToken} onError={this.showMessage}/> }
+        { !authorized && 
+            <Token
+              onAuthorized={this.saveToken}
+              onError={(error) => this.showMessage(error, 'error')}
+            />
+        }
         { authorized &&
             <Ads
               token={this.state.token}
-              onSaved={() => this.showMessage('Реклама сохранена')}
-              onError={this.showMessage}
+              onSaved={() => this.showMessage('Реклама сохранена', 'success')}
+              onError={(error) => this.showMessage(error, 'error')}
             />
         }        
         <Message message={message}/>
