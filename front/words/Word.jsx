@@ -65,8 +65,35 @@ class Word extends Component{
 
   deleteWord = () => {
     let id = this.props.id;
-    // TODO: delete word
-    console.log(`delete word ${id}`);
+
+    let url = `api/words/${id}`;
+
+    let options = {
+      token: this.props.token,
+    }
+
+    let params = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'DELETE',
+      body: JSON.stringify(options),
+    }
+
+    fetch(url, params)
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        throw new Error(data.error);
+      } else {
+        this.leaveEditMode();
+        this.props.onDeleted({ id, name: this.props.name });
+      }
+    })
+    .catch(error => {      
+      this.props.onError('Произошла ошибка, попробуйте позднее');
+    });
   }
 
   handleChange = (event) => {

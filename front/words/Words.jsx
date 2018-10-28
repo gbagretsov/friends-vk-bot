@@ -51,6 +51,16 @@ class Words extends Component{
     this.props.onWordChanged(changed);
   }
 
+  onWordDeleted = (deleted) => {
+    this.setState(state => {
+      let words = state.words;
+      let index = words.findIndex(word => word.id === deleted.id);
+      words.splice(index, 1);
+      return { words };
+    });
+    this.props.onWordDeleted(deleted);
+  }
+
   render(){
     let { words } = this.state;
     let wordsElements = words.map(word =>
@@ -60,6 +70,7 @@ class Words extends Component{
         name={word.name}
         token={this.props.token}
         onChanged={this.onWordChanged}
+        onDeleted={this.onWordDeleted}
         onError={(error) => this.props.onError(error)}
       />
     );

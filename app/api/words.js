@@ -36,4 +36,21 @@ router.post('/:id', (req, res) => {
     .then(() => client.end());
 });
 
+router.delete('/:id', (req, res) => {
+
+  const client = db();
+
+  let id = req.params.id;
+
+  client.query(`DELETE FROM friends_vk_bot.words WHERE id=${id};`)
+    .then(r => {
+      res.json({ success: true });
+    })
+    .catch(error => {
+      console.log(error);
+      res.json({ error: 'internal' });
+    })
+    .then(() => client.end());
+});
+
 module.exports.router = router;
