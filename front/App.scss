@@ -3,4 +3,9 @@
 .App {
   font-family: Roboto, Arial, Helvetica, sans-serif;
   @include padding();
+
+  .paper {
+    @include padding();
+    margin-bottom: 1em;
+  }
 }

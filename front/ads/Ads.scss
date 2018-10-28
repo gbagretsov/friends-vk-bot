@@ -1,10 +1,7 @@
 @import '../mixins';
 
 .ads-wrapper {
-  .paper {
-    @include padding();
-  }
-
+  
   .button-wrapper {
     margin-top: 1em;
     position: relative;

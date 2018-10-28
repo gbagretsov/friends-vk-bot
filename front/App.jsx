@@ -6,6 +6,7 @@ import './App.scss';
 import Token from './token/Token.jsx';
 import Ads from './ads/Ads.jsx';
 import Message from './message/Message.jsx';
+import Words from './words/Words.jsx';
 
 class App extends Component {
   
@@ -33,6 +34,25 @@ class App extends Component {
     });
   }
 
+  renderAdminPanel = () => {
+    return(
+      <div>
+        <Ads
+          token={this.state.token}
+          onSaved={() => this.showMessage('Реклама сохранена', 'success')}
+          onError={(error) => this.showMessage(error, 'error')}
+        />
+        <Words
+          token={this.state.token}
+          onWordAdded={(word) => this.showMessage(`Добавлено слово "${word.name}"`, 'success')}
+          onWordChanged={(word) => this.showMessage(`Слово "${word.oldName}" изменено на "${word.newName}"`, 'success')}
+          onWordDeleted={(word) => this.showMessage(`Слово "${word.name}" удалено`, 'success')}
+          onError={(error) => this.showMessage(error, 'error')}
+        />
+      </div>
+    );
+  }
+
   render(){
     let { authorized, message } = this.state;
     return(
@@ -44,13 +64,7 @@ class App extends Component {
               onError={(error) => this.showMessage(error, 'error')}
             />
         }
-        { authorized &&
-            <Ads
-              token={this.state.token}
-              onSaved={() => this.showMessage('Реклама сохранена', 'success')}
-              onError={(error) => this.showMessage(error, 'error')}
-            />
-        }        
+        { authorized && this.renderAdminPanel() }        
         <Message message={message}/>
       </div>
     );
