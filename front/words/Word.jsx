@@ -23,6 +23,14 @@ class Word extends Component{
     });
   }
 
+  shouldComponentUpdate = (nextProps, nextState) => {
+    return (
+      this.props.name !== nextProps.name || 
+      this.state.editMode !== nextState.editMode ||
+      this.state.editModeValue !== nextState.editModeValue
+    );
+  }
+
   saveWord = () => {
     let id = this.props.id;
     let oldName = this.props.name;

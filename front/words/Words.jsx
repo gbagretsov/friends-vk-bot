@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 
@@ -19,6 +18,7 @@ class Words extends Component{
       words: [],
       newWordInputValue: '',
     };
+    this.newWordInputRef = React.createRef();
   }
 
   componentDidMount = () => {
@@ -66,7 +66,7 @@ class Words extends Component{
   }
 
   addWord = () => {
-    let name = this.state.newWordInputValue;
+    let name = this.newWordInputRef.current.value;
     // TODO: валидация
 
     let url = `api/words`;
@@ -97,6 +97,7 @@ class Words extends Component{
           words.unshift(word);
           return { words };
         });
+        this.newWordInputRef.current.value = '';
         this.props.onWordAdded(word);
       }
     })
@@ -146,11 +147,11 @@ class Words extends Component{
           <ul>
             <li>
               <div>
-                <TextField
-                  value={newWordInputValue}
-                  onChange={this.handleNewWordChange}
+                <input
+                  className="new-word"
                   onKeyPress={this._handleKeyPress}
                   placeholder="Новое слово"
+                  ref={this.newWordInputRef}
                 />
                 <IconButton className="button" onClick={ () => this.addWord() }><AddIcon fontSize="small"/></IconButton>
               </div>
