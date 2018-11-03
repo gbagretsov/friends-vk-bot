@@ -1,21 +1,22 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom'
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
+import PropTypes from 'prop-types';
 
 class Word extends Component{
 
   constructor(props) {
     super(props);
     this.state = { editMode: false };
+    this.wordNameSpanRef = React.createRef();
   }
 
   enterEditMode = () => {
-    let width = ReactDOM.findDOMNode(this.refs.wordNameSpan).getBoundingClientRect().width;
+    let width = this.wordNameSpanRef.current.getBoundingClientRect().width;
     this.setState({
       editMode: true,
       editModeValue: this.props.name,
@@ -41,7 +42,7 @@ class Word extends Component{
     let options = {
       token: this.props.token,
       name: newName,
-    }
+    };
 
     let params = {
       headers: {
@@ -50,7 +51,7 @@ class Word extends Component{
       },
       method: 'POST',
       body: JSON.stringify(options),
-    }
+    };
     
     try {
       let response = await fetch(url, params);
@@ -77,7 +78,7 @@ class Word extends Component{
 
     let options = {
       token: this.props.token,
-    }
+    };
 
     let params = {
       headers: {
@@ -86,7 +87,7 @@ class Word extends Component{
       },
       method: 'DELETE',
       body: JSON.stringify(options),
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -118,7 +119,7 @@ class Word extends Component{
     let name = this.props.name;
     return (
       <div>
-        <span className="word-name" ref="wordNameSpan">{ name }</span>
+        <span className="word-name" ref={this.wordNameSpanRef}>{ name }</span>
         <IconButton className="button" onClick={ () => this.enterEditMode() }><EditIcon fontSize="small"/></IconButton>
         <IconButton className="button" onClick={ () => this.deleteWord() }><DeleteIcon fontSize="small"/></IconButton>
       </div>
@@ -156,5 +157,14 @@ class Word extends Component{
   }
 
 }
+
+Word.propTypes = {
+  name: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
+  token: PropTypes.string.isRequired,
+  onError: PropTypes.func,
+  onChanged: PropTypes.func,
+  onDeleted: PropTypes.func,
+};
 
 export default Word;

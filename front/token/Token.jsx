@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import PropTypes from 'prop-types';
 
 import './Token.scss';
 
@@ -42,7 +43,7 @@ class Token extends Component{
     let url = 'api/';
     let data = {
       token: this.state.token,
-    }
+    };
 
     let params = {
       headers: {
@@ -51,7 +52,7 @@ class Token extends Component{
       },
       body: JSON.stringify(data),
       method: 'POST',
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -109,5 +110,10 @@ class Token extends Component{
     );
   }
 }
+
+Token.propTypes = {
+  onError: PropTypes.func,
+  onAuthorized: PropTypes.func,
+};
 
 export default Token;

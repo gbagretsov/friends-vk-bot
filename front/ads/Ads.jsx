@@ -3,6 +3,7 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Paper from '@material-ui/core/Paper';
+import PropTypes from 'prop-types';
 
 import './Ads.scss';
 
@@ -32,7 +33,7 @@ class Ads extends Component{
         'Accept': 'application/json',
       },
       method: 'GET',
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -59,7 +60,7 @@ class Ads extends Component{
     let data = {
       token: this.props.token,
       ads: this.state.ads,
-    }
+    };
 
     let params = {
       headers: {
@@ -68,7 +69,7 @@ class Ads extends Component{
       },
       body: JSON.stringify(data),
       method: 'POST',
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -111,5 +112,11 @@ class Ads extends Component{
   }
 
 }
+
+Ads.propTypes = {
+  token: PropTypes.string.isRequired,
+  onSaved: PropTypes.func,
+  onError: PropTypes.func,
+};
 
 export default Ads;

@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom'
-import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
+import PropTypes from 'prop-types';
 
 import Word from './Word.jsx';
 
@@ -29,7 +28,7 @@ class Words extends Component{
         'Accept': 'application/json',
       },
       method: 'GET',
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -68,12 +67,12 @@ class Words extends Component{
     let name = this.newWordInputRef.current.value;
     // TODO: валидация
 
-    let url = `api/words`;
+    let url = 'api/words';
 
     let options = {
       token: this.props.token,
       name,
-    }
+    };
 
     let params = {
       headers: {
@@ -82,7 +81,7 @@ class Words extends Component{
       },
       method: 'POST',
       body: JSON.stringify(options),
-    }
+    };
 
     try {
       let response = await fetch(url, params);
@@ -103,7 +102,7 @@ class Words extends Component{
       if (error.message === 'duplicate') {
         var errorMessage = `Слово "${name}" уже добавлено`;
       } else {
-        var errorMessage = 'Произошла ошибка, попробуйте позднее';
+        errorMessage = 'Произошла ошибка, попробуйте позднее';
       }
       this.props.onError(errorMessage);
     } finally {
@@ -126,7 +125,7 @@ class Words extends Component{
   }
 
   render(){
-    let { words, newWordInputValue } = this.state;
+    let { words } = this.state;
     let wordsElements = words.map(word =>
       <Word
         key={word.id}
@@ -163,5 +162,13 @@ class Words extends Component{
   }
 
 }
+
+Words.propTypes = {
+  token: PropTypes.string.isRequired,
+  onError: PropTypes.func,
+  onWordAdded: PropTypes.func,
+  onWordChanged: PropTypes.func,
+  onWordDeleted: PropTypes.func,
+};
 
 export default Words;

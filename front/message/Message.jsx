@@ -3,6 +3,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import PropTypes from 'prop-types';
 
 import './Message.scss';
 
@@ -70,7 +71,7 @@ class Message extends Component{
           onExited={this.handleExited}
         >
           <SnackbarContent
-            className={"message " + variant}
+            className={'message ' + variant}
             message={text}
             action={[
               <IconButton
@@ -89,5 +90,9 @@ class Message extends Component{
   }
 
 }
+
+Message.propTypes = {
+  message: PropTypes.object,
+};
 
 export default Message;
