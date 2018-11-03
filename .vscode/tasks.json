@@ -16,7 +16,7 @@
         {
             "label": "Lint",
             "type": "shell",
-            "command": "eslint **/*.js **/*.jsx",
+            "command": "eslint app/**/*.js front/**/*.js* index.js",
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
