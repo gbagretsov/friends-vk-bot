@@ -21,7 +21,7 @@ class Words extends Component{
     this.newWordInputRef = React.createRef();
   }
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     let url = `api/words?token=${this.props.token}`;
 
     let params = {
@@ -31,18 +31,17 @@ class Words extends Component{
       method: 'GET',
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       } else {
         this.setState({ words: data });
       }
-    })
-    .catch(error => {      
+    } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
-    });
+    }
   }
 
   onWordChanged = (changed) => {
@@ -65,7 +64,7 @@ class Words extends Component{
     this.props.onWordDeleted(deleted);
   }
 
-  addWord = () => {
+  addWord = async () => {
     let name = this.newWordInputRef.current.value;
     // TODO: валидация
 
@@ -85,9 +84,9 @@ class Words extends Component{
       body: JSON.stringify(options),
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       } else {
@@ -100,18 +99,18 @@ class Words extends Component{
         this.newWordInputRef.current.value = '';
         this.props.onWordAdded(word);
       }
-    })
-    .catch(error => {
+    } catch (error) {
       if (error.message === 'duplicate') {
         var errorMessage = `Слово "${name}" уже добавлено`;
       } else {
         var errorMessage = 'Произошла ошибка, попробуйте позднее';
       }
       this.props.onError(errorMessage);
-    })
-    .then(() => this.setState({
-      newWordInputValue: '',
-    }));
+    } finally {
+      this.setState({
+        newWordInputValue: '',
+      });
+    }
   }
 
   handleNewWordChange = (event) => {

@@ -31,7 +31,7 @@ class Word extends Component{
     );
   }
 
-  saveWord = () => {
+  saveWord = async () => {
     let id = this.props.id;
     let oldName = this.props.name;
     let newName = this.state.editModeValue;
@@ -51,27 +51,26 @@ class Word extends Component{
       method: 'POST',
       body: JSON.stringify(options),
     }
-
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       } else {
         this.leaveEditMode();
         this.props.onChanged({ id, oldName, newName });
       }
-    })
-    .catch(error => {      
+    } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
-    });
+    }
   }
 
   leaveEditMode = () => {
     this.setState({ editMode: false });
   }
 
-  deleteWord = () => {
+  deleteWord = async () => {
     let id = this.props.id;
 
     let url = `api/words/${id}`;
@@ -89,19 +88,18 @@ class Word extends Component{
       body: JSON.stringify(options),
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       } else {
         this.leaveEditMode();
         this.props.onDeleted({ id, name: this.props.name });
       }
-    })
-    .catch(error => {      
+    } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
-    });
+    }
   }
 
   handleChange = (event) => {
