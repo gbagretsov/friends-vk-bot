@@ -33,7 +33,7 @@ class Token extends Component{
     }
   }
 
-  tryAuthorize = () => {
+  tryAuthorize = async () => {
     this.setState({
       pending: true,
       error: false,
@@ -53,9 +53,9 @@ class Token extends Component{
       method: 'POST',
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.success) {
         this.setState({ pending: false });
         localStorage['t'] = this.state.token;
@@ -63,8 +63,7 @@ class Token extends Component{
       } else {
         throw new Error('token');
       }
-    })
-    .catch(error => {
+    } catch (error) {
       if (error.message === 'token') {
         this.setState({
           pending: false,
@@ -76,7 +75,7 @@ class Token extends Component{
           pending: false,
         });
       }
-    });
+    }
   }
 
   _handleKeyPress = (e) => {

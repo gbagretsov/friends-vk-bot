@@ -22,7 +22,7 @@ class Ads extends Component{
     });
   }
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.setState({ pending: true });
 
     let url = `api/ads?token=${this.props.token}`;
@@ -34,24 +34,23 @@ class Ads extends Component{
       method: 'GET',
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.ads) {
         this.setState({ ads: data.ads });
       } else {
         throw new Error(data.error);
       }
-    })
-    .catch(error => {      
+    } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
-    })
-    .then(() => {
+    } finally {
       this.setState({ pending: false });
-    });
+    }
+
   }
 
-  trySaveAds = () => {
+  trySaveAds = async () => {
     this.setState({
       pending: true,
     });
@@ -71,21 +70,19 @@ class Ads extends Component{
       method: 'POST',
     }
 
-    fetch(url, params)
-    .then(response => response.json())
-    .then(data => {
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
       if (data.success) {
         this.props.onSaved();
       } else {
         throw new Error(data.error);
       }
-    })
-    .catch(error => {
+    } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
-    })
-    .then(() => {  
+    } finally {
       this.setState({ pending: false });
-    });
+    }
   }
 
   render(){
