@@ -4,7 +4,7 @@ const peerID = process.env.VK_PEER_ID;
 
 module.exports = function(app){
 
-  app.post('/receive', (req, res) => {
+  app.post('/receive', async (req, res) => {
     
     // Подтверждение адреса
     if (req.body.type === 'confirmation' && req.body.group_id == process.env.VK_GROUP_ID) {
@@ -14,6 +14,8 @@ module.exports = function(app){
     
     // Приём сообщений
     if (req.body.type === 'message_new') {
+      res.send('ok');
+      
       let message = req.body.object;
       
       if (peerID == message.peer_id) {
@@ -25,21 +27,18 @@ module.exports = function(app){
         const handleByGameModule = require('./game/game');
         const handleByChatModule = require('./chat/chat');
 
-        handleByGameModule(message)
-          .then(handled => {
-            return handled || handleByChatModule(message);
-          })
-          .then(handled => {
-            if (!handled) {
-              console.log('I didn\'t understand this message :(');
-            }
-          });
+        let handled = 
+          await handleByGameModule(message) || 
+          await handleByChatModule(message);
+          
+        if (!handled) {
+          console.log('I didn\'t understand this message :(');
+        }
 
       } else {
         console.log('This message is not for me');
       };
 
-      res.send('ok');
       return;
     }
 
