@@ -38,7 +38,10 @@ function getHolidaysMessage(holidays) {
 function getAdsMessage() {
   const client = db();
   return client.query("SELECT value FROM friends_vk_bot.state WHERE key = 'ads';")
-    .then(r => r.rows[0].value);
+    .then(r => {
+      client.end();
+      return r.rows[0].value;
+    });
 }
 
 (async() => {
