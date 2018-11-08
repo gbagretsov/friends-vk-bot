@@ -1,7 +1,7 @@
 const axios = require('axios');
 require('dotenv').config();
 
-let errorHandler = function (error) {
+let handleError = function (error) {
   if (error.response) {
     return error.response.data;
   } else if (error.request) {
@@ -16,22 +16,20 @@ const params = {
   lang: 'ru',
 };
 
-module.exports.getCurrentWeather = function() {
-  return axios.get('http://api.openweathermap.org/data/2.5/weather', {
-      params: params
-    })
-    .then(function (response) {
-      return response.data;
-    })
-    .catch(errorHandler);
+module.exports.getCurrentWeather = async function() {
+  try {
+    let response = await axios.get('http://api.openweathermap.org/data/2.5/weather', { params });
+    return response.data;
+  } catch (error) {
+    console.log(handleError(error));
+  }
 }
 
-module.exports.getForecast = function() {
-  return axios.get('http://api.openweathermap.org/data/2.5/forecast', {
-      params: params
-    })
-    .then(function (response) {
-      return response.data.list;
-    })
-    .catch(errorHandler);
+module.exports.getForecast = async function() {
+  try {
+    let response = await axios.get('http://api.openweathermap.org/data/2.5/forecast', { params });
+    return response.data.list;
+  } catch (error) {
+    console.log(handleError(error));
+  }
 }
