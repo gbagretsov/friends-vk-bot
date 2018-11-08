@@ -4,20 +4,12 @@ const axios = require('axios');
 const needle = require('needle');
 const fs = require('fs');
 const path = require('path');
+const { promisify } = require('util');
+const readFile = promisify(fs.readFile);
 
 const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
 const apiUrl = `https://api.vk.com/method`;
-
-var errorHandler = function (error) {
-  if (error.response) {
-    console.log(error.response.data);
-    return error.response.data;
-  } else if (error.request) {
-    console.log('Sender error: ' + error.message);
-    return 'Sender error: ' + error.message;
-  }
-};
 
 let delayPromise = function(ms) {
   return new Promise(resolve => {
@@ -25,75 +17,85 @@ let delayPromise = function(ms) {
   });
 }
 
-module.exports.sendMessage = function(message, delay) {
-  let setTypingStatusIfNeeded = function() {
+module.exports.sendMessage = async function(message, delay) {
+  let setTypingStatusIfNeeded = async function() {
     if (delay) {
-      return axios.get(`${apiUrl}/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`)
-        .then(() => delayPromise(delay));
-    } else {
-      return new Promise(resolve => resolve());
-    };
+      await axios.get(`${apiUrl}/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
+      return await delayPromise(delay);
+    }
+    return;
   }
 
-  return setTypingStatusIfNeeded()
-    .then(function (response) {
-      return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(message)}`);
-    })
-    .then(function (response) {
-      return response.data;
-    })
-    .catch(errorHandler);
+  await setTypingStatusIfNeeded();
+  try {
+    let response = await axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(message)}`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
 };
 
-module.exports.sendSticker = function(stickerId) {
-  return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}`)
-    .then(function (response) {
-      return response.data;
-    })
-    .catch(errorHandler);
+module.exports.sendSticker = async function(stickerId) {
+  try {
+    let response = await axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
 };
 
-module.exports.getUserName = function(uid) {
-  return axios.get(`${apiUrl}/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`)
-    .then(function (response) {
-      return response.data.response[0].first_name;
-    })
-    .catch(errorHandler);
+module.exports.getUserName = async function(uid) {
+  try {
+    let response = await axios.get(`${apiUrl}/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return response.data.response[0].first_name;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
 };
 
-module.exports.sendPhoto = function(pathToPhoto) {
-  // Получаем адрес сервера для загрузки фото
-  return axios.get(`${apiUrl}/photos.getMessagesUploadServer?v=5.85&access_token=${accessToken}&peer_id=${peerID}`)
-    .then(response => {
-      // Загружаем фотографию
-      let uploadUrl = response.data.response.upload_url;
-      let buffer = fs.readFileSync(pathToPhoto);
+module.exports.sendPhoto = async function(pathToPhoto) {
+  try {
+    // Получаем адрес сервера для загрузки фото
+    let uploadUrlResponse = await axios.get(`${apiUrl}/photos.getMessagesUploadServer?v=5.85&access_token=${accessToken}&peer_id=${peerID}`);
+    
+    // Загружаем фотографию
+    let uploadUrl = uploadUrlResponse.data.response.upload_url;
+    let buffer = await readFile(pathToPhoto);
 
-      let data = {
-        file: {
-          buffer: buffer,
-          filename: path.parse(pathToPhoto).base,
-          content_type: 'image/jpeg',
-        }
+    let data = {
+      file: {
+        buffer: buffer,
+        filename: path.parse(pathToPhoto).base,
+        content_type: 'image/jpeg',
       }
+    }
 
-      return needle('post', uploadUrl, data, { multipart: true }); 
-    })
-    .then(response => {
-      // Сохраняем фотографию
-      let data = JSON.parse(response.body);
-      let server = data.server;
-      let photo = data.photo;
-      let hash = data.hash;
-      return axios.get(`${apiUrl}/photos.saveMessagesPhoto?v=5.85&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
-    })
-    .then(response => {
-      // Прикрепляем фотографию
-      let photoInfo = response.data.response[0];
-      let ownerID = photoInfo.owner_id;
-      let mediaID = photoInfo.id;
-      let attachment = `photo${ownerID}_${mediaID}`;
-      return axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}`);
-    })
-    .catch(errorHandler);
+    let photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
+
+    // Сохраняем фотографию
+    let { server, photo, hash } = JSON.parse(photoInfoResponse.body);
+    let savedPhotoInfoResponse = await axios.get(`${apiUrl}/photos.saveMessagesPhoto?v=5.85&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+
+    // Прикрепляем фотографию
+    let photoInfo = savedPhotoInfoResponse.data.response[0];
+    let ownerID = photoInfo.owner_id;
+    let mediaID = photoInfo.id;
+    let attachment = `photo${ownerID}_${mediaID}`;
+    return await axios.get(`${apiUrl}/messages.send?v=5.85&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}`);
+  } catch (error) {
+    console.log(error.message);
+  }
+
 };
