@@ -41,47 +41,36 @@ function getAdsMessage() {
     .then(r => r.rows[0].value);
 }
 
-const stickersIDs = [
-  16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535, 
-];
+(async() => {
 
-let currentWeather = weather.getCurrentWeather();
-let forecast = weather.getForecast();
-let weatherMessage;
-
-Promise.all([currentWeather, forecast])
-  .then(values => {
-    console.log(`Weather: ${ util.inspect(values[0]) }`);
-    console.log(`Forecast: ${ util.inspect(values[1]) }`);
-    weatherMessage = getWeatherMessage(values[0], values[1]);
-    console.log(`Weather message: ${weatherMessage}`);
-    
-    let randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
-    return sender.sendSticker(randomID);
-  })
-  .then(result => {
-    console.log(`Sticker sent response: ${util.inspect(result)}`);
-    return sender.sendMessage(weatherMessage);
-  })
-  .then(result => {
-    console.log(`Weather message sent response: ${util.inspect(result)}`);
-    return holidays.getHolidays();
-  })
-  .then(result => {
-    console.log(`Holidays: ${util.inspect(result)}`);
-    return sender.sendMessage(getHolidaysMessage(result));
-  })
-  .then(result => {
-    console.log(`Holidays message sent response: ${util.inspect(result)}`);
-    return getAdsMessage();
-  })
-  .then(result => {
-    console.log(`Ads: ${util.inspect(result)}`);
-    return result ? sender.sendMessage(result) : 'ads not set';
-  })
-  .then(result => {
-    console.log(`Ads message sent response: ${util.inspect(result)}`);
-  })
-  .catch((error) => {
-    console.log(`Error: ${error}`);
-  });
+  const stickersIDs = [
+    16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535, 
+  ];
+  
+  let [ currentWeather, forecast, todayHolidays ] = await Promise.all([
+    weather.getCurrentWeather(), 
+    weather.getForecast(), 
+    holidays.getHolidays(),
+  ]);
+  
+  console.log(`Weather: ${ util.inspect(currentWeather) }`);
+  console.log(`Forecast: ${ util.inspect(forecast) }`);
+  let weatherMessage = getWeatherMessage(currentWeather, forecast);  
+  
+  let randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
+  console.log(`Sticker sent response: ${ await sender.sendSticker(randomID) }`);
+  
+  console.log(`Weather message: ${ weatherMessage }`);
+  console.log(`Weather message sent response: ${ await sender.sendMessage(weatherMessage) }`);
+  
+  let holidaysMessage = getHolidaysMessage(todayHolidays);
+  console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
+  console.log(`Holidays message sent response: ${ await sender.sendMessage(holidaysMessage) }`);
+  
+  let ads = await getAdsMessage();
+  console.log(`Ads: ${ ads }`);
+  if (ads) {
+    console.log(`Ads message sent response: ${ await sender.sendMessage(ads) }`);
+  }
+  
+})();
