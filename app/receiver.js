@@ -26,9 +26,11 @@ module.exports = function(app){
 
         const handleByGameModule = require('./game/game');
         const handleByChatModule = require('./chat/chat');
+        const handleBySpeechModule = require('./speech/speech');
 
         let handled = 
           await handleByGameModule(message) || 
+          await handleBySpeechModule(message) || 
           await handleByChatModule(message);
           
         if (!handled) {
