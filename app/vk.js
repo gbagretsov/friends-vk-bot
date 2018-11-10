@@ -52,6 +52,9 @@ module.exports.sendSticker = async function(stickerId) {
   }
 };
 
+/**
+ * @deprecated use getUserInfo
+ */
 module.exports.getUserName = async function(uid) {
   try {
     let response = await axios.get(`${apiUrl}/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}`);
@@ -59,6 +62,20 @@ module.exports.getUserName = async function(uid) {
       throw new Error(response.data.error.error_msg);
     }
     return response.data.response[0].first_name;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+};
+
+module.exports.getUserInfo = async function(uid) {
+  let fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl';
+  try {
+    let response = await axios.get(`${apiUrl}/users.get?v=5.85&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return response.data.response[0];
   } catch (error) {
     console.log(error.message);
     return false;
