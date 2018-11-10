@@ -45,20 +45,33 @@ let handleAudioMessage = async (audioMessage) => {
   }
 };
 
-let sendResult = async (result) => {
+let sendResult = async (result, uid) => {
   if (!result) {
     console.log('text not recognized');
     return;
   }
 
-  // TODO: вписать имя и пол отправителя
-  vk.sendMessage(`Результат: ${result.transcript}, вероятность: ${result.confidence}`);
+  let user = await vk.getUserInfo(uid);
+  let { transcript, confidence } = result;
+  transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+  confidence = Math.round(confidence * 100);
+
+  // TODO: учитывать пол пользователя
+  // TODO: добавить фразы
+  let messages = [
+    `С вероятностью ${ confidence }% ${ user.first_name } сказал: \n "${ transcript }"`,
+    `Вот текстовая версия сообщения ${ user.first_name_gen }: \n "${ transcript }" \n Точность распознавания: ${ confidence }%`,
+    `"${ transcript }" \n Именно это сказал ${ user.first_name } \n Я уверен в своём решении на ${ confidence }%`,
+    `${ user.first_name }, у тебя очень красивый голос! 😊 А фразу "${ transcript }" с вероятностью ${ confidence }% будут цитировать наши потомки`,
+  ];
+
+  vk.sendMessage(messages[Math.floor(Math.random() * messages.length)]);
 };
 
 module.exports = function(message) {
   if (message.attachments && message.attachments[0] && message.attachments[0].type === 'audio_message') {
     let audioMessage = message.attachments[0].audio_message;
-    handleAudioMessage(audioMessage).then(sendResult);
+    handleAudioMessage(audioMessage).then(result => sendResult(result, message.from_id));
     return true;
   }
   return false;
