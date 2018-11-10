@@ -3,6 +3,12 @@ const needle = require('needle');
 const Audio = require('audio');
 const fs = require('fs');
 
+function savePromisified(audio, fileName) {
+  return new Promise(resolve => {
+    audio.save(fileName, resolve);
+  });
+}
+
 let handleAudioMessage = async (audioMessage) => {
   // Получаем аудиозапись
   let rawAudio = await needle('get', audioMessage.link_mp3);
@@ -13,11 +19,9 @@ let handleAudioMessage = async (audioMessage) => {
   // Конвертируем в нужный формат
   fs.writeFileSync(__dirname + '/audio.mp3', rawAudio);
   Audio.cache = {};
-  Audio.load('./audio.mp3').then(audio => audio.save('audio.wav', onAudioSaved));
-};
-
-let onAudioSaved = async () => {
-  let rawAudio = fs.readFileSync(__dirname + '/audio.wav');
+  rawAudio = await Audio.load('./audio.mp3');
+  await savePromisified(rawAudio, 'audio.wav');
+  rawAudio = fs.readFileSync(__dirname + '/audio.wav');
 
   // Загружаем аудио на сервер Google
   let url = `https://speech.googleapis.com/v1/speech:recognize?key=${process.env.GOOGLE_KEY}`;
