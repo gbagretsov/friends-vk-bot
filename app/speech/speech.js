@@ -2,6 +2,7 @@ require('dotenv').config();
 const needle = require('needle');
 const Audio = require('audio');
 const fs = require('fs');
+const vk = require('../vk');
 
 function savePromisified(audio, fileName) {
   return new Promise(resolve => {
@@ -38,19 +39,26 @@ let handleAudioMessage = async (audioMessage) => {
   let recognizedText = await needle('post', url, data, { json: true });
 
   try {
-    console.log(recognizedText.body.results[0].alternatives[0]);
-    console.log(recognizedText.body.results[0].alternatives.length);
+    return recognizedText.body.results[0].alternatives[0];
   } catch (error) {
-    console.log('no result');
+    return false;
+  }
+};
+
+let sendResult = async (result) => {
+  if (!result) {
+    console.log('text not recognized');
+    return;
   }
 
-  // TODO: отправлять ответ ВК
+  // TODO: вписать имя и пол отправителя
+  vk.sendMessage(`Результат: ${result.transcript}, вероятность: ${result.confidence}`);
 };
 
 module.exports = function(message) {
   if (message.attachments && message.attachments[0] && message.attachments[0].type === 'audio_message') {
     let audioMessage = message.attachments[0].audio_message;
-    handleAudioMessage(audioMessage);
+    handleAudioMessage(audioMessage).then(sendResult);
     return true;
   }
   return false;
