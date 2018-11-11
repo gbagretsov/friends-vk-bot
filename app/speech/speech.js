@@ -56,12 +56,13 @@ let sendResult = async (result, uid) => {
   transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
   confidence = Math.round(confidence * 100);
 
-  // TODO: учитывать пол пользователя
+  let pastTenseEnding = user.sex === 1 ? 'а' : '';
+
   // TODO: добавить фразы
   let messages = [
-    `С вероятностью ${ confidence }% ${ user.first_name } сказал: \n "${ transcript }"`,
+    `С вероятностью ${ confidence }% ${ user.first_name } сказал${ pastTenseEnding }: \n "${ transcript }"`,
     `Вот текстовая версия сообщения ${ user.first_name_gen }: \n "${ transcript }" \n Точность распознавания: ${ confidence }%`,
-    `"${ transcript }" \n Именно это сказал ${ user.first_name } \n Я уверен в своём решении на ${ confidence }%`,
+    `"${ transcript }" \n Именно это сказал${ pastTenseEnding } ${ user.first_name } \n Я уверен в своём решении на ${ confidence }%`,
     `${ user.first_name }, у тебя очень красивый голос! 😊 А фразу "${ transcript }" с вероятностью ${ confidence }% будут цитировать наши потомки`,
   ];
 
