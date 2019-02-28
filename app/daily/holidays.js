@@ -18,7 +18,7 @@ module.exports.getHolidays = function() {
           return html.includes('/1.gif') || html.includes('/15.gif') || html.includes('/79.gif');
         })
         .map(function(i, el) {
-          return $(this).find('.title').text().trim();
+          return $(this).find('.title a').text().trim();
         })
         .get();
 
