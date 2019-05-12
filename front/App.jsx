@@ -60,7 +60,12 @@ class App extends Component {
         <CssBaseline/>
         { !authorized && 
             <Token
-              onAuthorized={this.saveToken}
+              onAuthorized={(token, demo) => {
+                this.saveToken(token);
+                if (demo) {
+                  this.showMessage('Вы находитесь в демо-режиме. Изменения не сохраняются', 'info');
+                }
+              }}
               onError={(error) => this.showMessage(error, 'error')}
             />
         }

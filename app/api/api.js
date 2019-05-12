@@ -6,6 +6,10 @@ function checkToken(req, res, next) {
   let receivedToken = req.body.token || req.query.token;
   let actualToken = process.env.VK_ACCESS_TOKEN;
   if (receivedToken === actualToken) {
+    req.body.demo = false;
+    next();
+  } else if (receivedToken.toUpperCase() === 'DEMO') {
+    req.body.demo = true;
     next();
   } else {
     res.json({ error: 'token' });
@@ -18,7 +22,7 @@ router.use('/words', require('./words').router);
 router.use('/ads', require('./ads').router);
 
 router.post('/', (req, res) => {
-  res.json({ success: true });
+  res.json({ success: true, demo: req.body.demo });
 });
 
 module.exports.router = router;

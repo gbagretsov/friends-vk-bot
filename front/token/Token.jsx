@@ -60,7 +60,7 @@ class Token extends Component{
       if (data.success) {
         this.setState({ pending: false });
         localStorage['t'] = this.state.token;
-        this.props.onAuthorized(this.state.token);
+        this.props.onAuthorized(this.state.token, data.demo);
       } else {
         throw new Error('token');
       }

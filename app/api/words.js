@@ -20,9 +20,18 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
 
+  let name = req.body.name;
+
+  if (req.body.demo) {
+    res.json({
+      success: true,
+      word: { id: Math.floor(Math.random() * 1000000), name },
+    });
+    return;
+  }
+
   const client = db();
 
-  let name = req.body.name;
   // TODO: валидация
 
   try {
@@ -39,6 +48,11 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/:id', async (req, res) => {
+
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
 
   const client = db();
 
@@ -58,6 +72,11 @@ router.post('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
 
   const client = db();
 

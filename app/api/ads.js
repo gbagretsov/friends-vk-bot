@@ -18,6 +18,11 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
+
   let newAds = req.body.ads;
   let query = `
     UPDATE friends_vk_bot.state SET value = '${ newAds }' WHERE key = 'ads';
