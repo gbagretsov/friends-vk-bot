@@ -1,27 +1,35 @@
 require('dotenv').config();
 const needle = require('needle');
-const Audio = require('audio');
+const wav = require('mp3-to-wav/libs/wav');
 const fs = require('fs');
-const vk = require('../vk');
+const path = require('path');
+const Mp32Wav = require('mp3-to-wav');
+Mp32Wav.prototype.saveForWav = function fixedSaveForWav(buffer, savePath, filename, sampleRate, channels, float = true) {
 
-function savePromisified(audio, fileName) {
-  return new Promise(resolve => {
-    audio.save(fileName, resolve);
-  });
-}
+  const fileFullName = filename + '.wav';
+  const fileFullPath = path.join(savePath, fileFullName);
+
+  try {
+    const wavData = wav.encode(buffer, {sampleRate: sampleRate, float: float, channels: channels});
+    fs.writeFileSync(fileFullPath, wavData);
+    return fileFullPath;
+  } catch (err) {
+    throw new Error(`saveForWav err: ${err.message}`)
+  }
+};
+const vk = require('../vk');
 
 let handleAudioMessage = async (audioMessage) => {
   // Получаем аудиозапись
   let rawAudio = await needle('get', audioMessage.link_mp3);
   rawAudio = rawAudio.body;
-  
-  // TODO: сделать без сохранения на диск
 
   // Конвертируем в нужный формат
   fs.writeFileSync(__dirname + '/audio.mp3', rawAudio);
-  Audio.cache = {};
-  rawAudio = await Audio.load('./audio.mp3');
-  await savePromisified(rawAudio, 'audio.wav');
+  const mp32Wav = new Mp32Wav(__dirname + '/audio.mp3');
+  const mp3DecodeRes = await mp32Wav.decodeMp3(__dirname + '/audio.mp3');
+  mp32Wav.saveForWav(mp3DecodeRes.data, __dirname, 'audio', mp3DecodeRes.sampleRate, 1, false);
+
   rawAudio = fs.readFileSync(__dirname + '/audio.wav');
 
   // Загружаем аудио на сервер Google
