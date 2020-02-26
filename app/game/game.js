@@ -280,10 +280,6 @@ function handlePlayingState(resolve, reject) {
         ];
         let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
         return vk.sendMessage(successMessage);
-      })
-      .then(response => {
-        let photoPath = __dirname + '/full.jpg';
-        return vk.sendPhoto(photoPath);
       });
     // TODO: отправлять стикер
   }
