@@ -1,0 +1,83 @@
+// Код процедуры getPolls, которая хранится и исполняется на стороне ВК API.
+// Процедура позволяет получить всю необходимую информацию об опросе
+// (тема, варианты ответов, проголосовавшие участники).
+
+var result = [];
+
+var me = API.users.get({"fields": "sex,screen_name"})[0];
+var pollIds = Args.poll_ids.split(',');
+var ownerIds = Args.owner_ids.split(',');
+
+
+var i = 0;
+while (i != pollIds.length) {
+    var curResult = {};
+    var pollInfo = API.polls.getById({
+        "poll_id": pollIds[i],
+        "owner_id": ownerIds[i]
+    });
+
+    curResult.poll_info = pollInfo;
+
+    var myVoteSuccessful;
+
+    if (!curResult.poll_info.can_vote) {
+        myVoteSuccessful = false;
+    } else {
+        myVoteSuccessful = API.polls.addVote({
+            "poll_id": pollIds[i],
+            "owner_id": ownerIds[i],
+            "answer_ids": pollInfo.answers[0].id
+        });
+        myVoteSuccessful = myVoteSuccessful == 1;
+    }
+
+
+    var j = 0;
+    var answerIds = pollInfo.answers@.id;
+    var concatenatedAnswerIds = '';
+    while (j != answerIds.length) {
+        if (j != 0) {
+            concatenatedAnswerIds = concatenatedAnswerIds + ',';
+        }
+        concatenatedAnswerIds = concatenatedAnswerIds + answerIds[j];
+        j = j + 1;
+    }
+
+    var votersIds = API.polls.getVoters({
+        "poll_id": pollIds[i],
+        "owner_id": ownerIds[i],
+        "answer_ids": concatenatedAnswerIds
+    });
+    votersIds = votersIds@.users@.items;
+    var flatVotersIds = [];
+    j = 0;
+    var k = 0;
+    while (j != votersIds.length) {
+        k = 0;
+        while (k != votersIds[j].length) {
+            if (me.id != votersIds[j][k] || !myVoteSuccessful) {
+                flatVotersIds.push(votersIds[j][k]);
+            }
+            k = k + 1;
+        }
+        j = j + 1;
+    }
+
+    curResult.voters = flatVotersIds;
+
+    result.push(curResult);
+
+    if (myVoteSuccessful) {
+        API.polls.deleteVote({
+            "poll_id": pollIds[i],
+            "owner_id": ownerIds[i],
+            "answer_id": pollInfo.answers[0].id
+        });
+    }
+
+    i = i + 1;
+
+};
+
+return result;
