@@ -150,7 +150,9 @@ module.exports.handleLookForPollInIncomingMessage = function(message) {
         if (!poll.anonymous) {
             const client = db();
             const query = `INSERT INTO friends_vk_bot.polls VALUES (${poll.id}, ${poll.owner_id});`;
-            client.query(query).then(() => client.end());
+            client.query(query)
+                .catch(error => console.log(error))
+                .then(() => client.end());
         }
         return true;
     }
