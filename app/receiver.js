@@ -27,10 +27,12 @@ module.exports = function(app){
         const handleByGameModule = require('./game/game');
         const handleByChatModule = require('./chat/chat');
         const handleBySpeechModule = require('./speech/speech');
+        const handleLookForPollInIncomingMessage = require('./polls-watch/polls-watch').handleLookForPollInIncomingMessage;
 
         let handled = 
-          await handleByGameModule(message) || 
-          await handleBySpeechModule(message) || 
+          await handleByGameModule(message) ||
+          await handleBySpeechModule(message) ||
+          await handleLookForPollInIncomingMessage(message) ||
           await handleByChatModule(message);
           
         if (!handled) {

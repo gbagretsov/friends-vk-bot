@@ -27,3 +27,12 @@ INSERT INTO friends_vk_bot.state (key, value) VALUES ('state', 'idle');
 INSERT INTO friends_vk_bot.state (key, value) VALUES ('answer', '');
 
 
+CREATE TABLE IF NOT EXISTS friends_vk_bot.polls
+(
+	id BIGINT NOT NULL
+		CONSTRAINT polls_pkey
+			PRIMARY KEY,
+	owner_id BIGINT NOT NULL
+);
+
+

@@ -23,3 +23,5 @@
 Все используемые переменные окружения описаны в `.env.example`
 
 Схема БД и пример данных в файле `db-generation.sql`
+
+Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline&response_type=token`

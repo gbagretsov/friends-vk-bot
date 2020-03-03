@@ -9,6 +9,8 @@ const readFile = promisify(fs.readFile);
 
 const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
+const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
+const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
 const apiUrl = `https://api.vk.com/method`;
 
 let delayPromise = function(ms) {
@@ -115,4 +117,32 @@ module.exports.sendPhoto = async function(pathToPhoto) {
     console.log(error.message);
   }
 
+};
+
+module.exports.getPolls = async function(polls) {
+  const pollIds = polls.map(poll => poll.id).join(',');
+  const ownerIds = polls.map(poll => poll.ownerId).join(',');
+  try {
+    let response = await axios.get(`${apiUrl}/execute.getPolls?v=5.85&access_token=${personalAccessToken}&poll_ids=${pollIds}&owner_ids=${ownerIds}&peer_id=${personalPeerID}`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return response.data.response;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+};
+
+module.exports.getConversationMembers = async function() {
+  try {
+    let response = await axios.get(`${apiUrl}/messages.getConversationMembers?v=5.85&access_token=${accessToken}&peer_id=${peerID}&fields=first_name_gen,screen_name,sex`);
+    if (response.data.error) {
+      throw new Error(response.data.error.error_msg);
+    }
+    return response.data.response.profiles;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
 };
