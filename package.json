@@ -8,12 +8,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "heroku-postbuild": "webpack --mode production",
+    "heroku-postbuild": "webpack --mode production && npm run migrate up",
     "dev": "npm run build && heroku local",
     "daily": "node app/daily/daily.js",
     "polls-watch": "node app/polls-watch/run-polls-watch.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch",
+    "migrate": "node-pg-migrate",
     "build": "webpack --mode development",
     "prod": "webpack --mode production"
   },
@@ -28,6 +29,7 @@
     "express": "^4.17.1",
     "mp3-to-wav": "^0.1.11",
     "needle": "^2.3.2",
+    "node-pg-migrate": "^4.2.2",
     "npm-watch": "^0.6.0",
     "pg": "^7.18.2",
     "react": "^16.12.0",
