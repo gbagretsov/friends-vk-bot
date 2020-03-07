@@ -84,7 +84,7 @@ function handleMessage(resolve, reject) {
 
 function handleAddWordRequest() {
   let text = this.message.text.toLowerCase();
-  let botMentioned = text.startsWith('бот,') || text.includes('club171869330');
+  let botMentioned = isBotMentioned(text);
   let isAddWordRequest = text.includes('запомни слово');
 
   if (botMentioned && isAddWordRequest) {
@@ -111,7 +111,7 @@ function handleAddWordRequest() {
 
 function handleDeleteWordRequest() {
   let text = this.message.text.toLowerCase();
-  let botMentioned = text.startsWith('бот,') || text.includes('club171869330');
+  let botMentioned = isBotMentioned(text);
   let isDeleteWordRequest = text.includes('забудь слово');
 
   if (botMentioned && isDeleteWordRequest) {
@@ -265,6 +265,7 @@ function handlePlayingState(resolve, reject) {
   }
 
   let answerIsCorrect = checkAnswer(text);
+  let triedToAddWord = false;
 
   if (answerIsCorrect) {
     clearTimeout(timeoutObj);
@@ -282,13 +283,24 @@ function handlePlayingState(resolve, reject) {
         return vk.sendMessage(successMessage);
       });
     // TODO: отправлять стикер
+  } else {
+    let word = extractWord(text);
+    let botMentioned = isBotMentioned(text);
+    if (word && !botMentioned) {
+      admin.addWord(word, false);
+      triedToAddWord = true;
+    }
   }
-  resolve(answerIsCorrect);
+  resolve(answerIsCorrect || triedToAddWord);
+}
+
+function isBotMentioned(text) {
+  return text.startsWith('бот,') || text.includes('club171869330');
 }
 
 function isGameRequestMessage(text) {
   text = text.toLowerCase();
-  let botMentioned = text.startsWith('бот,') || text.includes('club171869330');
+  let botMentioned = isBotMentioned(text);
   let gameRequested = 
     text.includes(' игр') ||
     text.includes('поигра') || 

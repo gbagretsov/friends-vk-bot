@@ -1,9 +1,9 @@
 const express = require('express');
 const db = require('../db');
 
-function addWord(word) {
+function addWord(word, approved = true) {
   let client = db();
-  return client.query(`INSERT INTO friends_vk_bot.words (name) VALUES ('${ word }');`)
+  return client.query(`INSERT INTO friends_vk_bot.words (name, approved) VALUES ('${ word }', ${ approved });`)
     .catch(error => {
       console.log(error);
       return error.code;
