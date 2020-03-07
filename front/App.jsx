@@ -47,6 +47,7 @@ class App extends Component {
           onWordAdded={(word) => this.showMessage(`Добавлено слово "${word.name}"`, 'success')}
           onWordChanged={(word) => this.showMessage(`Слово "${word.oldName}" изменено на "${word.newName}"`, 'success')}
           onWordDeleted={(word) => this.showMessage(`Слово "${word.name}" удалено`, 'success')}
+          onWordApproved={(word) => this.showMessage(`Слово "${word.name}" одобрено`, 'success')}
           onError={(error) => this.showMessage(error, 'error')}
         />
       </div>

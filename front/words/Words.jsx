@@ -63,6 +63,16 @@ class Words extends Component{
     this.props.onWordDeleted(deleted);
   }
 
+  onWordApproved = (approved) => {
+    this.setState(state => {
+      let words = state.words;
+      let index = words.findIndex(word => word.id === approved.id);
+      words[index].isApproved = true;
+      return { words };
+    });
+    this.props.onWordApproved(approved);
+  }
+
   addWord = async () => {
     let name = this.newWordInputRef.current.value;
     // TODO: валидация
@@ -131,9 +141,11 @@ class Words extends Component{
         key={word.id}
         id={word.id}
         name={word.name}
+        isApproved={word.isApproved}
         token={this.props.token}
         onChanged={this.onWordChanged}
         onDeleted={this.onWordDeleted}
+        onApproved={this.onWordApproved}
         onError={(error) => this.props.onError(error)}
       />
     );
@@ -169,6 +181,7 @@ Words.propTypes = {
   onWordAdded: PropTypes.func,
   onWordChanged: PropTypes.func,
   onWordDeleted: PropTypes.func,
+  onWordApproved: PropTypes.func,
 };
 
 export default Words;

@@ -9,7 +9,13 @@ router.get('/', async (req, res) => {
   try {
     const r = await client.query('SELECT * FROM friends_vk_bot.words ORDER BY id DESC;');
     let words = r.rows;
-    res.json(words);
+    res.json(words.map(word => {
+      return {
+        id: word.id,
+        name: word.name,
+        isApproved: word.approved,
+      }
+    }));
   } catch(error) {
     console.log(error);
     res.json({ error: 'internal' });
@@ -25,7 +31,7 @@ router.post('/', async (req, res) => {
   if (req.body.demo) {
     res.json({
       success: true,
-      word: { id: Math.floor(Math.random() * 1000000), name },
+      word: { id: Math.floor(Math.random() * 1000000), name, isApproved: true },
     });
     return;
   }
@@ -37,7 +43,7 @@ router.post('/', async (req, res) => {
   try {
     const r = await client.query(`INSERT INTO friends_vk_bot.words (name) VALUES ('${ name }') RETURNING id;`);
     let id = r.rows[0].id;
-    let word = { id, name };
+    let word = { id, name, isApproved: true };
     res.json({ success: true, word });
   } catch(error) {
     console.log(error);
@@ -61,6 +67,29 @@ router.post('/:id', async (req, res) => {
 
   try {
     await client.query(`UPDATE friends_vk_bot.words SET name='${name}' WHERE id=${id};`);
+    res.json({ success: true });
+  } catch(error) {
+    console.log(error);
+    res.json({ error: 'internal' });
+  } finally {
+    client.end();
+  }
+
+});
+
+router.post('/:id/approve', async (req, res) => {
+
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
+
+  const client = db();
+
+  let id = req.params.id;
+
+  try {
+    await client.query(`UPDATE friends_vk_bot.words SET approved=true WHERE id=${id};`);
     res.json({ success: true });
   } catch(error) {
     console.log(error);

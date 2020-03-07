@@ -5,6 +5,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
+import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 import PropTypes from 'prop-types';
 
 class Word extends Component{
@@ -27,6 +28,7 @@ class Word extends Component{
   shouldComponentUpdate = (nextProps, nextState) => {
     return (
       this.props.name !== nextProps.name || 
+      this.props.isApproved !== nextProps.isApproved ||
       this.state.editMode !== nextState.editMode ||
       this.state.editModeValue !== nextState.editModeValue
     );
@@ -103,6 +105,38 @@ class Word extends Component{
     }
   }
 
+  approveWord = async () => {
+    let id = this.props.id;
+
+    let url = `api/words/${id}/approve`;
+
+    let options = {
+      token: this.props.token,
+    };
+
+    let params = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify(options),
+    };
+
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      } else {
+        this.props.onApproved({ id, name: this.props.name });
+      }
+    } catch (error) {
+      this.props.onError('Произошла ошибка, попробуйте позднее');
+    }
+  }
+
+
   handleChange = (event) => {
     this.setState({
       editModeValue: event.target.value,
@@ -117,11 +151,13 @@ class Word extends Component{
 
   renderGeneralMode = () => {
     let name = this.props.name;
+    let isApproved = this.props.isApproved;
     return (
       <div>
         <span className="word-name" ref={this.wordNameSpanRef}>{ name }</span>
         <IconButton className="button" onClick={ () => this.enterEditMode() }><EditIcon fontSize="small"/></IconButton>
         <IconButton className="button" onClick={ () => this.deleteWord() }><DeleteIcon fontSize="small"/></IconButton>
+        { !isApproved && <IconButton className="button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
       </div>
     );
   }
@@ -129,6 +165,7 @@ class Word extends Component{
   renderEditMode = () => {
     let name = this.state.editModeValue;
     let width = this.state.inputWidth;
+    let isApproved = this.props.isApproved;
     let style = { width };
     return (
       <div>
@@ -141,6 +178,7 @@ class Word extends Component{
         />
         <IconButton className="button" onClick={ () => this.saveWord() }><CheckIcon fontSize="small"/></IconButton>
         <IconButton className="button" onClick={ () => this.leaveEditMode() }><CloseIcon fontSize="small"/></IconButton>
+        { !isApproved && <IconButton className="button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
       </div>
     );
   }
@@ -161,10 +199,12 @@ class Word extends Component{
 Word.propTypes = {
   name: PropTypes.string.isRequired,
   id: PropTypes.number.isRequired,
+  isApproved: PropTypes.bool.isRequired,
   token: PropTypes.string.isRequired,
   onError: PropTypes.func,
   onChanged: PropTypes.func,
   onDeleted: PropTypes.func,
+  onApproved: PropTypes.func,
 };
 
 export default Word;
