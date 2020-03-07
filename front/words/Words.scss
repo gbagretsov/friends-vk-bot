@@ -1,5 +1,7 @@
 @import '../mixins';
 
+$need-to-approve-color: #ff7e00;
+
 .words-wrapper ul {
   list-style-type: none;
   display: flex;
@@ -39,6 +41,18 @@
 
       &:hover {
         color: rgba(0, 0, 0, .5);
+      }
+    }
+
+    &.need-to-approve {
+      color: $need-to-approve-color;
+
+      .button {
+        color: fade-out($need-to-approve-color, .25);
+
+        &:hover {
+          color: $need-to-approve-color;
+        }
       }
     }
 

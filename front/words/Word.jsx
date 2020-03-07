@@ -185,9 +185,10 @@ class Word extends Component{
 
   render(){
     let editMode = this.state.editMode;
+    let isApproved = this.props.isApproved;
 
     return(
-      <li>
+      <li className={isApproved ? null : 'need-to-approve'}>
         { !editMode && this.renderGeneralMode() }
         {  editMode && this.renderEditMode() }
       </li>
