@@ -23,7 +23,7 @@ function getRandomTask() {
   let category = 'слово';
 
   let query = `
-    SELECT name FROM friends_vk_bot.${tableName}
+    SELECT name FROM friends_vk_bot.${tableName} WHERE approved = true
     ORDER BY RANDOM() LIMIT 1;
   `;
 
