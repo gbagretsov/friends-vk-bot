@@ -4,7 +4,7 @@ function addWord(word, approved = true) {
   let client = db();
   return client.query(`INSERT INTO friends_vk_bot.words (name, approved) VALUES ('${ word }', ${ approved });`)
     .catch(error => {
-      console.log(error);
+      console.log(error.detail);
       return error.code;
     })
     .then(result => {

@@ -1,6 +1,7 @@
 const needle = require('needle');
 const fs = require('fs');
 require('dotenv').config();
+const uuid = require('uuid');
 
 const vk = require('../vk');
 const dbClient = require('../db');
@@ -8,13 +9,12 @@ const admin = require('./admin');
 
 const TABLE_WORDS = 'words';
 
-const STATE_IDLE = 'idle';
-const STATE_PLAYING = 'playing';
-
 const STEP_INTERVAL = process.env.GAME_STEP_INTERVAL || 15000;
 
-let answer;
-let timeoutObj;
+let answer = '';
+let isPlaying = false;
+let gameId = '';
+let timeoutObj = null;
 
 async function getRandomTask() {
   // TODO: поддержка категорий
@@ -32,38 +32,15 @@ async function getRandomTask() {
   };
 }
 
-async function setGameState(state) {
-  let query = `
-    BEGIN TRANSACTION;
-    UPDATE friends_vk_bot.state SET value = '${ state.state }' WHERE key = 'state';
-    UPDATE friends_vk_bot.state SET value = '${ state.answer }' WHERE key = 'answer';
-    COMMIT TRANSACTION;
-  `;
-  let client = dbClient();
-  await client.query(query);
-  await client.end();
-}
-
-async function getGameState() {
-  let state = {};
-  let client = dbClient();
-  const dbResult = await client.query('SELECT * FROM friends_vk_bot.state;');
-  await client.end();
-  for (let row of dbResult.rows) {
-    state[row['key']] = row['value'];
-  }
-  return state;
-}
-
 async function handleMessage(resolve, reject) {
-  const state = await getGameState();
-  if (await handleAddWordRequest() || await handleDeleteWordRequest()) {
+  if (!this.message.text) {
+    resolve(false);
+  } else if (await handleAddWordRequest() || await handleDeleteWordRequest()) {
     resolve(true);
-  } else if (state.state === STATE_IDLE) {
-    await handleIdleState(resolve, reject);
-  } else if (state.state === STATE_PLAYING) {
-    answer = state.answer;
+  } else if (isPlaying) {
     await handlePlayingState(resolve, reject);
+  } else {
+    await handleIdleState(resolve, reject);
   }
 }
 
@@ -127,12 +104,11 @@ async function handleIdleState(resolve) {
 
   if (isGameRequestMessage(text)) {
     resolve(true);
+    isPlaying = true;
+    gameId = uuid.v4();
     const task = await getRandomTask();
-    answer = task.answer;
     try {
       await generatePhotos();
-      console.log(answer);
-      await setGameState({state: STATE_PLAYING, answer: answer});
       // TODO: больше приветственных сообщений
       let welcomeMessages = [
         'Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?',
@@ -141,8 +117,11 @@ async function handleIdleState(resolve) {
       await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
       let photoPath = __dirname + '/task.jpg';
       await vk.sendPhoto(photoPath);
-      timeoutObj = setTimeout(giveHint, STEP_INTERVAL);
+      answer = task.answer;
+      console.log(`Correct answer: ${answer}`);
+      timeoutObj = setTimeout(() => giveHint(gameId), STEP_INTERVAL);
     } catch (error) {
+      resetGame();
       // Бот устал
       if (error.message === 'usageLimits') {
         // TODO: больше сообщений
@@ -189,7 +168,7 @@ function randomInteger(min, max) {
   return rand;
 }
 
-async function giveHint() {
+async function giveHint(previousGameId) {
 
   // TODO: больше сообщений подсказок
   let hintMessages = [
@@ -202,19 +181,32 @@ async function giveHint() {
   await vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)]);
   await vk.sendPhoto(photoPath);
 
-  timeoutObj = setTimeout(sendAnswer, STEP_INTERVAL);
+  if (previousGameId === gameId) {
+    timeoutObj = setTimeout(() => handleGameLoss(previousGameId), STEP_INTERVAL);
+  } else {
+    console.log('previous game is over, no need to handle game loss');
+  }
 }
 
-async function sendAnswer() {
-  await setGameState({state: STATE_IDLE, answer: ''});
-
+async function handleGameLoss(previousGameId) {
+  if (previousGameId !== gameId) {
+    return;
+  }
   // TODO: больше сообщений ответов
   let answerMessages = [
     `Не разгадали? Это же ${answer}!`,
     `⏱ Время истекло! Правильный ответ — ${answer}`,
   ];
 
+  resetGame();
+
   vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)]);
+}
+
+function resetGame() {
+  isPlaying = false;
+  answer = '';
+  gameId = '';
 }
 
 async function handlePlayingState(resolve) {
@@ -232,15 +224,16 @@ async function handlePlayingState(resolve) {
 
   if (answerIsCorrect) {
     clearTimeout(timeoutObj);
+    const previousAnswer = answer;
+    resetGame();
     resolve(true);
-    await setGameState({state: STATE_IDLE, answer: ''});
     const name = await vk.getUserName(this.message.from_id);
     let successMessages = [
-      `Браво, ${name}! Моё слово — ${answer} 👏`,
-      `${name}, ты умница! 😃 На картинке ${answer}`,
-      `Правильно, ${name}! 👍 Это действительно ${answer}`,
-      `И в этом раунде побеждает ${name}, разгадав слово "${answer}"! 😎`,
-      `Я увидел правильный ответ — ${answer}! ${name}, как тебе это удаётся? 🙀`,
+      `Браво, ${name}! Моё слово — ${previousAnswer} 👏`,
+      `${name}, ты умница! 😃 На картинке ${previousAnswer}`,
+      `Правильно, ${name}! 👍 Это действительно ${previousAnswer}`,
+      `И в этом раунде побеждает ${name}, разгадав слово "${previousAnswer}"! 😎`,
+      `Я увидел правильный ответ — ${previousAnswer}! ${name}, как тебе это удаётся? 🙀`,
     ];
     let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
     vk.sendMessage(successMessage);

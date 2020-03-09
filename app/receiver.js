@@ -19,7 +19,7 @@ module.exports = function(app){
       let message = req.body.object;
       
       if (peerID === message.peer_id.toString()) {
-        console.log(message.text);
+        console.log(`Got message: ${message.text}`);
 
         // Если сообщение не распознано модулем, передаём его дальше по цепочке.
         // Таким образом, повляется возможность обрабатывать различные сценарии.
