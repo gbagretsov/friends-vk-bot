@@ -108,7 +108,7 @@ async function handleIdleState(resolve) {
     gameId = uuid.v4();
     const task = await getRandomTask();
     try {
-      await generatePhotos();
+      await generatePhotos(task.answer);
       // TODO: больше приветственных сообщений
       let welcomeMessages = [
         'Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?',
@@ -142,7 +142,7 @@ async function handleIdleState(resolve) {
   }
 }
 
-async function generatePhotos() {
+async function generatePhotos(answer) {
   let apiURL = 'https://www.googleapis.com/customsearch/v1';
   let key = process.env.GOOGLE_KEY;
   let cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
