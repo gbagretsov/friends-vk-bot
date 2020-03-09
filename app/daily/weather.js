@@ -23,7 +23,7 @@ module.exports.getCurrentWeather = async function() {
   } catch (error) {
     console.log(handleError(error));
   }
-}
+};
 
 module.exports.getForecast = async function() {
   try {
@@ -32,4 +32,4 @@ module.exports.getForecast = async function() {
   } catch (error) {
     console.log(handleError(error));
   }
-}
+};

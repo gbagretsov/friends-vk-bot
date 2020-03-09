@@ -6,7 +6,6 @@ const vk = require('../vk');
 const dbClient = require('../db');
 const admin = require('./admin');
 
-const TABLE_STATE = 'state';
 const TABLE_WORDS = 'words';
 
 const STATE_IDLE = 'idle';
@@ -14,16 +13,13 @@ const STATE_PLAYING = 'playing';
 
 const STEP_INTERVAL = process.env.GAME_STEP_INTERVAL || 15000;
 
-let message, answer;
+let answer;
 let timeoutObj;
 
 async function getRandomTask() {
   // TODO: поддержка категорий
-  let tableName = TABLE_WORDS;
-  let category = 'слово';
-
   let query = `
-    SELECT name FROM friends_vk_bot.${tableName} WHERE approved = true
+    SELECT name FROM friends_vk_bot.${TABLE_WORDS} WHERE approved = true
     ORDER BY RANDOM() LIMIT 1;
   `;
 
@@ -32,7 +28,6 @@ async function getRandomTask() {
   const dbResult = await client.query(query);
   await client.end();
   return {
-    category: category,
     answer: dbResult.rows[0].name,
   };
 }
@@ -82,7 +77,7 @@ async function handleAddWordRequest() {
 
     if (word) {
       const result = await admin.addWord(word);
-      if (result == 23505) {
+      if (result === '23505') {
         vk.sendMessage(`Я уже знаю слово "${ word }"! 😊`, 3000);
       } else {
         vk.sendMessage(`👍 Я запомнил слово "${ word }"!`, 3000);
@@ -122,28 +117,26 @@ function extractWord(text) {
   let parts = text.split(' ');
   let word = parts[parts.length - 1];
 
-  word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()a-zA-Z\d]/g, '');
+  word = word.replace(/[.,/#!$%^&*;:{}=\-_`~()a-zA-Z\d]/g, '');
 
   return word === '' ? false : word;
 }
 
-async function handleIdleState(resolve, reject) {
+async function handleIdleState(resolve) {
   let text = this.message.text.toLowerCase();
-  let category;
 
   if (isGameRequestMessage(text)) {
     resolve(true);
     const task = await getRandomTask();
     answer = task.answer;
-    category = task.category;
     try {
       await generatePhotos();
       console.log(answer);
       await setGameState({state: STATE_PLAYING, answer: answer});
       // TODO: больше приветственных сообщений
       let welcomeMessages = [
-        `Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?`,
-        `Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?`,
+        'Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?',
+        'Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?',
       ];
       await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
       let photoPath = __dirname + '/task.jpg';
@@ -154,9 +147,9 @@ async function handleIdleState(resolve, reject) {
       if (error.message === 'usageLimits') {
         // TODO: больше сообщений
         let limitsMessages = [
-          `Что-то я устал играть... 😫 Приходите завтра 😊`,
-          `Давай продолжим завтра? Сегодня больше не хочется 😳`,
-          `Я уже наигрался, мне надо отдохнуть`,
+          'Что-то я устал играть... 😫 Приходите завтра 😊',
+          'Давай продолжим завтра? Сегодня больше не хочется 😳',
+          'Я уже наигрался, мне надо отдохнуть',
         ];
 
         let limitsStickers = [13, 85, 2091, 5135, 5629];
@@ -224,7 +217,7 @@ async function sendAnswer() {
   vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)]);
 }
 
-async function handlePlayingState(resolve, reject) {
+async function handlePlayingState(resolve) {
   let text = this.message.text.toLowerCase();
 
   // Если игра уже идёт, но кто-то написал новый запрос на игру,

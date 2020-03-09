@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
   const client = db();
 
   try {
-    let r = await client.query("SELECT value FROM friends_vk_bot.state WHERE key = 'ads';");
+    let r = await client.query('SELECT value FROM friends_vk_bot.state WHERE key = \'ads\';');
     let ads = r.rows[0].value;
     res.json({ ads });
   } catch(error) {

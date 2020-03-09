@@ -41,7 +41,7 @@ class Words extends Component{
     } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
     }
-  }
+  };
 
   onWordChanged = (changed) => {
     this.setState(state => {
@@ -51,7 +51,7 @@ class Words extends Component{
       return { words };
     });
     this.props.onWordChanged(changed);
-  }
+  };
 
   onWordDeleted = (deleted) => {
     this.setState(state => {
@@ -61,7 +61,7 @@ class Words extends Component{
       return { words };
     });
     this.props.onWordDeleted(deleted);
-  }
+  };
 
   onWordApproved = (approved) => {
     this.setState(state => {
@@ -71,7 +71,7 @@ class Words extends Component{
       return { words };
     });
     this.props.onWordApproved(approved);
-  }
+  };
 
   addWord = async () => {
     let name = this.newWordInputRef.current.value;
@@ -109,8 +109,9 @@ class Words extends Component{
         this.props.onWordAdded(word);
       }
     } catch (error) {
+      let errorMessage;
       if (error.message === 'duplicate') {
-        var errorMessage = `Слово "${name}" уже добавлено`;
+        errorMessage = `Слово "${name}" уже добавлено`;
       } else {
         errorMessage = 'Произошла ошибка, попробуйте позднее';
       }
@@ -120,19 +121,19 @@ class Words extends Component{
         newWordInputValue: '',
       });
     }
-  }
+  };
 
   handleNewWordChange = (event) => {
     this.setState({
       newWordInputValue: event.target.value,
     });
-  }
+  };
 
   _handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       this.addWord();
     }
-  }
+  };
 
   render(){
     let { words } = this.state;

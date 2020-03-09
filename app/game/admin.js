@@ -1,4 +1,3 @@
-const express = require('express');
 const db = require('../db');
 
 function addWord(word, approved = true) {

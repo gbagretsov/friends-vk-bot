@@ -21,7 +21,7 @@ class Ads extends Component{
     this.setState({
       ads: event.target.value,
     });
-  }
+  };
 
   componentDidMount = async () => {
     this.setState({ pending: true });
@@ -49,7 +49,7 @@ class Ads extends Component{
       this.setState({ pending: false });
     }
 
-  }
+  };
 
   trySaveAds = async () => {
     this.setState({
@@ -84,7 +84,7 @@ class Ads extends Component{
     } finally {
       this.setState({ pending: false });
     }
-  }
+  };
 
   render(){
     let { ads, pending } = this.state;

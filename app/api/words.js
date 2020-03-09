@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
         id: word.id,
         name: word.name,
         isApproved: word.approved,
-      }
+      };
     }));
   } catch(error) {
     console.log(error);
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
     res.json({ success: true, word });
   } catch(error) {
     console.log(error);
-    res.json({ error: error.code == 23505 ? 'duplicate' : 'internal' });
+    res.json({ error: error.code === '23505' ? 'duplicate' : 'internal' });
   } finally {
     client.end();
   }

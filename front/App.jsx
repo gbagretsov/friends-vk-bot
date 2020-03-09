@@ -22,7 +22,7 @@ class App extends Component {
       authorized: true,
       token,
     });
-  }
+  };
 
   showMessage = (message, variant) => {
     this.setState({
@@ -32,7 +32,7 @@ class App extends Component {
         key: new Date().getTime(),
       }
     });
-  }
+  };
 
   renderAdminPanel = () => {
     return(
@@ -52,7 +52,7 @@ class App extends Component {
         />
       </div>
     );
-  }
+  };
 
   render(){
     let { authorized, message } = this.state;

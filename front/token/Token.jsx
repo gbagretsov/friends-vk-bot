@@ -22,7 +22,7 @@ class Token extends Component{
       token: event.target.value,
       error: false,
     });
-  }
+  };
 
   componentDidMount = () => {
     let token = localStorage['t'];
@@ -32,7 +32,7 @@ class Token extends Component{
         () => this.tryAuthorize()
       );
     }
-  }
+  };
 
   tryAuthorize = async () => {
     this.setState({
@@ -77,13 +77,13 @@ class Token extends Component{
         });
       }
     }
-  }
+  };
 
   _handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       this.tryAuthorize();
     }
-  }
+  };
 
   render(){
     let { token, pending, error } = this.state;

@@ -23,7 +23,7 @@ class Word extends Component{
       editModeValue: this.props.name,
       inputWidth: width,
     });
-  }
+  };
 
   shouldComponentUpdate = (nextProps, nextState) => {
     return (
@@ -32,7 +32,7 @@ class Word extends Component{
       this.state.editMode !== nextState.editMode ||
       this.state.editModeValue !== nextState.editModeValue
     );
-  }
+  };
 
   saveWord = async () => {
     let id = this.props.id;
@@ -67,11 +67,11 @@ class Word extends Component{
     } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
     }
-  }
+  };
 
   leaveEditMode = () => {
     this.setState({ editMode: false });
-  }
+  };
 
   deleteWord = async () => {
     let id = this.props.id;
@@ -103,7 +103,7 @@ class Word extends Component{
     } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
     }
-  }
+  };
 
   approveWord = async () => {
     let id = this.props.id;
@@ -134,20 +134,20 @@ class Word extends Component{
     } catch (error) {
       this.props.onError('Произошла ошибка, попробуйте позднее');
     }
-  }
+  };
 
 
   handleChange = (event) => {
     this.setState({
       editModeValue: event.target.value,
     });
-  }
+  };
 
   _handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       this.saveWord();
     }
-  }
+  };
 
   renderGeneralMode = () => {
     let name = this.props.name;
@@ -160,7 +160,7 @@ class Word extends Component{
         { !isApproved && <IconButton className="button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
       </div>
     );
-  }
+  };
 
   renderEditMode = () => {
     let name = this.state.editModeValue;
@@ -181,7 +181,7 @@ class Word extends Component{
         { !isApproved && <IconButton className="button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
       </div>
     );
-  }
+  };
 
   render(){
     let editMode = this.state.editMode;

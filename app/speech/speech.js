@@ -14,7 +14,7 @@ Mp32Wav.prototype.saveForWav = function fixedSaveForWav(buffer, savePath, filena
     fs.writeFileSync(fileFullPath, wavData);
     return fileFullPath;
   } catch (err) {
-    throw new Error(`saveForWav err: ${err.message}`)
+    throw new Error(`saveForWav err: ${err.message}`);
   }
 };
 const vk = require('../vk');

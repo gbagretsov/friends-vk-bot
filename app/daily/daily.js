@@ -1,7 +1,7 @@
 const sender = require('../vk');
 const weather = require('./weather');
 const holidays = require('./holidays');
-const util = require('util')
+const util = require('util');
 const db = require('../db');
 
 function getWeatherMessage(weather, forecast) {
@@ -19,7 +19,7 @@ function getHolidaysMessage(holidays) {
         return `${sum} и ${cur}`;
       } else {
         return `${sum}, ${cur}`;
-      };
+      }
     });
 
     let phrases = [
@@ -37,7 +37,7 @@ function getHolidaysMessage(holidays) {
 
 function getAdsMessage() {
   const client = db();
-  return client.query("SELECT value FROM friends_vk_bot.state WHERE key = 'ads';")
+  return client.query('SELECT value FROM friends_vk_bot.state WHERE key = \'ads\';')
     .then(r => {
       client.end();
       return r.rows[0].value;

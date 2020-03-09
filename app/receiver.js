@@ -1,13 +1,13 @@
 require('dotenv').config();
 
-const peerID = process.env.VK_PEER_ID;
+const peerID = process.env.VK_PEER_ID.toString();
 
 module.exports = function(app){
 
   app.post('/receive', async (req, res) => {
     
     // Подтверждение адреса
-    if (req.body.type === 'confirmation' && req.body.group_id == process.env.VK_GROUP_ID) {
+    if (req.body.type === 'confirmation' && req.body.group_id.toString() === process.env.VK_GROUP_ID.toString()) {
       res.send(process.env.VK_CONFIRMATION_RESPONSE);
       return;
     } 
@@ -18,7 +18,7 @@ module.exports = function(app){
       
       let message = req.body.object;
       
-      if (peerID == message.peer_id) {
+      if (peerID === message.peer_id.toString()) {
         console.log(message.text);
 
         // Если сообщение не распознано модулем, передаём его дальше по цепочке.
@@ -41,11 +41,11 @@ module.exports = function(app){
 
       } else {
         console.log('This message is not for me');
-      };
+      }
 
       return;
     }
 
     res.status(404).end();
   });
-}
+};

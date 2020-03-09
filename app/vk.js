@@ -11,13 +11,13 @@ const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
 const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
 const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
-const apiUrl = `https://api.vk.com/method`;
+const apiUrl = 'https://api.vk.com/method';
 
 let delayPromise = function(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
-}
+};
 
 module.exports.sendMessage = async function(message, delay) {
   let setTypingStatusIfNeeded = async function() {
@@ -25,8 +25,7 @@ module.exports.sendMessage = async function(message, delay) {
       await axios.get(`${apiUrl}/messages.setActivity?v=5.85&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
       return await delayPromise(delay);
     }
-    return;
-  }
+  };
 
   await setTypingStatusIfNeeded();
   try {
@@ -99,7 +98,7 @@ module.exports.sendPhoto = async function(pathToPhoto) {
         filename: path.parse(pathToPhoto).base,
         content_type: 'image/jpeg',
       }
-    }
+    };
 
     let photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
 

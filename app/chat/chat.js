@@ -1,4 +1,3 @@
-const axios = require('axios');
 const vk = require('../vk');
 
 module.exports = function(message) {  
@@ -14,4 +13,4 @@ module.exports = function(message) {
   }
 
   return false;
-}
+};
