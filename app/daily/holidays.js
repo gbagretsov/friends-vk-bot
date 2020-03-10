@@ -1,28 +1,23 @@
 const cheerio = require('cheerio');
-const request = require('request');
+const axios = require('axios');
 
-module.exports.getHolidays = function() {
+module.exports.getHolidays = async function() {
 
-  return new Promise(function (resolve) {
-    request({
-      uri: 'https://www.calend.ru',
-      method: 'GET',
-    }, function (error, response, body) {
+  const response = await axios.get('https://www.calend.ru');
+  const body = response.data;
 
-      const $ = cheerio.load(body);
+  const $ = cheerio.load(body);
 
-      let holidays = $('.block.holidays .itemsNet').children('li')
-        .filter(function () {
-          let html = $(this).html();
-          return html.includes('/1.gif') || html.includes('/15.gif') || html.includes('/79.gif');
-        })
-        .map(function () {
-          return $(this).find('.title a').text().trim();
-        })
-        .get();
-
-      resolve(holidays);
-    });
+  const allHolidayElements = $('.block.holidays .itemsNet').children('li');
+  const suitableHolidayElements = allHolidayElements.filter(function () {
+    let html = $(this).html();
+    // Оставляем российские праздники, международные праздники и праздники ООН
+    return html.includes('/1.gif') || html.includes('/15.gif') || html.includes('/79.gif');
   });
+
+  // Берём названия праздников из заголовков
+  return suitableHolidayElements.map(function () {
+    return $(this).find('.title a').text().trim();
+  }).get();
 
 };
