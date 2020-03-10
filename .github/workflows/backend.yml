@@ -4,8 +4,9 @@
 name: Backend CI
 
 on:
-  - push
-  - pull_request
+  pull_request:
+    branches:
+      - master
 
 jobs:
   test:
