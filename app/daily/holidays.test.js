@@ -44,3 +44,7 @@ test('Nine Russian, international and UN holidays are celebrated on 1st March 20
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(9);
 });
+
+test('Two plus two is 5', () => {
+  expect(2 + 2).toBe(5);
+});
