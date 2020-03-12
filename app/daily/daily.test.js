@@ -97,4 +97,3 @@ test('Holiday message is correct if 4 holidays are celebrated today', async () =
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1, Holiday 2, Holiday 3 и Holiday 4\?/);
 });
-
