@@ -44,7 +44,7 @@ function getAdsMessage() {
     });
 }
 
-(async() => {
+module.exports = async() => {
 
   const stickersIDs = [
     16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535, 
@@ -68,12 +68,14 @@ function getAdsMessage() {
   
   let holidaysMessage = getHolidaysMessage(todayHolidays);
   console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
-  console.log(`Holidays message sent response: ${ await sender.sendMessage(holidaysMessage) }`);
-  
+  if (holidaysMessage) {
+    console.log(`Holidays message sent response: ${ await sender.sendMessage(holidaysMessage) }`);
+  }
+
   let ads = await getAdsMessage();
   console.log(`Ads: ${ ads }`);
   if (ads) {
     console.log(`Ads message sent response: ${ await sender.sendMessage(ads) }`);
   }
   
-})();
+};
