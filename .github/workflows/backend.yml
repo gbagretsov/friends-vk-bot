@@ -23,3 +23,5 @@ jobs:
         run: npm test
         env:
           CI: true
+          OPENWEATHER_APPID: ${{ secrets.OPENWEATHER_APPID }}
+
