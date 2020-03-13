@@ -249,7 +249,7 @@ async function handlePlayingState(resolve) {
 }
 
 function isBotMentioned(text) {
-  return text.startsWith('бот,') || text.includes('club171869330');
+  return text.startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
 }
 
 function isGameRequestMessage(text) {
