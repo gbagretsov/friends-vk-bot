@@ -31,4 +31,6 @@ jobs:
         env:
           CI: true
           OPENWEATHER_APPID: ${{ secrets.OPENWEATHER_APPID }}
+          VK_GROUP_ID: 12345
+          VK_GROUP_SCREEN_NAME: mygroup
 
