@@ -12,7 +12,7 @@
     "dev": "npm run build && heroku local",
     "daily": "node app/daily/run-daily.js",
     "polls-watch": "node app/polls-watch/run-polls-watch.js",
-    "test": "jest --env=node",
+    "test": "jest --env=node --silent",
     "watch": "npm-watch",
     "migrate": "node-pg-migrate",
     "build": "webpack --mode development",
