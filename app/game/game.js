@@ -30,24 +30,36 @@ async function getRandomTask() {
   };
 }
 
-async function handleMessage(resolve, reject) {
+function handleMessage() {
   if (!message.text) {
-    resolve(false);
-  } else if (await handleAddWordRequest() || await handleDeleteWordRequest()) {
-    resolve(true);
-  } else if (isPlaying) {
-    await handlePlayingState(resolve, reject);
-  } else {
-    await handleIdleState(resolve, reject);
+    return false;
   }
+  if (isAddWordRequest(message.text)) {
+    handleAddWordRequest(message.text);
+    return true;
+  }
+  if (isDeleteWordRequest(message.text)) {
+    handleDeleteWordRequest(message.text);
+    return true;
+  }
+  if (isPlaying) {
+    return handlePlayingState();
+  }
+  if (isGameRequestMessage(message.text)) {
+    handleGameRequestMessage(message.text);
+    return true;
+  }
+  return false;
 }
 
-async function handleAddWordRequest() {
-  let text = message.text.toLowerCase();
-  let botMentioned = isBotMentioned(text);
-  let isAddWordRequest = text.includes('запомни слово');
+function isAddWordRequest(text) {
+  const botMentioned = isBotMentioned(text);
+  const containsAddWordRequest = text.includes('запомни слово');
+  return botMentioned && containsAddWordRequest;
+}
 
-  if (botMentioned && isAddWordRequest) {
+async function handleAddWordRequest(text) {
+  if (isAddWordRequest(text)) {
     let word = extractWord(text);
 
     if (word) {
@@ -61,18 +73,17 @@ async function handleAddWordRequest() {
       vk.getUserName(message.from_id)
         .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
-    return true;
   }
-
-  return false;
 }
 
-async function handleDeleteWordRequest() {
-  let text = message.text.toLowerCase();
-  let botMentioned = isBotMentioned(text);
-  let isDeleteWordRequest = text.includes('забудь слово');
+function isDeleteWordRequest(text) {
+  const botMentioned = isBotMentioned(text);
+  const containsDeleteWordRequest = text.includes('забудь слово');
+  return botMentioned && containsDeleteWordRequest;
+}
 
-  if (botMentioned && isDeleteWordRequest) {
+async function handleDeleteWordRequest(text) {
+  if (isDeleteWordRequest(text)) {
     let word = extractWord(text);
     
     if (word) {
@@ -82,10 +93,7 @@ async function handleDeleteWordRequest() {
       vk.getUserName(message.from_id)
         .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
-    return true;
   }
-
-  return false;
 }
 
 function extractWord(text) {
@@ -97,11 +105,9 @@ function extractWord(text) {
   return word === '' ? false : word;
 }
 
-async function handleIdleState(resolve) {
-  let text = message.text.toLowerCase();
+async function handleGameRequestMessage(text) {
 
   if (isGameRequestMessage(text)) {
-    resolve(true);
     isPlaying = true;
     gameId = uuid.v4();
     const task = await getRandomTask();
@@ -135,8 +141,6 @@ async function handleIdleState(resolve) {
         await vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)], 5000);
       }
     }
-  } else {
-    resolve(false);
   }
 }
 
@@ -208,56 +212,59 @@ function resetGame() {
   gameId = '';
 }
 
-async function handlePlayingState(resolve) {
+async function handleCorrectAnswer() {
+  clearTimeout(timeoutObj);
+  const previousAnswer = answer;
+  resetGame();
+  const name = await vk.getUserName(message.from_id);
+  let successMessages = [
+    `Браво, ${name}! Моё слово — ${previousAnswer} 👏`,
+    `${name}, ты умница! 😃 На картинке ${previousAnswer}`,
+    `Правильно, ${name}! 👍 Это действительно ${previousAnswer}`,
+    `И в этом раунде побеждает ${name}, разгадав слово "${previousAnswer}"! 😎`,
+    `Я увидел правильный ответ — ${previousAnswer}! ${name}, как тебе это удаётся? 🙀`,
+  ];
+  let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
+  vk.sendMessage(successMessage);
+  // TODO: отправлять стикер
+}
+
+function handlePlayingState() {
   let text = message.text.toLowerCase();
 
   // Если игра уже идёт, но кто-то написал новый запрос на игру,
   // нужно закончить обработку этого сообщения, чтобы не было наложений сценариев бота
   if(isGameRequestMessage(text)) {
     console.log('game is already running');
-    resolve(true);
-    return;
+    return true;
   }
 
   let answerIsCorrect = checkAnswer(text);
 
   if (answerIsCorrect) {
-    clearTimeout(timeoutObj);
-    const previousAnswer = answer;
-    resetGame();
-    resolve(true);
-    const name = await vk.getUserName(message.from_id);
-    let successMessages = [
-      `Браво, ${name}! Моё слово — ${previousAnswer} 👏`,
-      `${name}, ты умница! 😃 На картинке ${previousAnswer}`,
-      `Правильно, ${name}! 👍 Это действительно ${previousAnswer}`,
-      `И в этом раунде побеждает ${name}, разгадав слово "${previousAnswer}"! 😎`,
-      `Я увидел правильный ответ — ${previousAnswer}! ${name}, как тебе это удаётся? 🙀`,
-    ];
-    let successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
-    vk.sendMessage(successMessage);
-    // TODO: отправлять стикер
+    handleCorrectAnswer();
+    return true;
   } else {
     let word = extractWord(text);
     let botMentioned = isBotMentioned(text);
-    resolve(word && !botMentioned);
     if (word && !botMentioned) {
-      await admin.addWord(word, false);
+      admin.addWord(word, false);
     }
+    return word && !botMentioned;
   }
 }
 
 function isBotMentioned(text) {
-  return text.startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
+  return text.toLowerCase().startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
 }
 
 function isGameRequestMessage(text) {
-  text = text.toLowerCase();
-  let botMentioned = isBotMentioned(text);
+  const _text = text.toLowerCase();
+  let botMentioned = isBotMentioned(_text);
   let gameRequested = 
-    text.includes(' игр') ||
-    text.includes('поигра') || 
-    text.includes('сыгра');
+    _text.includes(' игр') ||
+    _text.includes('поигра') ||
+    _text.includes('сыгра');
   return botMentioned && gameRequested;
 }
 
@@ -268,5 +275,5 @@ function checkAnswer(entered) {
 
 module.exports = function(_message) {
   message = _message;
-  return new Promise(handleMessage);
+  return handleMessage();
 };

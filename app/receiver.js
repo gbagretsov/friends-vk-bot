@@ -30,10 +30,10 @@ module.exports = function(app){
         const handleLookForPollInIncomingMessage = require('./polls-watch/polls-watch').handleLookForPollInIncomingMessage;
 
         let handled = 
-          await handleByGameModule(message) ||
-          await handleBySpeechModule(message) ||
-          await handleLookForPollInIncomingMessage(message) ||
-          await handleByChatModule(message);
+          handleByGameModule(message) ||
+          handleBySpeechModule(message) ||
+          handleLookForPollInIncomingMessage(message) ||
+          handleByChatModule(message);
           
         if (!handled) {
           console.log('I didn\'t understand this message :(');
