@@ -11,6 +11,7 @@ const TABLE_WORDS = 'words';
 
 const STEP_INTERVAL = process.env.GAME_STEP_INTERVAL || 15000;
 
+let message = null;
 let answer = '';
 let isPlaying = false;
 let gameId = '';
@@ -23,17 +24,14 @@ async function getRandomTask() {
     ORDER BY RANDOM() LIMIT 1;
   `;
 
-  let client = dbClient();
-
-  const dbResult = await client.query(query);
-  await client.end();
+  const dbResult = await dbClient.query(query);
   return {
     answer: dbResult.rows[0].name,
   };
 }
 
 async function handleMessage(resolve, reject) {
-  if (!this.message.text) {
+  if (!message.text) {
     resolve(false);
   } else if (await handleAddWordRequest() || await handleDeleteWordRequest()) {
     resolve(true);
@@ -45,7 +43,7 @@ async function handleMessage(resolve, reject) {
 }
 
 async function handleAddWordRequest() {
-  let text = this.message.text.toLowerCase();
+  let text = message.text.toLowerCase();
   let botMentioned = isBotMentioned(text);
   let isAddWordRequest = text.includes('запомни слово');
 
@@ -60,7 +58,7 @@ async function handleAddWordRequest() {
         vk.sendMessage(`👍 Я запомнил слово "${ word }"!`, 3000);
       }
     } else {
-      vk.getUserName(this.message.from_id)
+      vk.getUserName(message.from_id)
         .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
     return true;
@@ -70,7 +68,7 @@ async function handleAddWordRequest() {
 }
 
 async function handleDeleteWordRequest() {
-  let text = this.message.text.toLowerCase();
+  let text = message.text.toLowerCase();
   let botMentioned = isBotMentioned(text);
   let isDeleteWordRequest = text.includes('забудь слово');
 
@@ -81,7 +79,7 @@ async function handleDeleteWordRequest() {
       await admin.deleteWord(word);
       vk.sendMessage(`👍 Я забыл слово "${ word }"!`, 3000);
     } else {
-      vk.getUserName(this.message.from_id)
+      vk.getUserName(message.from_id)
         .then(name => vk.sendMessage(`${name}, я тебя не понимаю 😒`, 3000));
     }
     return true;
@@ -100,7 +98,7 @@ function extractWord(text) {
 }
 
 async function handleIdleState(resolve) {
-  let text = this.message.text.toLowerCase();
+  let text = message.text.toLowerCase();
 
   if (isGameRequestMessage(text)) {
     resolve(true);
@@ -210,7 +208,7 @@ function resetGame() {
 }
 
 async function handlePlayingState(resolve) {
-  let text = this.message.text.toLowerCase();
+  let text = message.text.toLowerCase();
 
   // Если игра уже идёт, но кто-то написал новый запрос на игру,
   // нужно закончить обработку этого сообщения, чтобы не было наложений сценариев бота
@@ -227,7 +225,7 @@ async function handlePlayingState(resolve) {
     const previousAnswer = answer;
     resetGame();
     resolve(true);
-    const name = await vk.getUserName(this.message.from_id);
+    const name = await vk.getUserName(message.from_id);
     let successMessages = [
       `Браво, ${name}! Моё слово — ${previousAnswer} 👏`,
       `${name}, ты умница! 😃 На картинке ${previousAnswer}`,
@@ -267,7 +265,7 @@ function checkAnswer(entered) {
   return entered === answer.toLowerCase();
 }
 
-module.exports = function(message) {
-  this.message = message;
+module.exports = function(_message) {
+  message = _message;
   return new Promise(handleMessage);
 };

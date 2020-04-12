@@ -1,5 +1,6 @@
 const messageWithAudioAttachment = {
   text: '',
+  from_id: 123,
   attachments: [{
     type: 'audio_message',
     audio_message: {
@@ -77,6 +78,8 @@ test('When bot receives an audio message and text is recognized, bot sends a mes
   setTimeout(() => {
     expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Иван сказал:/);
     expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Анна сказала:/);
+    expect(sender.getUserInfo.mock.calls[0][0]).toBe(123);
+    expect(sender.getUserInfo.mock.calls[1][0]).toBe(123);
     done();
   }, 100);
 });
