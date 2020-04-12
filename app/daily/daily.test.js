@@ -1,46 +1,50 @@
-const sender = require('../vk');
-const holidays = require('./holidays');
-
-const holidaysMock = jest.spyOn(holidays, 'getHolidays');
-
-jest.mock('../vk');
-sender.sendSticker.mockResolvedValue('ok');
-sender.sendMessage.mockResolvedValue('ok');
-
-let ads;
-
-let daily;
+let weatherMockResponse;
+let forecastMockResponse;
 
 beforeAll(async () => {
-
   let weather = require('./weather');
-  const weatherMockResponse = await weather.getCurrentWeather();
-  const forecastMockResponse = await weather.getForecast();
+  weatherMockResponse = await weather.getCurrentWeather();
+  forecastMockResponse = await weather.getForecast();
+
+  jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
+});
+
+beforeEach(() => {
   jest.doMock('./weather');
-  weather = require('./weather');
+  const weather = require('./weather');
   weather.getCurrentWeather.mockReturnValue(weatherMockResponse);
   weather.getForecast.mockReturnValue(forecastMockResponse);
 
-  jest.doMock('../db', () => () => ({
-    query: () => Promise.resolve({
-      rows: [{ value: ads }],
-    }),
-    end: () => Promise.resolve(),
-  }));
-
-  jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
-
-  daily = require('./daily');
-
+  jest.doMock('../vk');
+  const sender = require('../vk');
+  sender.sendSticker.mockResolvedValue('ok');
+  sender.sendMessage.mockResolvedValue('ok');
 });
 
 afterEach(() => {
   jest.clearAllMocks();
+  jest.resetModules();
 });
 
+function mockAds(ads) {
+  jest.doMock('../db');
+  const db = require('../db');
+  db.query.mockReturnValue({
+    rows: [{ value: ads }],
+  });
+}
+
+function mockHolidays(holidays) {
+  jest.doMock('./holidays');
+  const holidaysModule = require('./holidays');
+  holidaysModule.getHolidays.mockReturnValue(holidays);
+}
+
 test('If holidays are present and ads is present, then 3 messages are sent to chat in correct order - weather, holidays, ads', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1']);
-  ads = 'Ads message';
+  mockAds('Ads message');
+  mockHolidays(['Holiday 1']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(3);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -49,8 +53,10 @@ test('If holidays are present and ads is present, then 3 messages are sent to ch
 });
 
 test('If holidays are present and ads is not present, then 2 messages are sent to chat in correct order - weather, holidays', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1']);
-  ads = '';
+  mockAds('');
+  mockHolidays(['Holiday 1']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -58,8 +64,10 @@ test('If holidays are present and ads is not present, then 2 messages are sent t
 });
 
 test('If holidays are not present and ads is present, then 2 messages are sent to chat in correct order - weather, ads', async () => {
-  holidaysMock.mockImplementation(() => []);
-  ads = 'Ads other message';
+  mockAds('Ads other message');
+  mockHolidays([]);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -67,33 +75,47 @@ test('If holidays are not present and ads is present, then 2 messages are sent t
 });
 
 test('If holidays are not present and ads is not present, then only a weather message is sent', async () => {
-  holidaysMock.mockImplementation(() => []);
-  ads = '';
+  mockAds('');
+  mockHolidays([]);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(1);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
 });
 
 test('Holiday message is correct if 1 holiday is celebrated today', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1']);
+  mockAds('');
+  mockHolidays(['Holiday 1']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1\?/);
 });
 
 test('Holiday message is correct if 2 holidays are celebrated today', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1', 'Holiday 2']);
+  mockAds('');
+  mockHolidays(['Holiday 1', 'Holiday 2']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1 и Holiday 2\?/);
 });
 
 test('Holiday message is correct if 3 holidays are celebrated today', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1', 'Holiday 2', 'Holiday 3']);
+  mockAds('');
+  mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1, Holiday 2 и Holiday 3\?/);
 });
 
 test('Holiday message is correct if 4 holidays are celebrated today', async () => {
-  holidaysMock.mockImplementation(() => ['Holiday 1', 'Holiday 2', 'Holiday 3', 'Holiday 4']);
+  mockAds('');
+  mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3', 'Holiday 4']);
+  const daily = require('./daily');
+  const sender = require('../vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1, Holiday 2, Holiday 3 и Holiday 4\?/);
 });

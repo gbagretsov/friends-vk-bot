@@ -87,10 +87,7 @@ ${concatenatedMissingVoters}
 module.exports.watchPolls = async function() {
 
   let query = 'SELECT * FROM friends_vk_bot.polls LIMIT 5;';
-  let client = db();
-
-  let pollsIds = await client.query(query);
-  await client.end();
+  let pollsIds = await db.query(query);
   pollsIds = pollsIds.rows.map(row => {
     return { id: row.id, ownerId: row.owner_id };
   });
@@ -105,10 +102,9 @@ module.exports.watchPolls = async function() {
   const conversationMembersIds = conversationMembers.map(user => user.id);
 
   function deletePollFromDb(poll) {
-    let client = db();
-    return client.query(`DELETE FROM friends_vk_bot.polls WHERE id = ${poll.id};`)
-      .catch(error => console.log(error))
-      .then(() => client.end());
+    return db
+      .query(`DELETE FROM friends_vk_bot.polls WHERE id = ${poll.id};`)
+      .catch(error => console.log(error));
   }
 
   polls.forEach(poll => {
@@ -148,11 +144,9 @@ module.exports.handleLookForPollInIncomingMessage = function(message) {
   if (message.attachments && message.attachments[0] && message.attachments[0].type === 'poll') {
     const poll = message.attachments[0].poll;
     if (!poll.anonymous) {
-      const client = db();
       const query = `INSERT INTO friends_vk_bot.polls VALUES (${poll.id}, ${poll.owner_id});`;
-      client.query(query)
-        .catch(error => console.log(error))
-        .then(() => client.end());
+      db.query(query)
+        .catch(error => console.log(error));
     }
     return true;
   }
