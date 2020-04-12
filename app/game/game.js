@@ -154,8 +154,9 @@ async function generatePhotos(answer) {
   }
   const taskImgURL = googleResponse.body.items[0].link;
   const hintImgURL = googleResponse.body.items[1].link;
-  const taskImgResponse = await needle('get', taskImgURL);
-  const hintImgResponse = await needle('get', hintImgURL);
+  const redirectOptions = { follow_max: 2 };
+  const taskImgResponse = await needle('get', taskImgURL, null, redirectOptions);
+  const hintImgResponse = await needle('get', hintImgURL, null, redirectOptions);
   fs.writeFileSync(__dirname + '/task.jpg', taskImgResponse.body);
   fs.writeFileSync(__dirname + '/hint.jpg', hintImgResponse.body);
 }
