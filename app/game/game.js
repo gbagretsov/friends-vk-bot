@@ -254,16 +254,16 @@ function handlePlayingState() {
 }
 
 function isBotMentioned(text) {
-  return text.startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
+  return text.toLowerCase().startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
 }
 
 function isGameRequestMessage(text) {
-  text = text.toLowerCase();
-  let botMentioned = isBotMentioned(text);
+  const _text = text.toLowerCase();
+  let botMentioned = isBotMentioned(_text);
   let gameRequested = 
-    text.includes(' игр') ||
-    text.includes('поигра') || 
-    text.includes('сыгра');
+    _text.includes(' игр') ||
+    _text.includes('поигра') ||
+    _text.includes('сыгра');
   return botMentioned && gameRequested;
 }
 
