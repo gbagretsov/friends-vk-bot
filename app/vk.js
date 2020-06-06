@@ -126,6 +126,9 @@ module.exports.getPolls = async function(polls) {
     if (response.data.error) {
       throw new Error(response.data.error.error_msg);
     }
+    if (response.data.execute_errors) {
+      throw new Error(response.data.execute_errors[0].error_msg);
+    }
     return response.data.response;
   } catch (error) {
     console.log(error.message);
