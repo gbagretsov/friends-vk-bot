@@ -9,27 +9,35 @@ const shuffleArray = (array) => {
   }
 };
 
+function getPollLink(pollInfo) {
+  return `https://vk.com/poll${pollInfo.owner_id}_${pollInfo.id}`;
+}
+
 const singleMissingVoteMessageGenerators = [
 
   (poll, conversationMembers) => {
     const user = conversationMembers.find(user => user.id === poll.missingVoters[0]);
     const pastTenseEnding = user.sex === 1 ? 'а' : '';
-    return `😒 @${user.screen_name} (${user.first_name}), ты ещё не проголосовал${pastTenseEnding} в опросе "${poll.poll_info.question}"`;
+    return `😒 @${user.screen_name} (${user.first_name}), ты ещё не проголосовал${pastTenseEnding} в опросе "${poll.poll_info.question}"
+${getPollLink(poll.poll_info)}`;
   },
 
   (poll, conversationMembers) => {
     const user = conversationMembers.find(user => user.id === poll.missingVoters[0]);
-    return `🙏🏻 @${user.screen_name} (${user.first_name}), пожалуйста, не забудь проголосовать в опросе "${poll.poll_info.question}"`;
+    return `🙏🏻 @${user.screen_name} (${user.first_name}), пожалуйста, не забудь проголосовать в опросе "${poll.poll_info.question}"
+${getPollLink(poll.poll_info)}`;
   },
 
   (poll, conversationMembers) => {
     const user = conversationMembers.find(user => user.id === poll.missingVoters[0]);
-    return `☝🏻 @${user.screen_name} (${user.first_name}), в опросе "${poll.poll_info.question}" не хватает твоего голоса!`;
+    return `☝🏻 @${user.screen_name} (${user.first_name}), в опросе "${poll.poll_info.question}" не хватает твоего голоса!
+${getPollLink(poll.poll_info)}`;
   },
 
   (poll, conversationMembers) => {
     const user = conversationMembers.find(user => user.id === poll.missingVoters[0]);
-    return `@${user.screen_name} (${user.first_name}), нам всем очень интересно твоё мнение по вопросу "${poll.poll_info.question}". Не томи, проголосуй! 😊`;
+    return `@${user.screen_name} (${user.first_name}), нам всем очень интересно твоё мнение по вопросу "${poll.poll_info.question}". Не томи, пройди по ссылке и проголосуй! 😊
+${getPollLink(poll.poll_info)}`;
   },
 
 ];
@@ -37,7 +45,7 @@ const singleMissingVoteMessageGenerators = [
 const multipleMissingVoteMessageGenerators = [
 
   (poll, conversationMembers) => {
-    let concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i) => {
+    const concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i) => {
       const user = conversationMembers.find(user => user.id === userId);
       return `${sum}
  ${i + 1}. @${user.screen_name} (${user.first_name}) `;
@@ -47,7 +55,7 @@ const multipleMissingVoteMessageGenerators = [
 Список тех, кто проигнорировал опрос "${poll.poll_info.question}":
 ${concatenatedMissingVoters}
 
-Прошу вас проголосовать как можно скорее.
+Прошу вас проголосовать как можно скорее. Ссылка на опрос: ${getPollLink(poll.poll_info)}
 
 С уважением,
 Бот друзей
@@ -55,7 +63,7 @@ ${concatenatedMissingVoters}
   },
 
   (poll, conversationMembers) => {
-    let concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
+    const concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
       const user = conversationMembers.find(user => user.id === userId);
       if (i === 0) {
         return `@${user.screen_name} (${user.first_name})`;
@@ -65,11 +73,11 @@ ${concatenatedMissingVoters}
         return `${sum}, @${user.screen_name} (${user.first_name})`;
       }
     }, '');
-    return `☝🏻 ${concatenatedMissingVoters}, ваших голосов не хватает в опросе "${poll.poll_info.question}"`;
+    return `☝🏻 ${concatenatedMissingVoters}, ваших голосов не хватает в опросе "${poll.poll_info.question}". Ссылка на опрос: ${getPollLink(poll.poll_info)}`;
   },
 
   (poll, conversationMembers) => {
-    let concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
+    const concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
       const user = conversationMembers.find(user => user.id === userId);
       if (i === 0) {
         return `@${user.screen_name} (${user.first_name_gen})`;
@@ -79,7 +87,7 @@ ${concatenatedMissingVoters}
         return `${sum}, @${user.screen_name} (${user.first_name_gen})`;
       }
     }, '');
-    return `⚠ Объявление для ${concatenatedMissingVoters}: вам необходимо проголосовать в опросе "${poll.poll_info.question}"`;
+    return `⚠ Объявление для ${concatenatedMissingVoters}: вам необходимо перейти по ссылке ${getPollLink(poll.poll_info)} и проголосовать в опросе "${poll.poll_info.question}"`;
   },
 
 ];
@@ -94,10 +102,18 @@ module.exports.watchPolls = async function() {
 
   if (pollsIds.length === 0) {
     console.log('No polls to watch');
-    return;
+  } else {
+    console.log(`Watched polls: ${pollsIds.map(item => `ID ${item.id}, user ${item.ownerId}`).join('; ')}`);
   }
 
   const polls = await vk.getPolls(pollsIds);
+  // Вызов этого метода используется для проверки корректности токена доступа
+
+  if (!polls) {
+    console.log('Got empty response from VK API');
+    return;
+  }
+
   const conversationMembers = await vk.getConversationMembers();
   const conversationMembersIds = conversationMembers.map(user => user.id);
 
@@ -108,6 +124,8 @@ module.exports.watchPolls = async function() {
   }
 
   polls.forEach(poll => {
+    console.log(`Watching poll ${poll.poll_info.id} of user ${poll.poll_info.owner_id}`);
+    console.log(`Question is: ${poll.poll_info.question}`);
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (poll.closed || (poll.poll_info.end_date > 0 && poll.poll_info.end_date <= currentTimestamp)) {
       console.log(`Poll ${poll.poll_info.question} is now closed`);

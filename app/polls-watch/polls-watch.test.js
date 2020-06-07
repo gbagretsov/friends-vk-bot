@@ -32,12 +32,13 @@ const dbTwoWatchedPolls = [
 
 const currentTimestamp = Math.floor(Date.now() / 1000);
 
-const getVkGetPollsResponse = (id, endDate, created, voters) => {
+const getVkGetPollsResponse = (id, endDate, created, voters, ownerId) => {
   return {
     poll_info: {
       id,
+      owner_id: ownerId,
       end_date: endDate,
-      created: created,
+      created,
       question: 'Ваш любимый актёр'
     },
     voters,
@@ -187,6 +188,27 @@ describe('Polls observer', () => {
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
       expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Ваш любимый актёр/);
+      done();
+    }, 100);
+  });
+
+  test('Information message about a poll contains link to the poll', done => {
+    setMocks({
+      dbWatchedPolls: dbOneWatchedPoll,
+      vkGetPollsResponse: [getVkGetPollsResponse(
+        1000123,
+        0,
+        currentTimestamp - 3601,
+        [10001, 10002],
+        222,
+      )],
+    });
+    const pollsObserver = require('./polls-watch').watchPolls;
+    const sender = require('../vk');
+    pollsObserver();
+    setTimeout(() => {
+      expect(sender.sendMessage).toHaveBeenCalledTimes(1);
+      expect(sender.sendMessage.mock.calls[0][0]).toMatch(/https:\/\/vk.com\/poll222_1000123/);
       done();
     }, 100);
   });
