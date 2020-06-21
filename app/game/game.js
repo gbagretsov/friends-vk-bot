@@ -1,5 +1,4 @@
 const needle = require('needle');
-const fs = require('fs');
 require('dotenv').config();
 const uuid = require('uuid');
 
@@ -16,6 +15,8 @@ let answer = '';
 let isPlaying = false;
 let gameId = '';
 let timeoutObj = null;
+let taskImgBuffer = null;
+let hintImgBuffer = null;
 
 async function getRandomTask() {
   // TODO: поддержка категорий
@@ -119,8 +120,7 @@ async function handleGameRequestMessage(text) {
         'Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?',
       ];
       await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
-      let photoPath = __dirname + '/task.jpg';
-      await vk.sendPhoto(photoPath);
+      await vk.sendPhoto(taskImgBuffer);
       answer = task.answer;
       console.log(`Correct answer: ${answer}`);
       timeoutObj = setTimeout(() => giveHint(gameId), STEP_INTERVAL);
@@ -161,8 +161,8 @@ async function generatePhotos(answer) {
   const redirectOptions = { follow_max: 2 };
   const taskImgResponse = await needle('get', taskImgURL, null, redirectOptions);
   const hintImgResponse = await needle('get', hintImgURL, null, redirectOptions);
-  fs.writeFileSync(__dirname + '/task.jpg', taskImgResponse.body);
-  fs.writeFileSync(__dirname + '/hint.jpg', hintImgResponse.body);
+  taskImgBuffer = taskImgResponse.body;
+  hintImgBuffer = hintImgResponse.body;
 }
 
 function randomInteger(min, max) {
@@ -179,10 +179,8 @@ async function giveHint(previousGameId) {
     'Я не думал, что будет так сложно... 😥 Держите подсказку',
   ];
 
-  const photoPath = __dirname + '/hint.jpg';
-
   await vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)]);
-  await vk.sendPhoto(photoPath);
+  await vk.sendPhoto(hintImgBuffer);
 
   if (previousGameId === gameId) {
     timeoutObj = setTimeout(() => handleGameLoss(previousGameId), STEP_INTERVAL);
@@ -210,6 +208,8 @@ function resetGame() {
   isPlaying = false;
   answer = '';
   gameId = '';
+  taskImgBuffer = null;
+  hintImgBuffer = null;
 }
 
 async function handleCorrectAnswer() {
