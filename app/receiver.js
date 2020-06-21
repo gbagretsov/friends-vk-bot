@@ -16,7 +16,7 @@ module.exports = function(app){
     if (req.body.type === 'message_new') {
       res.send('ok');
       
-      let message = req.body.object;
+      let message = req.body.object.message;
       
       if (peerID === message.peer_id.toString()) {
         console.log(`Got message: ${message.text}`);
