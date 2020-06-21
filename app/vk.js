@@ -2,10 +2,6 @@ require('dotenv').config();
 
 const axios = require('axios');
 const needle = require('needle');
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
-const readFile = promisify(fs.readFile);
 
 const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
@@ -53,7 +49,7 @@ module.exports.sendSticker = async function(stickerId) {
     }
     return true;
   } catch (error) {
-    console.log(`Error in sendSticker(): ${error.message}`);
+    console.error(`Error in sendSticker(): ${error.message}`);
     return false;
   }
 };
@@ -83,24 +79,22 @@ module.exports.getUserInfo = async function(uid) {
     }
     return response.data.response[0];
   } catch (error) {
-    console.log(`Error in getUserInfo(): ${error.message}`);
+    console.error(`Error in getUserInfo(): ${error.message}`);
     return false;
   }
 };
 
-module.exports.sendPhoto = async function(pathToPhoto) {
+module.exports.sendPhoto = async function(photoBuffer) {
   try {
     // Получаем адрес сервера для загрузки фото
     const uploadUrlResponse = await axios.get(`${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
     
     // Загружаем фотографию
     const uploadUrl = uploadUrlResponse.data.response.upload_url;
-    const buffer = await readFile(pathToPhoto);
-
     const data = {
       file: {
-        buffer: buffer,
-        filename: path.parse(pathToPhoto).base,
+        buffer: photoBuffer,
+        filename: 'filename.jpg',
         content_type: 'image/jpeg',
       }
     };
@@ -120,7 +114,7 @@ module.exports.sendPhoto = async function(pathToPhoto) {
     console.log(`Random message ID: ${randomId}`);
     return await axios.get(`${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}&random_id=${randomId}`);
   } catch (error) {
-    console.log(`Error in sendPhoto(): ${error.message}`);
+    console.error(`Error in sendPhoto(): ${error.message}`);
   }
 
 };
@@ -138,7 +132,7 @@ module.exports.getPolls = async function(polls) {
     }
     return response.data.response;
   } catch (error) {
-    console.log(`Error in getPolls(): ${error.message}`);
+    console.error(`Error in getPolls(): ${error.message}`);
     return false;
   }
 };
@@ -151,7 +145,7 @@ module.exports.getConversationMembers = async function() {
     }
     return response.data.response.profiles;
   } catch (error) {
-    console.log(`Error in getConversationMembers(): ${error.message}`);
+    console.error(`Error in getConversationMembers(): ${error.message}`);
     return false;
   }
 };
