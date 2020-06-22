@@ -14,6 +14,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import './CustomReactions.scss';
+import CustomReactionEditor from './CustomReactionEditor';
 
 class CustomReactions extends Component{
 
@@ -22,6 +23,8 @@ class CustomReactions extends Component{
     this.state = {
       reactions: [],
       loading: true,
+      editing: false,
+      editedReaction: null,
     };
   }
 
@@ -51,7 +54,7 @@ class CustomReactions extends Component{
   };
 
   render() {
-    const { reactions, loading } = this.state;
+    const { reactions, loading, editing, editedReaction } = this.state;
     return (
       <div>
         <Paper className="paper">
@@ -83,6 +86,15 @@ class CustomReactions extends Component{
             </TableBody>
           </Table>
         </Paper>
+        { editing && <CustomReactionEditor
+          token={this.props.token}
+          reaction={editedReaction}
+          onError={error => this.props.onError(error)}
+          onCancel={() => this.setState({
+            editedReaction: null,
+            editing: false,
+          })}/>
+        }
       </div>
     );
   }
@@ -103,7 +115,10 @@ class CustomReactions extends Component{
   }
 
   editReaction = (reaction) => {
-    console.log('enterEditMode for reaction ' + reaction.name);
+    this.setState({
+      editing: true,
+      editedReaction: reaction,
+    });
   }
 
   deleteReaction = (reaction) => {
