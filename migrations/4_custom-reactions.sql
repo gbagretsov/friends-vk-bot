@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS friends_vk_bot.custom_reactions
 
 CREATE TABLE IF NOT EXISTS friends_vk_bot.stickers
 (
-    id INTEGER NOT NULL,
+    id SERIAL NOT NULL PRIMARY KEY,
     reaction_id INTEGER NOT NULL REFERENCES friends_vk_bot.custom_reactions(id) ON DELETE CASCADE,
-    PRIMARY KEY (id, reaction_id)
+    sticker_id INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS friends_vk_bot.phrases

@@ -26,7 +26,12 @@ router.get('/:id', async (req, res) => {
       };
     });
     response = await db.query(`SELECT * FROM friends_vk_bot.stickers WHERE reaction_id = ${id} ORDER BY id;`);
-    customReaction.stickers = response.rows.map(sticker => sticker.id);
+    customReaction.stickers = response.rows.map(sticker => {
+      return {
+        id: sticker.id,
+        stickerId: sticker.sticker_id,
+      };
+    });
     response = await db.query(`SELECT * FROM friends_vk_bot.responses WHERE reaction_id = ${id} ORDER BY id;`);
     customReaction.responses = response.rows.map(response => {
       return {
@@ -41,5 +46,93 @@ router.get('/:id', async (req, res) => {
     res.json({ error: 'internal' });
   }
 });
+
+router.post('/', async (req, res) => {
+  if (req.body.demo) {
+    res.json({ success: true, id: Math.floor(Math.random() * 1000000) });
+    return;
+  }
+
+  const { name, probability, phrases, stickers, responses } = req.body.reaction;
+
+  const r = await db.query(`INSERT INTO friends_vk_bot.custom_reactions (name, probability) VALUES ('${name}', ${probability}) RETURNING id;`);
+  const reactionId = r.rows[0].id;
+
+  let query = 'BEGIN TRANSACTION;\n';
+  query += getQueryForReactionUpdate(reactionId, phrases, stickers, responses);
+  query += 'COMMIT';
+
+  try {
+    await db.query(query);
+    res.json({ success: true, id: reactionId });
+  } catch(error) {
+    console.log(error);
+    res.json({ error: 'internal' });
+  }
+});
+
+router.post('/:id', async (req, res) => {
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
+
+  const reactionId = req.params.id;
+  const { name, probability, phrases, stickers, responses } = req.body.reaction;
+
+  let query = 'BEGIN TRANSACTION;\n';
+  query += `UPDATE friends_vk_bot.custom_reactions SET name='${name}', probability=${probability} WHERE id=${reactionId};\n`;
+  query += getQueryForReactionUpdate(reactionId, phrases, stickers, responses);
+  query += 'COMMIT';
+
+  try {
+    await db.query(query);
+    res.json({ success: true });
+  } catch(error) {
+    console.log(error);
+    res.json({ error: 'internal' });
+  }
+});
+
+function getQueryForReactionUpdate(reactionId, phrases, stickers, responses) {
+  let query = '';
+
+  phrases.forEach(phrase => {
+    if (phrase.id) {
+      if (phrase.deleted) {
+        query += `DELETE FROM friends_vk_bot.phrases WHERE id=${phrase.id};\n`;
+      } else {
+        query += `UPDATE friends_vk_bot.phrases SET text='${phrase.text}' WHERE id=${phrase.id};\n`;
+      }
+    } else {
+      query += `INSERT INTO friends_vk_bot.phrases (text, reaction_id) VALUES ('${phrase.text}', ${reactionId});\n`;
+    }
+  });
+
+  stickers.forEach(sticker => {
+    if (sticker.id) {
+      if (sticker.deleted) {
+        query += `DELETE FROM friends_vk_bot.stickers WHERE id=${sticker.id};\n`;
+      } else {
+        query += `UPDATE friends_vk_bot.stickers SET sticker_id=${sticker.stickerId} WHERE id=${sticker.id};\n`;
+      }
+    } else {
+      query += `INSERT INTO friends_vk_bot.stickers (sticker_id, reaction_id) VALUES ('${sticker.stickerId}', ${reactionId});\n`;
+    }
+  });
+
+  responses.forEach(response => {
+    if (response.id) {
+      if (response.deleted) {
+        query += `DELETE FROM friends_vk_bot.responses WHERE id=${response.id};\n`;
+      } else {
+        query += `UPDATE friends_vk_bot.responses SET type=${response.type}, content='${response.content}' WHERE id=${response.id};\n`;
+      }
+    } else {
+      query += `INSERT INTO friends_vk_bot.responses (type, content, reaction_id) VALUES ('${response.type}', '${response.content}', ${reactionId});\n`;
+    }
+  });
+  return query;
+}
 
 module.exports.router = router;

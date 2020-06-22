@@ -9,12 +9,14 @@ import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TableBody from '@material-ui/core/TableBody';
 import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import './CustomReactions.scss';
 import CustomReactionEditor from './CustomReactionEditor';
+import Button from '@material-ui/core/Button';
 
 class CustomReactions extends Component{
 
@@ -59,6 +61,12 @@ class CustomReactions extends Component{
       <div>
         <Paper className="paper">
           <Typography variant="h5" gutterBottom>Пользовательские реакции</Typography>
+          <Button variant={'text'} color={'primary'} onClick={() => {
+            this.setState({
+              editing: true,
+              editedReaction: null
+            });
+          }}><AddIcon fontSize='small'/>Новая реакция</Button>
           <Table className="custom-reactions-table" style={{width: 'auto'}}>
             <TableHead>
               <TableRow>
@@ -89,6 +97,7 @@ class CustomReactions extends Component{
         { editing && <CustomReactionEditor
           token={this.props.token}
           reaction={editedReaction}
+          onSaved={saved => this.handleOnSaved(saved)}
           onError={error => this.props.onError(error)}
           onCancel={() => this.setState({
             editedReaction: null,
@@ -124,10 +133,27 @@ class CustomReactions extends Component{
   deleteReaction = (reaction) => {
     console.log('deleting reaction ' + reaction.name);
   }
+
+  handleOnSaved = (savedReaction) => {
+    const reactions = this.state.reactions;
+    const existingReactionIndex = reactions.findIndex(reaction => reaction.id === savedReaction.id);
+    if (existingReactionIndex > -1) {
+      reactions[existingReactionIndex] = savedReaction;
+    } else {
+      reactions.push(savedReaction);
+    }
+    this.setState({
+      reactions,
+      editing: false,
+      editedReaction: null,
+    });
+    this.props.onReactionSaved(savedReaction);
+  }
 }
 
 CustomReactions.propTypes = {
   token: PropTypes.string.isRequired,
+  onReactionSaved: PropTypes.func,
   onError: PropTypes.func,
 };
 

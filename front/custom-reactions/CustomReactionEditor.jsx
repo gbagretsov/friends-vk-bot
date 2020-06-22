@@ -12,6 +12,7 @@ import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
 
 class CustomReactionEditor extends Component{
 
@@ -94,6 +95,7 @@ class CustomReactionEditor extends Component{
             onChange={event => this.setState({probability: event.target.value})}
           />
           <Typography variant={'h6'} style={{'marginTop': '2em'}}>Фразы, на которые реагирует бот</Typography>
+          <Button variant={'text'} color={'primary'} onClick={() => this.addPhrase()}><AddIcon fontSize='small'/>Новая фраза</Button>
           <List dense={true} disablePadding={true}>
             { phrases.map((phrase, index) => {
               return (
@@ -111,12 +113,13 @@ class CustomReactionEditor extends Component{
             })}
           </List>
           <Typography variant={'h6'} style={{'marginTop': '2em'}}>Стикеры, на которые реагирует бот</Typography>
+          <Button variant={'text'} color={'primary'} onClick={() => this.addSticker()}><AddIcon fontSize='small'/>Новый стикер</Button>
           { stickers.map((sticker, index) => {
             return (
               <TextField
                 key={index}
                 id={`reaction-sticker-${index}`}
-                value={sticker}
+                value={sticker.stickerId}
                 disabled={loading}
                 fullWidth={false}
                 margin={'none'}
@@ -127,6 +130,7 @@ class CustomReactionEditor extends Component{
             );
           })}
           <Typography variant={'h6'} style={{'marginTop': '2em'}}>Возможные ответы бота</Typography>
+          <Button variant={'text'} color={'primary'} onClick={() => this.addResponse()}><AddIcon fontSize='small'/>Новый ответ</Button>
           <List dense={true} disablePadding={true}>
             { responses.map((response, index) => {
               return (
@@ -167,8 +171,43 @@ class CustomReactionEditor extends Component{
     );
   }
 
-  saveReaction = () => {
-    console.log('save reaction ' + this.state.name);
+  saveReaction = async () => {
+    let url = 'api/customReactions';
+    if (this.state.id) {
+      url += `/${this.state.id}`;
+    }
+
+    let options = {
+      token: this.props.token,
+      reaction: {
+        name: this.state.name,
+        probability: this.state.probability,
+        phrases: this.state.phrases,
+        stickers: this.state.stickers,
+        responses: this.state.responses,
+      },
+    };
+
+    let params = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify(options),
+    };
+
+    try {
+      let response = await fetch(url, params);
+      let data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      } else {
+        this.props.onSaved({ id: this.state.id || data.id, name: this.state.name, probability: this.state.probability });
+      }
+    } catch (error) {
+      this.props.onError('Произошла ошибка, попробуйте позднее');
+    }
   }
 
   setPhrase = (index, value) => {
@@ -179,7 +218,7 @@ class CustomReactionEditor extends Component{
 
   setSticker = (index, value) => {
     const stickers = this.state.stickers;
-    stickers[index] = value;
+    stickers[index].stickerId = value;
     this.setState({ stickers });
   }
 
@@ -213,12 +252,38 @@ class CustomReactionEditor extends Component{
     }
     return 'Содержимое ответа';
   }
+
+  addPhrase = () => {
+    const phrases = this.state.phrases;
+    phrases.push({
+      text: ''
+    });
+    this.setState({ phrases });
+  }
+
+  addSticker = () => {
+    const stickers = this.state.stickers;
+    stickers.push({
+      stickerId: 1,
+    });
+    this.setState({ stickers });
+  }
+
+  addResponse = () => {
+    const responses = this.state.responses;
+    responses.push({
+      type: 1,
+      content: ''
+    });
+    this.setState({ responses });
+  }
 }
 
 CustomReactionEditor.propTypes = {
   token: PropTypes.string.isRequired,
-  reaction: PropTypes.any.isRequired,
+  reaction: PropTypes.any,
   onCancel: PropTypes.func.isRequired,
+  onSaved: PropTypes.func.isRequired,
   onError: PropTypes.func,
 };
 

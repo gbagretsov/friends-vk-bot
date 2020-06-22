@@ -51,6 +51,7 @@ class App extends Component {
         { this.state.tab === 0 && this.renderMainTab() }
         { this.state.tab === 1 && <CustomReactions
           token={this.state.token}
+          onReactionSaved={(reaction) => this.showMessage(`Реакция "${reaction.name}" сохранена`, 'success')}
           onError={(error) => this.showMessage(error, 'error')}/>
         }
       </div>

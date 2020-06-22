@@ -82,7 +82,7 @@ async function getReactionForSticker(stickerId) {
     FROM friends_vk_bot.custom_reactions
         JOIN friends_vk_bot.stickers ON stickers.reaction_id = custom_reactions.id
         JOIN friends_vk_bot.responses ON responses.reaction_id = custom_reactions.id
-    WHERE friends_vk_bot.stickers.id = ${stickerId}
+    WHERE friends_vk_bot.stickers.sticker_id = ${stickerId}
     ORDER BY random()
     LIMIT 1
   `;
