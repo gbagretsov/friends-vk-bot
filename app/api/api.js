@@ -8,7 +8,7 @@ function checkToken(req, res, next) {
   if (receivedToken === actualToken) {
     req.body.demo = false;
     next();
-  } else if (receivedToken.toUpperCase() === 'DEMO') {
+  } else if (receivedToken && receivedToken.toUpperCase() === 'DEMO') {
     req.body.demo = true;
     next();
   } else {
@@ -20,6 +20,7 @@ router.use(checkToken);
 
 router.use('/words', require('./words').router);
 router.use('/ads', require('./ads').router);
+router.use('/customReactions', require('./custom-reactions').router);
 
 router.post('/', (req, res) => {
   res.json({ success: true, demo: req.body.demo });
