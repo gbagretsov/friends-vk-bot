@@ -13,6 +13,9 @@ import Typography from '@material-ui/core/Typography';
 import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 class CustomReactionEditor extends Component{
 
@@ -69,7 +72,7 @@ class CustomReactionEditor extends Component{
   render() {
     const { id, name, probability, phrases, stickers, responses, loading } = this.state;
     return (
-      <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'lg'}>
+      <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'sm'}>
         <DialogTitle id="simple-dialog-title">
           {id && 'Редактирование реакции'}
           {!id && 'Новая реакция'}
@@ -98,6 +101,9 @@ class CustomReactionEditor extends Component{
           <Button variant={'text'} color={'primary'} onClick={() => this.addPhrase()}><AddIcon fontSize='small'/>Новая фраза</Button>
           <List dense={true} disablePadding={true}>
             { phrases.map((phrase, index) => {
+              if (phrase.deleted) {
+                return null;
+              }
               return (
                 <ListItem key={index} dense={true} disableGutters={true}>
                   <TextField
@@ -107,6 +113,11 @@ class CustomReactionEditor extends Component{
                     fullWidth={true}
                     margin={'none'}
                     onChange={event => this.setPhrase(index, event.target.value)}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">
+                        <IconButton className="button" onClick={ () => this.deletePhrase(index) }><DeleteIcon fontSize="small"/></IconButton>
+                      </InputAdornment>
+                    }}
                   />
                 </ListItem>
               );
@@ -115,6 +126,9 @@ class CustomReactionEditor extends Component{
           <Typography variant={'h6'} style={{'marginTop': '2em'}}>Стикеры, на которые реагирует бот</Typography>
           <Button variant={'text'} color={'primary'} onClick={() => this.addSticker()}><AddIcon fontSize='small'/>Новый стикер</Button>
           { stickers.map((sticker, index) => {
+            if (sticker.deleted) {
+              return null;
+            }
             return (
               <TextField
                 key={index}
@@ -126,6 +140,11 @@ class CustomReactionEditor extends Component{
                 style={{'marginLeft': index === 0 ? '0' : '1em'}}
                 type={'number'}
                 onChange={event => this.setSticker(index, event.target.value)}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">
+                    <IconButton className="button" onClick={ () => this.deleteSticker(index) }><DeleteIcon fontSize="small"/></IconButton>
+                  </InputAdornment>
+                }}
               />
             );
           })}
@@ -133,6 +152,9 @@ class CustomReactionEditor extends Component{
           <Button variant={'text'} color={'primary'} onClick={() => this.addResponse()}><AddIcon fontSize='small'/>Новый ответ</Button>
           <List dense={true} disablePadding={true}>
             { responses.map((response, index) => {
+              if (response.deleted) {
+                return null;
+              }
               return (
                 <ListItem key={index} dense={true} disableGutters={true}>
                   <TextField
@@ -153,6 +175,11 @@ class CustomReactionEditor extends Component{
                     margin={'none'}
                     style={{'marginLeft': '1em'}}
                     onChange={event => this.setResponseContent(index, event.target.value)}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">
+                        <IconButton className="button" onClick={ () => this.deleteResponse(index) }><DeleteIcon fontSize="small"/></IconButton>
+                      </InputAdornment>
+                    }}
                   />
                 </ListItem>
               );
@@ -275,6 +302,40 @@ class CustomReactionEditor extends Component{
       type: 1,
       content: ''
     });
+    this.setState({ responses });
+  }
+
+  deletePhrase = (index) => {
+    const phrases = this.state.phrases;
+    const phraseToDelete = phrases[index];
+    if (phraseToDelete.id) {
+      phraseToDelete.deleted = true;
+    } else {
+      phrases.splice(index, 1);
+    }
+    this.setState({ phrases });
+  }
+
+  deleteSticker = (index) => {
+    const stickers = this.state.stickers;
+    const stickerToDelete = stickers[index];
+    if (stickerToDelete.id) {
+      stickerToDelete.deleted = true;
+    } else {
+      stickers.splice(index, 1);
+    }
+    this.setState({ stickers });
+  }
+
+
+  deleteResponse = (index) => {
+    const responses = this.state.responses;
+    const responseToDelete = responses[index];
+    if (responseToDelete.id) {
+      responseToDelete.deleted = true;
+    } else {
+      responses.splice(index, 1);
+    }
     this.setState({ responses });
   }
 }
