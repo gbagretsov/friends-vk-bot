@@ -16,8 +16,16 @@ import AddIcon from '@material-ui/icons/Add';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import MenuItem from '@material-ui/core/MenuItem';
 
 class CustomReactionEditor extends Component{
+
+  responseTypes = [
+    { value: 1, label: 'Фраза' },
+    { value: 2, label: 'Картинка' },
+    { value: 3, label: 'Видео на YouTube' },
+    { value: 4, label: 'Стикер' },
+  ];
 
   constructor(props) {
     super(props);
@@ -159,13 +167,21 @@ class CustomReactionEditor extends Component{
                 <ListItem key={index} dense={true} disableGutters={true}>
                   <TextField
                     id={`reaction-response-${index}-type`}
+                    select
                     value={response.type}
                     label='Тип ответа'
                     disabled={loading}
                     fullWidth={false}
+                    style={{'width': '255px'}}
                     margin={'none'}
                     onChange={event => this.setResponseType(index, event.target.value)}
-                  />
+                  >
+                    {this.responseTypes.map(option => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                   <TextField
                     id={`reaction-response-${index}-content`}
                     value={response.content}
@@ -253,7 +269,7 @@ class CustomReactionEditor extends Component{
     const responses = this.state.responses;
     responses[index].type = parseInt(value, 10);
     if (isNaN(responses[index].type)) {
-      responses[index].type = null;
+      responses[index].type = '';
     }
     this.setState({ responses });
   }
@@ -272,7 +288,7 @@ class CustomReactionEditor extends Component{
       return 'Ссылка на картинку JPG';
     }
     if (type === 3) {
-      return 'ID ролика на YouTube';
+      return 'ID видео на YouTube';
     }
     if (type === 4) {
       return 'ID стикера';
