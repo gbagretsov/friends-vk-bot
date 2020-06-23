@@ -25,4 +25,4 @@
 
 Схема БД и пример данных в папке `migrations`. Запуск миграций: `npm run migrate up`
 
-Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline&response_type=token`
+Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline,video&response_type=token`

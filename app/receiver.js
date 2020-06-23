@@ -28,11 +28,13 @@ module.exports = function(app){
         const handleByChatModule = require('./chat/chat');
         const handleBySpeechModule = require('./speech/speech');
         const handleLookForPollInIncomingMessage = require('./polls-watch/polls-watch').handleLookForPollInIncomingMessage;
+        const handleByCustomReactionsModule = require('./custom-reactions/custom-reactions');
 
         let handled = 
           handleByGameModule(message) ||
           handleBySpeechModule(message) ||
           handleLookForPollInIncomingMessage(message) ||
+          await handleByCustomReactionsModule(message) ||
           handleByChatModule(message);
           
         if (!handled) {

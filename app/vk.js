@@ -149,3 +149,26 @@ module.exports.getConversationMembers = async function() {
     return false;
   }
 };
+
+module.exports.sendYouTubeVideo = async function(youTubeVideoId) {
+  try {
+    const saveVideoResponse = await axios.get(`${apiUrl}/video.save?v=${apiVersion}&access_token=${personalAccessToken}&is_private=1&wallpost=0&link=https://www.youtube.com/watch?v=${youTubeVideoId}`);
+    if (saveVideoResponse.data.error) {
+      throw new Error(`video.save: ${saveVideoResponse.data.error.error_msg}`);
+    }
+    const uploadUrlResponse = await axios.get(saveVideoResponse.data.response.upload_url);
+    if (uploadUrlResponse.data.error) {
+      throw new Error(`upload_url: ${uploadUrlResponse.data.error.error_msg}`);
+    }
+    const randomId = Date.now();
+    const attachment = `video${saveVideoResponse.data.response.owner_id}_${saveVideoResponse.data.response.video_id}_${saveVideoResponse.data.response.access_key}`;
+    const sendMessageResponse = await axios.get(`${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}&random_id=${randomId}`);
+    if (sendMessageResponse.data.error) {
+      throw new Error(`messages.send: ${sendMessageResponse.data.error.error_msg}`);
+    }
+    return true;
+  } catch (error) {
+    console.error(`Error in sendYouTubeVideo(): ${error.message}`);
+    return false;
+  }
+};
