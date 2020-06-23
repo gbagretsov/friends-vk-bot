@@ -81,7 +81,7 @@ class CustomReactionEditor extends Component{
   render() {
     const { id, name, probability, phrases, stickers, responses, loading } = this.state;
     return (
-      <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'sm'}>
+      <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'sm'} className="reaction-editor">
         <DialogTitle id="simple-dialog-title">
           { id && 'Редактирование реакции' }
           { !id && 'Новая реакция' }
