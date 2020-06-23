@@ -117,7 +117,7 @@ class CustomReactions extends Component{
         <TableCell>{reaction.probability}</TableCell>
         <TableCell align="center">
           <IconButton className="button" onClick={ () => this.editReaction(reaction) }><EditIcon fontSize="small"/></IconButton>
-          <IconButton className="button" onClick={ () => this.deleteReaction(reaction) }><DeleteIcon fontSize="small"/></IconButton>
+          <IconButton className="button" onClick={ () => this.showDeleteConfirmationDialog(reaction) }><DeleteIcon fontSize="small"/></IconButton>
         </TableCell>
       </TableRow>
     );
@@ -130,8 +130,36 @@ class CustomReactions extends Component{
     });
   }
 
-  deleteReaction = (reaction) => {
-    console.log('deleting reaction ' + reaction.name);
+  showDeleteConfirmationDialog = (reaction) => {
+    const deleteConfirmed = confirm(`Подтвердите удаление реакции "${reaction.name}"`);
+    if (deleteConfirmed) {
+      this.deleteReaction(reaction);
+    }
+  }
+
+  deleteReaction = async (reaction) => {
+    const url = `api/customReactions/${reaction.id}?token=${this.props.token}`;
+
+    const params = {
+      headers: {
+        'Accept': 'application/json',
+      },
+      method: 'DELETE',
+    };
+
+    try {
+      const response = await fetch(url, params);
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      } else {
+        const reactions = this.state.reactions.filter(r => r.id !== reaction.id);
+        this.setState({ reactions });
+        this.props.onReactionDeleted(reaction);
+      }
+    } catch (error) {
+      this.props.onError('Произошла ошибка, попробуйте позднее');
+    }
   }
 
   handleOnSaved = (savedReaction) => {
@@ -154,6 +182,7 @@ class CustomReactions extends Component{
 CustomReactions.propTypes = {
   token: PropTypes.string.isRequired,
   onReactionSaved: PropTypes.func,
+  onReactionDeleted: PropTypes.func,
   onError: PropTypes.func,
 };
 

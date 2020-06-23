@@ -94,6 +94,24 @@ router.post('/:id', async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  if (req.body.demo) {
+    res.json({ success: true });
+    return;
+  }
+
+  const reactionId = req.params.id;
+  const query = `DELETE FROM friends_vk_bot.custom_reactions WHERE id=${reactionId};`;
+
+  try {
+    await db.query(query);
+    res.json({ success: true });
+  } catch(error) {
+    console.log(error);
+    res.json({ error: 'internal' });
+  }
+});
+
 function getQueryForReactionUpdate(reactionId, phrases, stickers, responses) {
   let query = '';
 
