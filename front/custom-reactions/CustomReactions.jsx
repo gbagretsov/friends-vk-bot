@@ -13,10 +13,10 @@ import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
 
 import './CustomReactions.scss';
 import CustomReactionEditor from './CustomReactionEditor';
-import Button from '@material-ui/core/Button';
 
 class CustomReactions extends Component{
 

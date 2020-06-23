@@ -1,8 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import './CustomReactionEditor.scss';
-
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
@@ -17,6 +15,8 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
+
+import './CustomReactionEditor.scss';
 
 class CustomReactionEditor extends Component{
 
@@ -120,10 +120,11 @@ class CustomReactionEditor extends Component{
                     disabled={loading}
                     fullWidth={true}
                     margin={'none'}
+                    className={'text-field-with-delete-button'}
                     onChange={event => this.setPhrase(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
-                        <IconButton className="button" onClick={ () => this.deletePhrase(index) }><DeleteIcon fontSize="small"/></IconButton>
+                        <IconButton onClick={ () => this.deletePhrase(index) }><DeleteIcon fontSize="small"/></IconButton>
                       </InputAdornment>
                     }}
                   />
@@ -132,7 +133,7 @@ class CustomReactionEditor extends Component{
             })}
           </List>
           <Typography variant={'h6'} style={{'marginTop': '2em'}}>Стикеры, на которые реагирует бот</Typography>
-          <Button variant={'text'} color={'primary'} onClick={() => this.addSticker()}><AddIcon fontSize='small'/>Новый стикер</Button>
+          <Button variant={'text'} color={'primary'} onClick={() => this.addSticker()}><AddIcon fontSize='small'/>Новый стикер</Button><br/>
           { stickers.map((sticker, index) => {
             if (sticker.deleted) {
               return null;
@@ -145,12 +146,13 @@ class CustomReactionEditor extends Component{
                 disabled={loading}
                 fullWidth={false}
                 margin={'none'}
-                style={{'marginLeft': index === 0 ? '0' : '1em'}}
+                className={'text-field-with-delete-button'}
+                style={{'marginRight': '1em', 'width': '100px'}}
                 type={'number'}
                 onChange={event => this.setSticker(index, event.target.value)}
                 InputProps={{
                   endAdornment: <InputAdornment position="end">
-                    <IconButton className="button" onClick={ () => this.deleteSticker(index) }><DeleteIcon fontSize="small"/></IconButton>
+                    <IconButton onClick={ () => this.deleteSticker(index) }><DeleteIcon fontSize="small"/></IconButton>
                   </InputAdornment>
                 }}
               />
@@ -189,11 +191,12 @@ class CustomReactionEditor extends Component{
                     disabled={loading}
                     fullWidth={true}
                     margin={'none'}
+                    className={'text-field-with-delete-button'}
                     style={{'marginLeft': '1em'}}
                     onChange={event => this.setResponseContent(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
-                        <IconButton className="button" onClick={ () => this.deleteResponse(index) }><DeleteIcon fontSize="small"/></IconButton>
+                        <IconButton onClick={ () => this.deleteResponse(index) }><DeleteIcon fontSize="small"/></IconButton>
                       </InputAdornment>
                     }}
                   />
