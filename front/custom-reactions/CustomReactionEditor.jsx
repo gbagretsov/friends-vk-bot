@@ -15,6 +15,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import './CustomReactionEditor.scss';
 
@@ -82,8 +83,9 @@ class CustomReactionEditor extends Component{
     return (
       <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'sm'}>
         <DialogTitle id="simple-dialog-title">
-          {id && 'Редактирование реакции'}
-          {!id && 'Новая реакция'}
+          { id && 'Редактирование реакции' }
+          { !id && 'Новая реакция' }
+          { loading && <CircularProgress size={24} className="progress"/> }
         </DialogTitle>
         <DialogContent>
           <TextField
