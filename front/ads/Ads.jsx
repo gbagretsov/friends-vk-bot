@@ -38,7 +38,7 @@ class Ads extends Component{
     try {
       let response = await fetch(url, params);
       let data = await response.json();
-      if (data.ads) {
+      if (data.ads !== null && data.ads !== undefined) {
         this.setState({ ads: data.ads });
       } else {
         throw new Error(data.error);
