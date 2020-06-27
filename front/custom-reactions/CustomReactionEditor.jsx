@@ -13,6 +13,7 @@ import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -122,7 +123,7 @@ class CustomReactionEditor extends Component{
                     disabled={loading}
                     fullWidth={true}
                     margin={'none'}
-                    className={'text-field-with-delete-button'}
+                    className={'text-field-with-buttons'}
                     onChange={event => this.setPhrase(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
@@ -148,7 +149,7 @@ class CustomReactionEditor extends Component{
                 disabled={loading}
                 fullWidth={false}
                 margin={'none'}
-                className={'text-field-with-delete-button'}
+                className={'text-field-with-buttons'}
                 style={{'marginRight': '1em', 'width': '100px'}}
                 type={'number'}
                 onChange={event => this.setSticker(index, event.target.value)}
@@ -193,11 +194,15 @@ class CustomReactionEditor extends Component{
                     disabled={loading}
                     fullWidth={true}
                     margin={'none'}
-                    className={'text-field-with-delete-button'}
+                    className={'text-field-with-buttons'}
                     style={{'marginLeft': '1em'}}
                     onChange={event => this.setResponseContent(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
+                        { !!response.content && response.type !== 1 &&
+                        <IconButton href={this.getLinkForResponse(response)} target="_blank">
+                          <OpenInNewIcon fontSize="small"/>
+                        </IconButton> }
                         <IconButton onClick={ () => this.deleteResponse(index) }><DeleteIcon fontSize="small"/></IconButton>
                       </InputAdornment>
                     }}
@@ -358,6 +363,20 @@ class CustomReactionEditor extends Component{
       responses.splice(index, 1);
     }
     this.setState({ responses });
+  }
+
+  getLinkForResponse = (response) => {
+    const { type, content } = response;
+    if (type === 2) {
+      return content;
+    }
+    if (type === 3) {
+      return `https://youtube.com/watch?v=${content}`;
+    }
+    if (type === 4) {
+      return `https://vk.com/sticker/1-${content}-256`;
+    }
+    return '';
   }
 }
 
