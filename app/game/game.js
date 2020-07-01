@@ -17,6 +17,7 @@ let gameId = '';
 let timeoutObj = null;
 let taskImgBuffer = null;
 let hintImgBuffer = null;
+let lettersHintSent = false;
 
 async function getRandomTask() {
   // TODO: поддержка категорий
@@ -122,6 +123,10 @@ async function handleGameRequestMessage(text) {
       await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
       await vk.sendPhoto(taskImgBuffer);
       answer = task.answer;
+      if (Math.random() > 0.5) {
+        await vk.sendMessage(getLettersHintMessage());
+        lettersHintSent = true;
+      }
       console.log(`Correct answer: ${answer}`);
       timeoutObj = setTimeout(() => giveHint(gameId), STEP_INTERVAL);
     } catch (error) {
@@ -171,6 +176,27 @@ function randomInteger(min, max) {
   return rand;
 }
 
+function getLettersHintMessage() {
+  // src: https://gist.github.com/tomfun/830fa6d8030d16007bbab50a5b21ef97
+  const getPluralForm = (number, one, two, five) => {
+    let n = Math.abs(number);
+    n %= 100;
+    if (n >= 5 && n <= 20) {
+      return five;
+    }
+    n %= 10;
+    if (n === 1) {
+      return one;
+    }
+    if (n >= 2 && n <= 4) {
+      return two;
+    }
+    return five;
+  };
+  const lettersAmountInfo = `${answer.length} ${getPluralForm(answer.length, 'буква', 'буквы', 'букв')}`;
+  return `В моём слове ${lettersAmountInfo}, первая — ${answer[0].toUpperCase()}`;
+}
+
 async function giveHint(previousGameId) {
 
   // TODO: больше сообщений подсказок
@@ -181,6 +207,9 @@ async function giveHint(previousGameId) {
 
   await vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)]);
   await vk.sendPhoto(hintImgBuffer);
+  if (!lettersHintSent) {
+    await vk.sendMessage(getLettersHintMessage());
+  }
 
   if (previousGameId === gameId) {
     timeoutObj = setTimeout(() => handleGameLoss(previousGameId), STEP_INTERVAL);
@@ -210,6 +239,7 @@ function resetGame() {
   gameId = '';
   taskImgBuffer = null;
   hintImgBuffer = null;
+  lettersHintSent = false;
 }
 
 async function handleCorrectAnswer() {

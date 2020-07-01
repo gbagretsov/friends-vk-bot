@@ -43,7 +43,6 @@ const originalSetTimeout = setTimeout;
 beforeAll(async () => {
   const needle = require('needle');
   pictureResponseExample = await needle('get', 'https://www.softlab.ru/upload/iblock/e5f/bot_big.png');
-  jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
 });
 
 beforeEach(() => {
@@ -56,7 +55,7 @@ afterEach(() => {
 });
 
 test('When bot receives a game start request and game is not started, new game starts ' +
-     '(bot generates a task and sends a greeting message and a picture with hint)', async () => {
+     '(bot generates a task and sends a greeting message and a picture with task)', async () => {
   setMocks();
   const game = require('./game');
   const sender = require('../vk');
@@ -76,7 +75,7 @@ test('When bot receives a game start request and game is not started, bot does n
 });
 
 test('When bot receives a game start request and game is running, new game does not start ' +
-     '(bot does not generate a new task, does not send a greeting message and does not send a picture with hint)', async () => {
+     '(bot does not generate a new task, does not send a greeting message and does not send a picture with task)', async () => {
   setMocks();
   const game = require('./game');
   const sender = require('../vk');
@@ -186,7 +185,7 @@ test('When a game is running and bot receives a message without text, bot passes
   expect(game(messageWithoutText)).toBe(false);
 });
 
-test('When a game is running and bot does not get correct answer during first round, bot sends a second hint', async () => {
+test('When a game is running and bot does not get correct answer during first round, bot sends a hint', async () => {
   setMocks();
   const game = require('./game');
   const sender = require('../vk');
@@ -194,7 +193,6 @@ test('When a game is running and bot does not get correct answer during first ro
   await waitMs(100);
   jest.runOnlyPendingTimers();
   await waitMs(500);
-  expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/подсказка/);
   expect(sender.sendPhoto).toHaveBeenCalledTimes(2);
 });
@@ -210,9 +208,9 @@ test('When a game is running and bot does not get correct answer during second r
   await waitMs(10);
   jest.runAllTimers();
   await waitMs(500);
-  expect(sender.sendMessage).toHaveBeenCalledTimes(3);
-  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Не разгадали?/);
-  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/абракадабра/);
+  expect(sender.sendMessage).toHaveBeenCalledTimes(4);
+  expect(sender.sendMessage.mock.calls[3][0]).toMatch(/Не разгадали?/);
+  expect(sender.sendMessage.mock.calls[3][0]).toMatch(/абракадабра/);
 });
 
 test('When a game is running and bot does not get correct answer during second round, ' +
@@ -229,11 +227,40 @@ test('When a game is running and bot does not get correct answer during second r
   game(messageWithIncorrectAnswer);
   game(messageWithCorrectAnswer);
   await waitMs(500);
-  expect(sender.sendMessage).toHaveBeenCalledTimes(3);
-  expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/И в этом раунде/);
+  expect(sender.sendMessage).toHaveBeenCalledTimes(4);
+  expect(sender.sendMessage.mock.calls[3][0]).not.toMatch(/И в этом раунде/);
   expect(sender.sendPhoto).toHaveBeenCalledTimes(2);
   expect(sender.getUserName).toHaveBeenCalledTimes(0);
   expect(admin.addWord).toHaveBeenCalledTimes(0);
+});
+
+test('Bot can send an additional hint with first letter in first round', async () => {
+  setMocks({ letterHintInFirstRound: true });
+  const game = require('./game');
+  const sender = require('../vk');
+  game(messageWithGameRequest);
+  await waitMs(100);
+  jest.runAllTimers();
+  await waitMs(10);
+  jest.runAllTimers();
+  await waitMs(500);
+  expect(sender.sendMessage).toHaveBeenCalledTimes(4);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/В моём слове 11 букв, первая — А/);
+});
+
+test('If bot did not send an additional hint with first letter in first round, ' +
+     'it sends additional hint with first letter in second round', async () => {
+  setMocks({ letterHintInFirstRound: false });
+  const game = require('./game');
+  const sender = require('../vk');
+  game(messageWithGameRequest);
+  await waitMs(100);
+  jest.runAllTimers();
+  await waitMs(10);
+  jest.runAllTimers();
+  await waitMs(500);
+  expect(sender.sendMessage).toHaveBeenCalledTimes(4);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/В моём слове 11 букв, первая — А/);
 });
 
 test('When bot receives a game start request and game is not started and daily quota of pictures search is exceeded, ' +
@@ -332,6 +359,8 @@ function setMocks(options) {
   const admin = require('./admin');
   admin.addWord.mockResolvedValue(options?.duplicatedWord ? '23505' : null);
   admin.deleteWord.mockResolvedValue(null);
+
+  jest.spyOn(global.Math, 'random').mockReturnValue(options?.letterHintInFirstRound ? 0.9 : 0.1);
 }
 
 async function waitMs(ms) {
