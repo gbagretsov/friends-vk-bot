@@ -10,21 +10,25 @@ async function handleMessage(message) {
     return false;
   }
 
-  const customReaction = text ? await getReactionForText(text) : await getReactionForSticker(stickerId);
-  if (!customReaction) {
+  let customReactions = text ? await getReactionForText(text) : await getReactionForSticker(stickerId);
+  if (customReactions.length === 0) {
     console.log('No custom reaction found, return');
     return false;
   }
 
-  console.log(`Custom reaction type is ${customReaction.type}, content is ${customReaction.content}`);
-
-  const randomCheck = Math.random();
-  const probability = customReaction.probability / 100;
-  console.log(`Random check is ${randomCheck}, probability is ${probability}`);
-  if (randomCheck > probability) {
+  const randomCheck = Math.random() * 100;
+  console.log(`Random check is ${randomCheck}%`);
+  customReactions = customReactions.filter(reaction => reaction.probability > randomCheck);
+  if (customReactions.length === 0) {
     console.log('Random check is not successful, return');
     return false;
+  } else {
+    console.log(`Possible reactions: \n - ${ customReactions.map(reaction => reaction.content).join('\n - ') }`);
   }
+
+  const customReaction = customReactions[Math.floor(Math.random() * customReactions.length)];
+
+  console.log(`Custom reaction type is ${customReaction.type}, content is ${customReaction.content}`);
 
   // Простой текст
   if (customReaction.type === 1) {
@@ -66,11 +70,9 @@ async function getReactionForText(text) {
         JOIN friends_vk_bot.phrases ON phrases.reaction_id = custom_reactions.id
         JOIN friends_vk_bot.responses ON responses.reaction_id = custom_reactions.id
     WHERE '${text}' LIKE '%' || friends_vk_bot.phrases.text || '%'
-    ORDER BY random()
-    LIMIT 1
   `;
   const dbResult = await db.query(query);
-  return dbResult.rows[0];
+  return dbResult.rows;
 }
 
 async function getReactionForSticker(stickerId) {
@@ -83,11 +85,9 @@ async function getReactionForSticker(stickerId) {
         JOIN friends_vk_bot.stickers ON stickers.reaction_id = custom_reactions.id
         JOIN friends_vk_bot.responses ON responses.reaction_id = custom_reactions.id
     WHERE friends_vk_bot.stickers.sticker_id = ${stickerId}
-    ORDER BY random()
-    LIMIT 1
   `;
   const dbResult = await db.query(query);
-  return dbResult.rows[0];
+  return dbResult.rows;
 }
 
 module.exports = async function(message) {
