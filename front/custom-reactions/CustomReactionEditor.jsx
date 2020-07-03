@@ -195,7 +195,7 @@ class CustomReactionEditor extends Component{
                     disabled={loading}
                     fullWidth={true}
                     margin={'none'}
-                    className={'text-field-with-buttons'}
+                    className={'text-field-with-buttons text-field-with-long-label'}
                     style={{'marginLeft': '1em'}}
                     onChange={event => this.setResponseContent(index, event.target.value)}
                     InputProps={{
