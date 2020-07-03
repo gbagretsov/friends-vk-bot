@@ -17,6 +17,7 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 import './CustomReactionEditor.scss';
 
@@ -82,7 +83,7 @@ class CustomReactionEditor extends Component{
   render() {
     const { id, name, probability, phrases, stickers, responses, loading } = this.state;
     return (
-      <Dialog open scroll={'paper'} fullWidth={true} maxWidth={'sm'} className="reaction-editor">
+      <Dialog open scroll={'paper'} fullWidth={true} fullScreen={this.props.fullScreen} maxWidth={'sm'} className="reaction-editor">
         <DialogTitle id="simple-dialog-title">
           { id && 'Редактирование реакции' }
           { !id && 'Новая реакция' }
@@ -386,6 +387,7 @@ CustomReactionEditor.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onSaved: PropTypes.func.isRequired,
   onError: PropTypes.func,
+  fullScreen: PropTypes.bool.isRequired,
 };
 
-export default CustomReactionEditor;
+export default withMobileDialog()(CustomReactionEditor);
