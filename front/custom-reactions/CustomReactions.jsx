@@ -67,32 +67,34 @@ class CustomReactions extends Component{
               editedReaction: null
             });
           }}><AddIcon fontSize='small'/>Новая реакция</Button>
-          <Table className="custom-reactions-table" style={{width: 'auto'}}>
-            <TableHead>
-              <TableRow>
-                <TableCell width="400px">Название</TableCell>
-                <TableCell width="180px">Вероятность срабатывания, %</TableCell>
-                <TableCell/>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              { !loading && reactions.length > 0 && this.renderReactionsTableRows(reactions) }
-              { !loading && reactions.length === 0 &&
+          <div className="custom-reactions-table-wrapper">
+            <Table className="custom-reactions-table" style={{width: 'auto'}}>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={'name-column'} width="400px">Название</TableCell>
+                  <TableCell className={'probability-column'}>Вероятность</TableCell>
+                  <TableCell className={'buttons-column'}/>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                { !loading && reactions.length > 0 && this.renderReactionsTableRows(reactions) }
+                { !loading && reactions.length === 0 &&
                 <TableRow>
                   <TableCell colSpan={3} align="center">
                     Пользовательские реакции не заданы
                   </TableCell>
                 </TableRow>
-              }
-              { loading &&
+                }
+                { loading &&
                 <TableRow>
                   <TableCell colSpan={3} align="center">
                     <CircularProgress size={24} className="progress"/>
                   </TableCell>
                 </TableRow>
-              }
-            </TableBody>
-          </Table>
+                }
+              </TableBody>
+            </Table>
+          </div>
         </Paper>
         { editing && <CustomReactionEditor
           token={this.props.token}
