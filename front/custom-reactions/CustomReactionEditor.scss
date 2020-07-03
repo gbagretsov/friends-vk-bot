@@ -10,6 +10,10 @@
   }
 }
 
+.text-field-with-long-label label {
+  white-space: nowrap;
+}
+
 .reaction-editor .progress {
   position: relative;
   top: 4px;
