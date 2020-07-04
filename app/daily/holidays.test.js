@@ -4,43 +4,51 @@ const { getHolidays } = require('./holidays');
 let axiosGetMock;
 
 afterEach(() => {
-  axiosGetMock.mockRestore();
+  jest.restoreAllMocks();
+  jest.resetModules();
 });
 
-async function createMockForUrl(url) {
-  const mockResponse = await axios.get(url);
-  axiosGetMock = jest.spyOn(axios, 'get');
-  axiosGetMock.mockImplementation(() => mockResponse);
+async function createMocksForDate(year, month, day) {
+  const mockedDate = new Date(year, month - 1, day, 2);
+  const mockHolidaysResponse = await axios.get(`https://www.calend.ru/day/${year}-${month}-${day}/`);
+  Date.now = jest.spyOn(Date, 'now').mockImplementation(() => mockedDate.getTime());
+  axiosGetMock = jest.spyOn(axios, 'get').mockImplementation(() => mockHolidaysResponse);
 }
 
 test('Only New year is celebrated on 1st January 2020', async () => {
-  await createMockForUrl('https://www.calend.ru/day/2020-1-1/');
+  await createMocksForDate(2020, 1, 1);
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(1);
   expect(holidays).toContain('Новый год');
 });
 
 test('Two Russian, international and UN holidays are celebrated on 4th January 2020', async () => {
-  await createMockForUrl('https://www.calend.ru/day/2020-1-4/');
+  await createMocksForDate(2020, 1, 4);
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(2);
 });
 
 test('No Russian, international or UN holidays are celebrated on 30th January 2020', async () => {
-  await createMockForUrl('https://www.calend.ru/day/2020-1-30/');
+  await createMocksForDate(2020, 1, 30);
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(0);
 });
 
 test('Only Defender of the Fatherland Day is celebrated on 23rd February 2020', async () => {
-  await createMockForUrl('https://www.calend.ru/day/2020-2-23/');
+  await createMocksForDate(2020, 2, 23);
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(1);
   expect(holidays).toContain('День защитника Отечества в России');
 });
 
 test('Nine Russian, international and UN holidays are celebrated on 1st March 2020', async () => {
-  await createMockForUrl('https://www.calend.ru/day/2020-3-1/');
+  await createMocksForDate(2020, 3, 1);
   const holidays = await getHolidays();
   expect(holidays).toHaveLength(9);
+});
+
+test('New year holiday is present in the list for 31st December 2020', async () => {
+  await createMocksForDate(2020, 12, 31);
+  const holidays = await getHolidays();
+  expect(holidays).toContain('Новый год');
 });

@@ -16,8 +16,17 @@ module.exports.getHolidays = async function() {
   });
 
   // Берём названия праздников из заголовков
-  return suitableHolidayElements.map(function () {
+  let holidays = suitableHolidayElements.map(function () {
     return $(this).find('.title a').text().trim();
   }).get();
 
+  // Обрабатываем случай 31 декабря и 1 января (Новый Год)
+  const today = new Date(Date.now());
+  if (today.getMonth() === 11 && today.getDate() === 31 ||
+      today.getMonth() === 0 && today.getDate() === 1) {
+    holidays = holidays.filter(holiday => !/[н|Н]овы[й|м]/.test(holiday));
+    holidays = ['Новый год', ...holidays];
+  }
+
+  return holidays;
 };
