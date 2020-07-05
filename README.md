@@ -12,10 +12,8 @@
 Необходимо установить:
 - NodeJS v10
 - Heroku CLI
-- VS Studio 2018+ с пакетом для разработки на C++
 - PostgreSQL
 - ngrok
-- ```npm install --global --production windows-build-tools@4.0.0```
 
 Запуск сервера локально: ```npm run watch dev```
 
