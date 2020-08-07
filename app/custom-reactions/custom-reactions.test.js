@@ -30,6 +30,30 @@ const twoTextReactions = [
   },
 ];
 
+const onePictureReaction = [
+  {
+    probability: 50,
+    type: 2,
+    content: 'https://i.ytimg.com/vi/OCO3qYvqQ8w/hqdefault.jpg'
+  },
+];
+
+const oneYouTubeVideoReaction = [
+  {
+    probability: 50,
+    type: 3,
+    content: 'TU-xo3Pe2_c'
+  },
+];
+
+const oneStickerReaction = [
+  {
+    probability: 50,
+    type: 4,
+    content: '1234'
+  },
+];
+
 
 afterEach(() => {
   jest.restoreAllMocks();
@@ -142,10 +166,44 @@ test('When bot does not find a rule to react, bot passes incoming message furthe
 
 // Different reactions types
 
-// Bot can send a text as a reaction
-// Bot can send a picture as a reaction
-// Bot can send a YouTube video as a reaction
-// Bot can send a sticker as a reaction
+// Bot can send a text as a reaction - checked earlier
+
+test('Bot can send a picture as a reaction', async done => {
+  setMocks({ randomCheck: 0.001, reactions: onePictureReaction });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(sender.sendPhoto).toHaveBeenCalledTimes(1);
+    const imgBuffer = sender.sendPhoto.mock.calls[0][0];
+    expect(imgBuffer.length).toBe(12598);
+    done();
+  }, 500);
+});
+
+test('Bot can send a YouTube video as a reaction', async done => {
+  setMocks({ randomCheck: 0.001, reactions: oneYouTubeVideoReaction });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(sender.sendYouTubeVideo).toHaveBeenCalledTimes(1);
+    expect(sender.sendYouTubeVideo).toHaveBeenCalledWith('TU-xo3Pe2_c');
+    done();
+  }, 100);
+});
+
+test('Bot can send a sticker as a reaction', async done => {
+  setMocks({ randomCheck: 0.001, reactions: oneStickerReaction });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(sender.sendSticker).toHaveBeenCalledTimes(1);
+    expect(sender.sendSticker).toHaveBeenCalledWith('1234');
+    done();
+  }, 100);
+});
 
 
 function setMocks(options) {
