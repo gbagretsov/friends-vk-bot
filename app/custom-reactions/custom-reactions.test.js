@@ -95,10 +95,49 @@ test('When bot finds appropriate rule to react, and random check is successful, 
 
 // Negative tests
 
-// When bot finds appropriate rule to react, and random check is not successful, bot does not send anything
-// When bot finds appropriate rule to react, and random check is not successful, bot passes incoming message further
-// When bot does not find a rule to react, bot does not send anything
-// When bot does not find a rule to react, bot passes incoming message further
+test('When bot finds appropriate rule to react, and random check is not successful, ' +
+     'bot does not send anything', async done => {
+  setMocks({ randomCheck: 0.99, reactions: oneTextReaction });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query).toHaveBeenCalledTimes(1);
+    expect(db.query.mock.calls[0][0]).toMatch(/appropriate phrase/);
+    expect(sender.sendMessage).not.toHaveBeenCalled();
+    done();
+  }, 100);
+});
+
+test('When bot finds appropriate rule to react, and random check is not successful, ' +
+     'bot passes incoming message further', async () => {
+  setMocks({ randomCheck: 0.99, reactions: oneTextReaction });
+  const customReactions = require('./custom-reactions');
+  const result = await customReactions(messageWithAppropriatePhrase);
+  expect(result).toBe(false);
+});
+
+test('When bot does not find a rule to react, bot does not send anything', async done => {
+  setMocks({ randomCheck: 0.001, reactions: [] });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query).toHaveBeenCalledTimes(1);
+    expect(db.query.mock.calls[0][0]).toMatch(/appropriate phrase/);
+    expect(sender.sendMessage).not.toHaveBeenCalled();
+    done();
+  }, 100);
+});
+
+test('When bot does not find a rule to react, bot passes incoming message further', async () => {
+  setMocks({ randomCheck: 0.001, reactions: [] });
+  const customReactions = require('./custom-reactions');
+  const result = await customReactions(messageWithAppropriatePhrase);
+  expect(result).toBe(false);
+});
 
 
 // Different reactions types
