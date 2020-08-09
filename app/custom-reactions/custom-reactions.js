@@ -108,10 +108,7 @@ async function increaseAdditionalProbability(customReactions) {
   }
 
   let query = 'BEGIN TRANSACTION;\n';
-  customReactions.sort((a, b) => a.id - b.id).forEach((reaction, index, array) => {
-    if (reaction.id !== array[index].id) {
-      return; // Увеличиваем вероятность только один раз для каждой реакции, а не для каждого ответа
-    }
+  customReactions.sort((a, b) => a.id - b.id).forEach(reaction => {
     query +=
       `UPDATE friends_vk_bot.custom_reactions 
        SET additional_probability=${reaction.additionalProbability + ADDITIONAL_PROBABILITY_INCREASE_STEP} WHERE id=${reaction.id};\n`;
@@ -130,10 +127,7 @@ async function resetAdditionalProbability(customReactions) {
   }
 
   let query = 'BEGIN TRANSACTION;\n';
-  customReactions.sort((a, b) => a.id - b.id).forEach((reaction, index, array) => {
-    if (reaction.id !== array[index].id) {
-      return; // Сбрасываем вероятность только один раз для каждой реакции, а не для каждого ответа
-    }
+  customReactions.sort((a, b) => a.id - b.id).forEach(reaction => {
     query += `UPDATE friends_vk_bot.custom_reactions SET additional_probability=0 WHERE id=${reaction.id};\n`;
   });
   query += 'COMMIT';
