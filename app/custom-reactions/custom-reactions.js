@@ -2,6 +2,8 @@ const vk = require('../vk');
 const db = require('../db');
 const needle = require('needle');
 
+const ADDITIONAL_PROBABILITY_INCREASE_STEP = 5;
+
 async function handleMessage(message) {
   const text = message.text.toLowerCase();
   const stickerId = getStickerId(message);
@@ -10,7 +12,7 @@ async function handleMessage(message) {
     return false;
   }
 
-  let customReactions = text ? await getReactionForText(text) : await getReactionForSticker(stickerId);
+  const customReactions = text ? await getReactionForText(text) : await getReactionForSticker(stickerId);
   if (customReactions.length === 0) {
     console.log('No custom reaction found, return');
     return false;
@@ -18,15 +20,21 @@ async function handleMessage(message) {
 
   const randomCheck = Math.random() * 100;
   console.log(`Random check is ${randomCheck}%`);
-  customReactions = customReactions.filter(reaction => reaction.probability > randomCheck);
-  if (customReactions.length === 0) {
+
+  const customReactionsWithFailedRandomCheck = customReactions.filter(reaction => reaction.baseProbability + reaction.additionalProbability <= randomCheck);
+  await increaseAdditionalProbability(customReactionsWithFailedRandomCheck);
+
+  const customReactionsWithSuccessfulRandomCheck = customReactions.filter(reaction => reaction.baseProbability + reaction.additionalProbability > randomCheck);
+  await resetAdditionalProbability(customReactionsWithSuccessfulRandomCheck);
+
+  if (customReactionsWithSuccessfulRandomCheck.length === 0) {
     console.log('Random check is not successful, return');
     return false;
   } else {
-    console.log(`Possible reactions: \n - ${ customReactions.map(reaction => reaction.content).join('\n - ') }`);
+    console.log(`Possible reactions: \n - ${ customReactionsWithSuccessfulRandomCheck.map(reaction => reaction.content).join('\n - ') }`);
   }
 
-  const customReaction = customReactions[Math.floor(Math.random() * customReactions.length)];
+  const customReaction = customReactionsWithSuccessfulRandomCheck[Math.floor(Math.random() * customReactionsWithSuccessfulRandomCheck.length)];
 
   console.log(`Custom reaction type is ${customReaction.type}, content is ${customReaction.content}`);
 
@@ -63,7 +71,9 @@ function getStickerId(message) {
 async function getReactionForText(text) {
   const query = `
     SELECT
-      friends_vk_bot.custom_reactions.probability AS probability,
+      friends_vk_bot.custom_reactions.id,
+      friends_vk_bot.custom_reactions.base_probability AS "baseProbability",
+      friends_vk_bot.custom_reactions.additional_probability AS "additionalProbability",
       friends_vk_bot.responses.type AS type,
       friends_vk_bot.responses.content AS content
     FROM friends_vk_bot.custom_reactions
@@ -78,7 +88,9 @@ async function getReactionForText(text) {
 async function getReactionForSticker(stickerId) {
   const query = `
     SELECT
-      friends_vk_bot.custom_reactions.probability AS probability,
+      friends_vk_bot.custom_reactions.id,
+      friends_vk_bot.custom_reactions.base_probability AS "baseProbability",
+      friends_vk_bot.custom_reactions.additional_probability AS "additionalProbability",
       friends_vk_bot.responses.type AS type,
       friends_vk_bot.responses.content AS content
     FROM friends_vk_bot.custom_reactions
@@ -88,6 +100,48 @@ async function getReactionForSticker(stickerId) {
   `;
   const dbResult = await db.query(query);
   return dbResult.rows;
+}
+
+async function increaseAdditionalProbability(customReactions) {
+  if (customReactions.length === 0) {
+    return;
+  }
+
+  let query = 'BEGIN TRANSACTION;\n';
+  customReactions.sort((a, b) => a.id - b.id).forEach((reaction, index, array) => {
+    if (reaction.id !== array[index].id) {
+      return; // Увеличиваем вероятность только один раз для каждой реакции, а не для каждого ответа
+    }
+    query +=
+      `UPDATE friends_vk_bot.custom_reactions 
+       SET additional_probability=${reaction.additionalProbability + ADDITIONAL_PROBABILITY_INCREASE_STEP} WHERE id=${reaction.id};\n`;
+  });
+  query += 'COMMIT';
+  try {
+    await db.query(query);
+  } catch(error) {
+    console.log(error);
+  }
+}
+
+async function resetAdditionalProbability(customReactions) {
+  if (customReactions.length === 0) {
+    return;
+  }
+
+  let query = 'BEGIN TRANSACTION;\n';
+  customReactions.sort((a, b) => a.id - b.id).forEach((reaction, index, array) => {
+    if (reaction.id !== array[index].id) {
+      return; // Сбрасываем вероятность только один раз для каждой реакции, а не для каждого ответа
+    }
+    query += `UPDATE friends_vk_bot.custom_reactions SET additional_probability=0 WHERE id=${reaction.id};\n`;
+  });
+  query += 'COMMIT';
+  try {
+    await db.query(query);
+  } catch(error) {
+    console.log(error);
+  }
 }
 
 module.exports = async function(message) {
