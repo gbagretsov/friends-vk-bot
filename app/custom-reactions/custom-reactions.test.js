@@ -11,7 +11,19 @@ const messageWithAppropriateSticker = {
 
 const oneTextReaction = [
   {
-    probability: 50,
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 0,
+    type: 1,
+    content: 'This is custom reaction'
+  },
+];
+
+const oneTextReactionWithAdditionalProbability = [
+  {
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 20,
     type: 1,
     content: 'This is custom reaction'
   },
@@ -19,12 +31,47 @@ const oneTextReaction = [
 
 const twoTextReactions = [
   {
-    probability: 50,
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 0,
     type: 1,
     content: 'This is custom reaction 1'
   },
   {
-    probability: 50,
+    id: 2,
+    baseProbability: 50,
+    additionalProbability: 0,
+    type: 1,
+    content: 'This is custom reaction 2'
+  },
+];
+
+const mixedSuccessfulAndFailedRandomCheck = [
+  {
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 20,
+    type: 1,
+    content: 'This is custom reaction 1'
+  },
+  {
+    id: 2,
+    baseProbability: 60,
+    additionalProbability: 0,
+    type: 1,
+    content: 'This is custom reaction 2'
+  },
+  {
+    id: 3,
+    baseProbability: 10,
+    additionalProbability: 0,
+    type: 1,
+    content: 'This is custom reaction 1'
+  },
+  {
+    id: 4,
+    baseProbability: 20,
+    additionalProbability: 5,
     type: 1,
     content: 'This is custom reaction 2'
   },
@@ -32,7 +79,9 @@ const twoTextReactions = [
 
 const onePictureReaction = [
   {
-    probability: 50,
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 0,
     type: 2,
     content: 'https://i.ytimg.com/vi/OCO3qYvqQ8w/hqdefault.jpg'
   },
@@ -40,7 +89,9 @@ const onePictureReaction = [
 
 const oneYouTubeVideoReaction = [
   {
-    probability: 50,
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 0,
     type: 3,
     content: 'TU-xo3Pe2_c'
   },
@@ -48,7 +99,9 @@ const oneYouTubeVideoReaction = [
 
 const oneStickerReaction = [
   {
-    probability: 50,
+    id: 1,
+    baseProbability: 50,
+    additionalProbability: 0,
     type: 4,
     content: '1234'
   },
@@ -71,7 +124,22 @@ test('When bot receives a text message and finds appropriate rule, and random ch
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   setTimeout(() => {
-    expect(db.query).toHaveBeenCalledTimes(1);
+    expect(db.query.mock.calls[0][0]).toMatch(/appropriate phrase/);
+    expect(sender.sendMessage).toHaveBeenCalledTimes(1);
+    expect(sender.sendMessage.mock.calls[0][0]).toEqual('This is custom reaction');
+    done();
+  }, 100);
+});
+
+test('When bot receives a text message and finds appropriate rule, ' +
+     'and random check is successful for sum of base probability and additional probability, ' +
+     'bot sends a reaction stored in that rule', async done => {
+  setMocks({ randomCheck: 0.6, reactions: oneTextReactionWithAdditionalProbability });
+  const customReactions = require('./custom-reactions');
+  const sender = require('../vk');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
     expect(db.query.mock.calls[0][0]).toMatch(/appropriate phrase/);
     expect(sender.sendMessage).toHaveBeenCalledTimes(1);
     expect(sender.sendMessage.mock.calls[0][0]).toEqual('This is custom reaction');
@@ -87,7 +155,6 @@ test('When bot receives a sticker and finds appropriate rule, and random check i
   const db = require('../db');
   await customReactions(messageWithAppropriateSticker);
   setTimeout(() => {
-    expect(db.query).toHaveBeenCalledTimes(1);
     expect(db.query.mock.calls[0][0]).toMatch(/1337/);
     expect(sender.sendMessage).toHaveBeenCalledTimes(1);
     expect(sender.sendMessage.mock.calls[0][0]).toEqual('This is custom reaction');
@@ -116,6 +183,19 @@ test('When bot finds appropriate rule to react, and random check is successful, 
   expect(result).toBe(true);
 });
 
+test('When bot finds appropriate rule to react, and random check is successful, ' +
+     'bot resets additional probability for that rule', async done => {
+  setMocks({ randomCheck: 0.001, reactions: oneTextReaction });
+  const customReactions = require('./custom-reactions');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query.mock.calls[1][0]).toMatch(/additional_probability=0/);
+    expect(db.query.mock.calls[1][0]).toMatch(/id=1/);
+    done();
+  }, 100);
+});
+
 
 // Negative tests
 
@@ -127,9 +207,34 @@ test('When bot finds appropriate rule to react, and random check is not successf
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   setTimeout(() => {
-    expect(db.query).toHaveBeenCalledTimes(1);
     expect(db.query.mock.calls[0][0]).toMatch(/appropriate phrase/);
     expect(sender.sendMessage).not.toHaveBeenCalled();
+    done();
+  }, 100);
+});
+
+test('When bot finds appropriate rule to react, and random check is not successful, ' +
+     'bot increases additional probability for that rule', async done => {
+  setMocks({ randomCheck: 0.99, reactions: oneTextReaction });
+  const customReactions = require('./custom-reactions');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query.mock.calls[1][0]).toMatch(/additional_probability=5/);
+    expect(db.query.mock.calls[1][0]).toMatch(/id=1/);
+    done();
+  }, 100);
+});
+
+test('When bot finds appropriate rule to react, and random check is not successful, and rule has non-zero additional probability' +
+     'bot increases additional probability for that rule', async done => {
+  setMocks({ randomCheck: 0.99, reactions: oneTextReactionWithAdditionalProbability });
+  const customReactions = require('./custom-reactions');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query.mock.calls[1][0]).toMatch(/additional_probability=25/);
+    expect(db.query.mock.calls[1][0]).toMatch(/id=1/);
     done();
   }, 100);
 });
@@ -161,6 +266,40 @@ test('When bot does not find a rule to react, bot passes incoming message furthe
   const customReactions = require('./custom-reactions');
   const result = await customReactions(messageWithAppropriatePhrase);
   expect(result).toBe(false);
+});
+
+
+// Mixed case
+
+test('When bot finds appropriate rule to react, and random check is successful only for some rules, ' +
+     'bot resets additional probability only for rules that succeeded random check', async done => {
+  setMocks({ randomCheck: 0.5, reactions: mixedSuccessfulAndFailedRandomCheck });
+  const customReactions = require('./custom-reactions');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query.mock.calls[2][0]).toMatch(/additional_probability=0/);
+    expect(db.query.mock.calls[2][0]).toMatch(/id=1/);
+    expect(db.query.mock.calls[2][0]).toMatch(/id=2/);
+    expect(db.query.mock.calls[2][0]).not.toMatch(/id=3/);
+    expect(db.query.mock.calls[2][0]).not.toMatch(/id=4/);
+    done();
+  }, 100);
+});
+
+test('When bot finds appropriate rule to react, and random check is successful only for some rules, ' +
+     'bot increases additional probability only for rules that failed random check', async done => {
+  setMocks({ randomCheck: 0.5, reactions: mixedSuccessfulAndFailedRandomCheck });
+  const customReactions = require('./custom-reactions');
+  const db = require('../db');
+  await customReactions(messageWithAppropriatePhrase);
+  setTimeout(() => {
+    expect(db.query.mock.calls[1][0]).toMatch(/additional_probability=5 WHERE id=3/);
+    expect(db.query.mock.calls[1][0]).toMatch(/additional_probability=10 WHERE id=4/);
+    expect(db.query.mock.calls[1][0]).not.toMatch(/id=1/);
+    expect(db.query.mock.calls[1][0]).not.toMatch(/id=2/);
+    done();
+  }, 100);
 });
 
 

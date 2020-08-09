@@ -4,7 +4,7 @@ const db = require('../db');
 
 router.get('/', async (req, res) => {
   try {
-    const r = await db.query('SELECT * FROM friends_vk_bot.custom_reactions ORDER BY id;');
+    const r = await db.query('SELECT id, name, base_probability AS probability FROM friends_vk_bot.custom_reactions ORDER BY id;');
     const customReactions = r.rows;
     res.json(customReactions);
   } catch(error) {
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    let response = await db.query(`SELECT * FROM friends_vk_bot.custom_reactions WHERE id = ${id};`);
+    let response = await db.query(`SELECT id, name, base_probability AS probability FROM friends_vk_bot.custom_reactions WHERE id = ${id};`);
     const customReaction = response.rows[0];
     response = await db.query(`SELECT * FROM friends_vk_bot.phrases WHERE reaction_id = ${id} ORDER BY id;`);
     customReaction.phrases = response.rows.map(phrase => {
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
 
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
-  const r = await db.query(`INSERT INTO friends_vk_bot.custom_reactions (name, probability) VALUES ('${name}', ${probability}) RETURNING id;`);
+  const r = await db.query(`INSERT INTO friends_vk_bot.custom_reactions (name, base_probability) VALUES ('${name}', ${probability}) RETURNING id;`);
   const reactionId = r.rows[0].id;
 
   let query = 'BEGIN TRANSACTION;\n';
@@ -81,7 +81,7 @@ router.post('/:id', async (req, res) => {
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
   let query = 'BEGIN TRANSACTION;\n';
-  query += `UPDATE friends_vk_bot.custom_reactions SET name='${name}', probability=${probability} WHERE id=${reactionId};\n`;
+  query += `UPDATE friends_vk_bot.custom_reactions SET name='${name}', base_probability=${probability} WHERE id=${reactionId};\n`;
   query += getQueryForReactionUpdate(reactionId, phrases, stickers, responses);
   query += 'COMMIT';
 
