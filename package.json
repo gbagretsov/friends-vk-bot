@@ -29,7 +29,7 @@
     "mp3-to-wav": "^0.1.11",
     "needle": "^2.4.1",
     "node-pg-migrate": "^4.6.1",
-    "npm-watch": "^0.6.0",
+    "npm-watch": "^0.7.0",
     "pg": "^7.18.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
