@@ -346,12 +346,11 @@ test('Bot can send a sticker as a reaction', async done => {
 
 
 function setMocks(options) {
-  jest.doMock('../vk');
   const sender = require('../vk');
-  sender.sendMessage.mockResolvedValue('ok');
-  sender.sendPhoto.mockResolvedValue('ok');
-  sender.sendSticker.mockResolvedValue('ok');
-  sender.sendYouTubeVideo.mockResolvedValue('ok');
+  sender.sendMessage = jest.fn().mockResolvedValue('ok');
+  sender.sendPhoto = jest.fn().mockResolvedValue('ok');
+  sender.sendSticker = jest.fn().mockResolvedValue('ok');
+  sender.sendYouTubeVideo = jest.fn().mockResolvedValue('ok');
 
   jest.doMock('../db');
   const db = require('../db');

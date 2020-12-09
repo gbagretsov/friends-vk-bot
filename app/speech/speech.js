@@ -78,7 +78,7 @@ let sendResult = async (result, uid) => {
 };
 
 module.exports = function(message) {
-  if (message.attachments && message.attachments[0] && message.attachments[0].type === 'audio_message') {
+  if (vk.isAudioMessage(message)) {
     let audioMessage = message.attachments[0].audio_message;
     handleAudioMessage(audioMessage).then(result => sendResult(result, message.from_id));
     return true;
