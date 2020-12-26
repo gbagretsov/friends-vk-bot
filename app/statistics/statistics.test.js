@@ -184,8 +184,27 @@ describe('Get statistics', () => {
 });
 
 describe('Reset statistics', () => {
-  // Bot correctly resets statistics for current month
-  // Bot correctly sets statistics for previous month
+  test('Bot correctly resets statistics for current month', done => {
+    setMocks();
+    const resetStatistics = require('./statistics').resetStatistics;
+    const db = require('../db');
+    resetStatistics();
+    setTimeout(() => {
+      expect(db.query.mock.calls[1][0]).toMatch(/SET value = 0 WHERE id <> -5/);
+      done();
+    }, 500);
+  });
+
+  test('Bot correctly sets statistics for previous month', done => {
+    setMocks();
+    const resetStatistics = require('./statistics').resetStatistics;
+    const db = require('../db');
+    resetStatistics();
+    setTimeout(() => {
+      expect(db.query.mock.calls[1][0]).toMatch(/SET value = 100 WHERE id = -5/);
+      done();
+    }, 500);
+  });
 });
 
 function setMocks() {
