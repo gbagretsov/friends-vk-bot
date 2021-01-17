@@ -197,6 +197,7 @@ class CustomReactionEditor extends Component{
                     margin={'none'}
                     className={'text-field-with-buttons text-field-with-long-label'}
                     style={{'marginLeft': '1em'}}
+                    multiline={response.type === 1}
                     onChange={event => this.setResponseContent(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
