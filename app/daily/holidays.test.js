@@ -44,7 +44,7 @@ test('Only Defender of the Fatherland Day is celebrated on 23rd February 2020', 
 test('Nine Russian, international and UN holidays are celebrated on 1st March 2020', async () => {
   await createMocksForDate(2020, 3, 1);
   const holidays = await getHolidays();
-  expect(holidays).toHaveLength(9);
+  expect(holidays).toHaveLength(10);
 });
 
 test('New year holiday is present in the list for 31st December 2020', async () => {
