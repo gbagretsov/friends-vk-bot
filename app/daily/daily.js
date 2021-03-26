@@ -4,6 +4,7 @@ const holidays = require('./holidays');
 const statistics = require('../statistics/statistics');
 const util = require('util');
 const db = require('../db');
+const { getConcatenatedItems, getPluralForm } = require('../util');
 
 function getWeatherMessage(weather, forecast) {
   return `Доброе утро!
@@ -15,13 +16,7 @@ function getWeatherMessage(weather, forecast) {
 
 function getHolidaysMessage(holidays) {
   if (holidays.length) {
-    let concatenatedHolidays = holidays.reduce((sum, cur, i, arr) => {
-      if (i === arr.length - 1) {
-        return `${sum} и ${cur}`;
-      } else {
-        return `${sum}, ${cur}`;
-      }
-    });
+    let concatenatedHolidays = getConcatenatedItems(holidays);
 
     let phrases = [
       `🎉 A вы знали, что сегодня ${concatenatedHolidays}? Подробнее здесь: calend.ru`,
@@ -77,46 +72,24 @@ function firstDayOfMonth() {
 }
 
 function getTotalAmountMessage(totalAmount) {
-  return getAmountWithPluralForm(totalAmount, 'сообщение', 'сообщения', 'сообщений');
+  return `${totalAmount} ${getPluralForm(totalAmount, 'сообщение', 'сообщения', 'сообщений')}`;
 }
 
 function getAudioMessagesAmountMessage(audioMessagesAmount) {
-  return getAmountWithPluralForm(audioMessagesAmount, 'голосовое сообщение', 'голосовых сообщения', 'голосовых сообщений');
+  return `${audioMessagesAmount} ${getPluralForm(audioMessagesAmount, 'голосовое сообщение', 'голосовых сообщения', 'голосовых сообщений')}`;
 }
 
 function getStickersAmountMessage(stickersAmount) {
-  return getAmountWithPluralForm(stickersAmount, 'стикер', 'стикера', 'стикеров');
+  return `${stickersAmount} ${getPluralForm(stickersAmount, 'стикер', 'стикера', 'стикеров')}`;
 }
 
 function getRepostsAmountMessage(repostsAmount) {
-  return getAmountWithPluralForm(repostsAmount, 'репост', 'репоста', 'репостов');
-}
-
-function getAmountWithPluralForm(amount, oneForm, twoForm, fiveForm) {
-  let n = amount % 100;
-  if (n >= 5 && n <= 20) {
-    return `${amount} ${fiveForm}`;
-  }
-  n %= 10;
-  if (n === 1) {
-    return `${amount} ${oneForm}`;
-  }
-  if (n >= 2 && n <= 4) {
-    return `${amount} ${twoForm}`;
-  }
-  return `${amount} ${fiveForm}`;
+  return `${repostsAmount} ${getPluralForm(repostsAmount, 'репост', 'репоста', 'репостов')}`;
 }
 
 async function getMostActiveUserNamesMessage(mostActiveUsersIds, previousMonthIndex) {
   const mostActiveUsersNames = await getMostActiveUsersNames(mostActiveUsersIds);
-
-  const concatenatedMostActiveUsersNames = mostActiveUsersNames.reduce((sum, cur, i, arr) => {
-    if (i === arr.length - 1) {
-      return `${sum} и ${cur}`;
-    } else {
-      return `${sum}, ${cur}`;
-    }
-  });
+  const concatenatedMostActiveUsersNames = getConcatenatedItems(mostActiveUsersNames);
 
   return `
 ${mostActiveUsersIds.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.

@@ -1,5 +1,6 @@
 const vk = require('../vk');
 const db = require('../db');
+const { getConcatenatedItems } = require('../util');
 
 // src: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 const shuffleArray = (array) => {
@@ -63,30 +64,18 @@ ${concatenatedMissingVoters}
   },
 
   (poll, conversationMembers) => {
-    const concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
+    const concatenatedMissingVoters = getConcatenatedItems(poll.missingVoters.map(userId => {
       const user = conversationMembers.find(user => user.id === userId);
-      if (i === 0) {
-        return `@${user.screen_name} (${user.first_name})`;
-      } else if (i === arr.length - 1) {
-        return `${sum} и @${user.screen_name} (${user.first_name})`;
-      } else {
-        return `${sum}, @${user.screen_name} (${user.first_name})`;
-      }
-    }, '');
+      return `@${user.screen_name} (${user.first_name})`;
+    }));
     return `☝🏻 ${concatenatedMissingVoters}, ваших голосов не хватает в опросе "${poll.poll_info.question}". Ссылка на опрос: ${getPollLink(poll.poll_info)}`;
   },
 
   (poll, conversationMembers) => {
-    const concatenatedMissingVoters = poll.missingVoters.reduce((sum, userId, i, arr) => {
+    const concatenatedMissingVoters = getConcatenatedItems(poll.missingVoters.map(userId => {
       const user = conversationMembers.find(user => user.id === userId);
-      if (i === 0) {
-        return `@${user.screen_name} (${user.first_name_gen})`;
-      } else if (i === arr.length - 1) {
-        return `${sum} и @${user.screen_name} (${user.first_name_gen})`;
-      } else {
-        return `${sum}, @${user.screen_name} (${user.first_name_gen})`;
-      }
-    }, '');
+      return `@${user.screen_name} (${user.first_name_gen})`;
+    }));
     return `⚠ Объявление для ${concatenatedMissingVoters}: вам необходимо перейти по ссылке ${getPollLink(poll.poll_info)} и проголосовать в опросе "${poll.poll_info.question}"`;
   },
 
