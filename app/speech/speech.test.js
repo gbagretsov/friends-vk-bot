@@ -101,6 +101,7 @@ test('When bot receives a common message, it does not stop further handling of t
 });
 
 test('When bot receives a common message, it does not send any messages', done => {
+  setMocks();
   const speech = require('./speech');
   speech(messageWithoutAudioAttachment);
   const sender = require('../vk');
@@ -119,10 +120,9 @@ function setMocks(textRecognized = true) {
       return Promise.resolve({ body: textRecognized ? speechRecognizedBody : speechNotRecognizedBody });
     }
   });
-  jest.doMock('../vk');
   const sender = require('../vk');
-  sender.sendMessage.mockResolvedValue('ok');
-  sender.getUserInfo
+  sender.sendMessage = jest.fn().mockResolvedValue('ok');
+  sender.getUserInfo = jest.fn()
     .mockResolvedValueOnce({ first_name: 'Иван', sex: 0 })
     .mockResolvedValueOnce({ first_name: 'Анна', sex: 1 });
 }

@@ -6,7 +6,7 @@ const ADDITIONAL_PROBABILITY_INCREASE_STEP = 5;
 
 async function handleMessage(message) {
   const text = message.text.toLowerCase();
-  const stickerId = getStickerId(message);
+  const stickerId = vk.getStickerId(message);
 
   if (!text && !stickerId) {
     return false;
@@ -60,12 +60,6 @@ async function handleMessage(message) {
   }
 
   return true;
-}
-
-function getStickerId(message) {
-  return message.attachments &&
-    message.attachments[0] && message.attachments[0].type === 'sticker' &&
-    message.attachments[0].sticker && message.attachments[0].sticker.sticker_id;
 }
 
 async function getReactionForText(text) {

@@ -29,8 +29,10 @@ module.exports = function(app){
         const handleBySpeechModule = require('./speech/speech');
         const handleLookForPollInIncomingMessage = require('./polls-watch/polls-watch').handleLookForPollInIncomingMessage;
         const handleByCustomReactionsModule = require('./custom-reactions/custom-reactions');
+        const handleByStatisticsModule = require('./statistics/statistics').handleMessage;
 
-        let handled = 
+        let handled =
+          handleByStatisticsModule(message) ||
           handleByGameModule(message) ||
           handleBySpeechModule(message) ||
           handleLookForPollInIncomingMessage(message) ||

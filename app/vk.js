@@ -172,3 +172,17 @@ module.exports.sendYouTubeVideo = async function(youTubeVideoId) {
     return false;
   }
 };
+
+module.exports.getStickerId = function(message) {
+  return message.attachments &&
+    message.attachments[0] && message.attachments[0].type === 'sticker' &&
+    message.attachments[0].sticker && message.attachments[0].sticker.sticker_id;
+};
+
+module.exports.isAudioMessage = function(message) {
+  return message.attachments && message.attachments[0] && message.attachments[0].type === 'audio_message';
+};
+
+module.exports.isRepost = function(message) {
+  return message.attachments && message.attachments[0] && message.attachments[0].type === 'wall';
+};

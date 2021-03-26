@@ -5,6 +5,7 @@ const uuid = require('uuid');
 const vk = require('../vk');
 const dbClient = require('../db');
 const admin = require('./admin');
+const { getPluralForm } = require('../util');
 
 const TABLE_WORDS = 'words';
 
@@ -177,22 +178,6 @@ function randomInteger(min, max) {
 }
 
 function getLettersHintMessage() {
-  // src: https://gist.github.com/tomfun/830fa6d8030d16007bbab50a5b21ef97
-  const getPluralForm = (number, one, two, five) => {
-    let n = Math.abs(number);
-    n %= 100;
-    if (n >= 5 && n <= 20) {
-      return five;
-    }
-    n %= 10;
-    if (n === 1) {
-      return one;
-    }
-    if (n >= 2 && n <= 4) {
-      return two;
-    }
-    return five;
-  };
   const lettersAmountInfo = `${answer.length} ${getPluralForm(answer.length, 'буква', 'буквы', 'букв')}`;
   return `В моём слове ${lettersAmountInfo}, первая — ${answer[0].toUpperCase()}`;
 }
