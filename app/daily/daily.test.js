@@ -176,20 +176,275 @@ test('If it is first day of month, statistics are reset', async () => {
   expect(statistics.resetStatistics).toHaveBeenCalled();
 });
 
-// TODO:
+test('Bot correctly displays statistics for previous month', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 100,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: -1,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Статистика беседы за декабрь/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/100 сообщений/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/10 голосовых сообщений/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/20 стикеров/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/5 репостов/);
+});
 
-// Bot correctly displays changes in comparison to month before previous one
-// Bot correctly displays name of month before previous one
+test('Bot correctly displays changes in comparison to month before previous one (case when equals)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 100,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 100,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/не изменилось/);
+});
 
-// Bot correctly handles case when there is no statistics for month before previous one
-// Bot correctly handles case when there were zero messages in month before previous one
-// Bot correctly handles case when there were zero messages in previous month
-// Bot correctly handles case when there were zero messages in month before previous one and zero messages in previous month
+test('Bot correctly displays changes in comparison to month before previous one (case when increased insignificantly)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 500,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 499,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/незначительно увеличилось/);
+});
 
-// Bot correctly handles case when there is one most active user
-// Bot correctly handles case when there are two most active users
-// Bot correctly handles case when there are three most active users
-// Bot does not show most active users if there were no messages in previous month
+test('Bot correctly displays changes in comparison to month before previous one (case when decreased insignificantly)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 500,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 501,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/незначительно уменьшилось/);
+});
+
+test('Bot correctly displays changes in comparison to month before previous one (case when increased significantly)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 550,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 500,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/увеличилось на 10%/);
+});
+
+test('Bot correctly displays changes in comparison to month before previous one (case when decreased significantly)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 450,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 500,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/уменьшилось на 10%/);
+});
+
+test('Bot correctly displays name of month before previous one', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 100,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 100,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/с ноябрём/);
+});
+
+test('Bot correctly handles case when there is no statistics for month before previous one', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 100,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: null,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/общее количество сообщений/);
+});
+
+test('Bot correctly handles case when there were zero messages in month before previous one', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 200,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [],
+    previousMonthAmount: 0,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/увеличилось на ∞%/);
+});
+
+test('Bot correctly handles case when there were zero messages in previous month', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 0,
+    audioMessagesAmount: 0,
+    stickersAmount: 0,
+    repostsAmount: 0,
+    mostActiveUsers: [],
+    previousMonthAmount: 200,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/уменьшилось на 100%/);
+});
+
+test('Bot correctly handles case when there were zero messages in month before previous one and zero messages in previous month', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 0,
+    audioMessagesAmount: 0,
+    stickersAmount: 0,
+    repostsAmount: 0,
+    mostActiveUsers: [],
+    previousMonthAmount: 0,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/не изменилось/);
+});
+
+test('Bot correctly shows most active users (case with one user)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 200,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [ 2222 ],
+    previousMonthAmount: 0,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  sender.getUserInfo.mockResolvedValueOnce({ first_name: 'Арсений' });
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Самый активный участник/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Арсений/);
+  expect(sender.getUserInfo).toHaveBeenCalledTimes(1);
+  expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
+});
+
+test('Bot correctly shows most active users (case with two users)', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 200,
+    audioMessagesAmount: 10,
+    stickersAmount: 20,
+    repostsAmount: 5,
+    mostActiveUsers: [ 2222, 3333 ],
+    previousMonthAmount: 0,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  sender.getUserInfo
+    .mockResolvedValueOnce({ first_name: 'Арсений' })
+    .mockResolvedValueOnce({ first_name: 'Борис' });
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Самые активные участники/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Арсений/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Борис/);
+  expect(sender.getUserInfo).toHaveBeenCalledTimes(2);
+  expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
+  expect(sender.getUserInfo).toHaveBeenCalledWith(3333);
+});
+
+test('Bot does not show most active users if there were no messages in previous month', async () => {
+  mockAds('');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 1));
+  mockStatistics({
+    totalAmount: 0,
+    audioMessagesAmount: 0,
+    stickersAmount: 0,
+    repostsAmount: 0,
+    mostActiveUsers: [],
+    previousMonthAmount: 0,
+  });
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/Самые активные участники/);
+  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/Самый активный участник/);
+  expect(sender.getUserInfo).not.toHaveBeenCalled();
+});
 
 test('If it is not first day of month, statistics are not shown for previous month', async () => {
   mockAds('');
