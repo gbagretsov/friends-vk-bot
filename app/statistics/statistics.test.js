@@ -172,15 +172,92 @@ describe('Collect statistics', () => {
 });
 
 describe('Get statistics', () => {
-  // Bot correctly returns data for total amount of messages
-  // Bot correctly returns data for amount of audio messages
-  // Bot correctly returns data for amount of sticker messages
-  // Bot correctly returns data for amount of repost messages
-  // Bot correctly returns data for most active user (case when there is one most active user)
-  // Bot correctly returns data for most active user (case when there are two most active users)
-  // Bot correctly returns data for most active user (case when there are three most active users)
-  // Bot correctly returns data for previous month
-  // Bot does not return data for previous month if it is not present
+  test('Bot correctly returns data for total amount of messages', async () => {
+    setMocks();
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.totalAmount).toBe(100);
+  });
+
+  test('Bot correctly returns data for amount of audio messages', async () => {
+    setMocks();
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.audioMessagesAmount).toBe(5);
+  });
+
+  test('Bot correctly returns data for amount of stickers', async () => {
+    setMocks();
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.stickersAmount).toBe(10);
+  });
+
+  test('Bot correctly returns data for amount of reposts', async () => {
+    setMocks();
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.repostsAmount).toBe(20);
+  });
+
+  test('Bot correctly returns data for total amount of messages in previous month', async () => {
+    setMocks();
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.previousMonthAmount).toBe(400);
+  });
+
+  test('Bot does not return data for previous month if it is not present', async () => {
+    setMocks({prevMonth: -1});
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.previousMonthAmount).toBeNull();
+  });
+
+  test('Bot correctly returns data for most active user (case when there is one most active user)', async () => {
+    setMocks({ mostActiveUsers: [
+        { id: 3333, value: 123 },
+        { id: 4444, value: 1 },
+        { id: 5555, value: 1 },
+        { id: 6666, value: 1 },
+    ]});
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.mostActiveUsers).toBeTruthy();
+    expect(statistics.mostActiveUsers.length).toBe(1);
+    expect(statistics.mostActiveUsers[0]).toBe(3333);
+  });
+
+  test('Bot correctly returns data for most active user (case when there are two most active users)', async () => {
+    setMocks({ mostActiveUsers: [
+        { id: 3333, value: 123 },
+        { id: 4444, value: 123 },
+        { id: 5555, value: 1 },
+        { id: 6666, value: 1 },
+      ]});
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.mostActiveUsers).toBeTruthy();
+    expect(statistics.mostActiveUsers.length).toBe(2);
+    expect(statistics.mostActiveUsers).toContain(3333);
+    expect(statistics.mostActiveUsers).toContain(4444);
+  });
+
+  test('Bot correctly returns data for most active user (case when there are three most active users)', async () => {
+    setMocks({ mostActiveUsers: [
+        { id: 3333, value: 123 },
+        { id: 4444, value: 123 },
+        { id: 5555, value: 123 },
+        { id: 6666, value: 1 },
+      ]});
+    const getStatistics = require('./statistics').getStatistics;
+    const statistics = await getStatistics();
+    expect(statistics.mostActiveUsers).toBeTruthy();
+    expect(statistics.mostActiveUsers.length).toBe(3);
+    expect(statistics.mostActiveUsers).toContain(3333);
+    expect(statistics.mostActiveUsers).toContain(4444);
+    expect(statistics.mostActiveUsers).toContain(5555);
+  });
 });
 
 describe('Reset statistics', () => {
@@ -207,7 +284,7 @@ describe('Reset statistics', () => {
   });
 });
 
-function setMocks() {
+function setMocks(options) {
   jest.doMock('../db');
   const db = require('../db');
 
@@ -216,9 +293,13 @@ function setMocks() {
       { id: -2, value: 5 }, // audio
       { id: -3, value: 10 }, // stickers
       { id: -4, value: 20 }, // reposts
-      { id: -5, value: 400 }, // prev month
+      { id: -5, value: options && options.prevMonth || 400 }, // prev month
       { id: 2222, value: 25}, // amount for user 2222
   ]};
+
+  if (options && options.mostActiveUsers) {
+    options.mostActiveUsers.forEach(row => statistics.rows.push(row));
+  }
 
   db.query.mockImplementation(_query => {
     if (_query.includes('WHERE conversation_message_id = 9999')) {

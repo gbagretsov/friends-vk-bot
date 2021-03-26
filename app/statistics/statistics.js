@@ -64,7 +64,7 @@ module.exports.getStatistics = async function() {
   const rows = result.rows.map(row => {
     return {
       id: parseInt(row.id, 10),
-      value: row.value
+      value: parseInt(row.value),
     };
   });
 
