@@ -5,7 +5,7 @@ const needle = require('needle');
 const ADDITIONAL_PROBABILITY_INCREASE_STEP = 5;
 
 async function handleMessage(message) {
-  const text = message.text.toLowerCase();
+  const text = message.text;
   const stickerId = vk.getStickerId(message);
 
   if (!text && !stickerId) {
@@ -73,7 +73,7 @@ async function getReactionForText(text) {
     FROM friends_vk_bot.custom_reactions
         JOIN friends_vk_bot.phrases ON phrases.reaction_id = custom_reactions.id
         JOIN friends_vk_bot.responses ON responses.reaction_id = custom_reactions.id
-    WHERE '${text}' LIKE '%' || friends_vk_bot.phrases.text || '%'
+    WHERE '${text}' ILIKE '%' || friends_vk_bot.phrases.text || '%'
   `;
   const dbResult = await db.query(query);
   return dbResult.rows;
