@@ -3,7 +3,7 @@ require('dotenv').config();
 
 let handleError = function (error) {
   if (error.response) {
-    return error.response.data;
+    return JSON.stringify(error.response.data);
   } else if (error.request) {
     return error.message;
   }
@@ -21,7 +21,7 @@ module.exports.getCurrentWeather = async function() {
     let response = await axios.get('http://api.openweathermap.org/data/2.5/weather', { params });
     return response.data;
   } catch (error) {
-    console.log(handleError(error));
+    console.log('Error: ' + handleError(error));
   }
 };
 
@@ -30,6 +30,6 @@ module.exports.getForecast = async function() {
     let response = await axios.get('http://api.openweathermap.org/data/2.5/forecast', { params });
     return response.data.list;
   } catch (error) {
-    console.log(handleError(error));
+    console.log('Error: ' + handleError(error));
   }
 };

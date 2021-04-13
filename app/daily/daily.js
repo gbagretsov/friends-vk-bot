@@ -7,6 +7,10 @@ const db = require('../db');
 const { getConcatenatedItems, getPluralForm } = require('../util');
 
 function getWeatherMessage(weather, forecast) {
+  if (!weather || !forecast) {
+    return `Доброе утро!
+Я не смог узнать прогноз погоды 😞`;
+  }
   return `Доброе утро!
 Сейчас на улице ${ weather.weather[0].description }, температура ${ Math.round(weather.main.temp)}°C, ветер ${ weather.wind.speed.toFixed(1)} м/с
 Прогноз погоды на сегодня:
@@ -15,7 +19,9 @@ function getWeatherMessage(weather, forecast) {
 }
 
 function getHolidaysMessage(holidays) {
-  if (holidays.length) {
+  if (!holidays) {
+    return 'Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен';
+  } else if (holidays.length) {
     let concatenatedHolidays = getConcatenatedItems(holidays);
 
     let phrases = [
@@ -27,7 +33,7 @@ function getHolidaysMessage(holidays) {
 
     return phrases[Math.floor(Math.random() * phrases.length)];
   } else {
-    return '';
+    return 'Сегодня праздников нет 😞';
   }
 }
 
