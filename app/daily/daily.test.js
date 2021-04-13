@@ -77,8 +77,21 @@ test('If holidays are present and ads is not present and it is not first day of 
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Holiday 1/);
 });
 
-test('If holidays are not present and ads is present and it is not first day of month, then 2 messages are sent to chat in correct order - weather, ads', async () => {
+test('If holidays are not present and ads is present and it is not first day of month, then 3 messages are sent to chat in correct order - weather, no holidays message, ads', async () => {
   mockAds('Ads other message');
+  mockHolidays([]);
+  mockDate(new Date(2020, 0, 10));
+  const daily = require('./daily');
+  const sender = require('../vk');
+  await daily();
+  expect(sender.sendMessage).toHaveBeenCalledTimes(3);
+  expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Сегодня праздников нет/);
+  expect(sender.sendMessage.mock.calls[2][0]).toBe('Ads other message');
+});
+
+test('If holidays are not present and ads is not present and it is not first day of month, then 2 messages are sent to chat in correct order - weather, no holidays message', async () => {
+  mockAds('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -86,18 +99,7 @@ test('If holidays are not present and ads is present and it is not first day of 
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
-  expect(sender.sendMessage.mock.calls[1][0]).toBe('Ads other message');
-});
-
-test('If holidays are not present and ads is not present and it is not first day of month, then only a weather message is sent', async () => {
-  mockAds('');
-  mockHolidays([]);
-  mockDate(new Date(2020, 0, 10));
-  const daily = require('./daily');
-  const sender = require('../vk');
-  await daily();
-  expect(sender.sendMessage).toHaveBeenCalledTimes(1);
-  expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
+  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Сегодня праздников нет/);
 });
 
 test('Holiday message is correct if 1 holiday is celebrated today', async () => {
@@ -155,7 +157,7 @@ test('If it is first day of month, statistics are shown for previous month', asy
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Статистика/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Статистика/);
 });
 
 test('If it is first day of month, statistics are reset', async () => {
@@ -191,11 +193,11 @@ test('Bot correctly displays statistics for previous month', async () => {
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Статистика беседы за декабрь/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/100 сообщений/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/10 голосовых сообщений/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/20 стикеров/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/5 репостов/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Статистика беседы за декабрь/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/100 сообщений/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/10 голосовых сообщений/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/20 стикеров/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/5 репостов/);
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when equals)', async () => {
@@ -213,7 +215,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/не изменилось/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/не изменилось/);
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when increased insignificantly)', async () => {
@@ -231,7 +233,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/незначительно увеличилось/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/незначительно увеличилось/);
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when decreased insignificantly)', async () => {
@@ -249,7 +251,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/незначительно уменьшилось/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/незначительно уменьшилось/);
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when increased significantly)', async () => {
@@ -267,7 +269,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/увеличилось на 10%/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/увеличилось на 10%/);
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when decreased significantly)', async () => {
@@ -285,7 +287,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/уменьшилось на 10%/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/уменьшилось на 10%/);
 });
 
 test('Bot correctly displays name of month before previous one', async () => {
@@ -303,7 +305,7 @@ test('Bot correctly displays name of month before previous one', async () => {
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/с ноябрём/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/с ноябрём/);
 });
 
 test('Bot correctly handles case when there is no statistics for month before previous one', async () => {
@@ -321,7 +323,7 @@ test('Bot correctly handles case when there is no statistics for month before pr
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/общее количество сообщений/);
+  expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/общее количество сообщений/);
 });
 
 test('Bot correctly handles case when there were zero messages in month before previous one', async () => {
@@ -339,7 +341,7 @@ test('Bot correctly handles case when there were zero messages in month before p
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/увеличилось на ∞%/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/увеличилось на ∞%/);
 });
 
 test('Bot correctly handles case when there were zero messages in previous month', async () => {
@@ -357,7 +359,7 @@ test('Bot correctly handles case when there were zero messages in previous month
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/уменьшилось на 100%/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/уменьшилось на 100%/);
 });
 
 test('Bot correctly handles case when there were zero messages in month before previous one and zero messages in previous month', async () => {
@@ -375,7 +377,7 @@ test('Bot correctly handles case when there were zero messages in month before p
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/не изменилось/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/не изменилось/);
 });
 
 test('Bot correctly shows most active users (case with one user)', async () => {
@@ -394,8 +396,8 @@ test('Bot correctly shows most active users (case with one user)', async () => {
   const sender = require('../vk');
   sender.getUserInfo.mockResolvedValueOnce({ first_name: 'Арсений' });
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Самый активный участник/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Арсений/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самый активный участник/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
   expect(sender.getUserInfo).toHaveBeenCalledTimes(1);
   expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
 });
@@ -418,9 +420,9 @@ test('Bot correctly shows most active users (case with two users)', async () => 
     .mockResolvedValueOnce({ first_name: 'Арсений' })
     .mockResolvedValueOnce({ first_name: 'Борис' });
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Самые активные участники/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Арсений/);
-  expect(sender.sendMessage.mock.calls[1][0]).toMatch(/Борис/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самые активные участники/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
+  expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Борис/);
   expect(sender.getUserInfo).toHaveBeenCalledTimes(2);
   expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
   expect(sender.getUserInfo).toHaveBeenCalledWith(3333);
@@ -441,8 +443,8 @@ test('Bot does not show most active users if there were no messages in previous 
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/Самые активные участники/);
-  expect(sender.sendMessage.mock.calls[1][0]).not.toMatch(/Самый активный участник/);
+  expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самые активные участники/);
+  expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самый активный участник/);
   expect(sender.getUserInfo).not.toHaveBeenCalled();
 });
 
@@ -453,7 +455,7 @@ test('If it is not first day of month, statistics are not shown for previous mon
   const daily = require('./daily');
   const sender = require('../vk');
   await daily();
-  expect(sender.sendMessage.mock.calls[1]).toBeUndefined();
+  expect(sender.sendMessage.mock.calls[2]).toBeUndefined();
 });
 
 test('If it is not first day of month, statistics are not reset', async () => {
