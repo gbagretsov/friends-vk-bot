@@ -175,6 +175,7 @@ module.exports = async() => {
     console.log(`Ads message sent response: ${ await sender.sendMessage(ads) }`);
   }
 
+  const albumId = process.env.VK_LEADERBOARD_ALBUM_ID;
   if (statisticsShouldBeShown()) {
     const statisticsObject = await statistics.getStatistics();
     const statisticsMessage = await getStatisticsMessage(statisticsObject);
@@ -183,6 +184,9 @@ module.exports = async() => {
     const leaderboardPhotos = await statistics.getLeaderboardPhotos(statisticsObject);
     for (const photoBuffer of leaderboardPhotos) {
       await sender.sendPhotoToChat(photoBuffer);
+      if (albumId) {
+        await sender.addPhotoToAlbum(photoBuffer, albumId);
+      }
     }
   }
   if (statisticsShouldBeReset()) {

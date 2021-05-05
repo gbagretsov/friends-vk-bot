@@ -7,6 +7,7 @@ const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
 const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
 const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
+const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
 const apiVersion = '5.110';
 
@@ -114,7 +115,33 @@ module.exports.sendPhotoToChat = async function(photoBuffer) {
     console.log(`Random message ID: ${randomId}`);
     return await axios.get(`${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}&random_id=${randomId}`);
   } catch (error) {
-    console.error(`Error in sendPhoto(): ${error.message}`);
+    console.error(`Error in sendPhotoToChat(): ${error.message}`);
+  }
+
+};
+
+module.exports.addPhotoToAlbum = async function(photoBuffer, albumId) {
+  try {
+    // Получаем адрес сервера для загрузки фото
+    const uploadUrlResponse = await needle('get', `${apiUrl}/photos.getUploadServer?v=${apiVersion}&access_token=${personalAccessToken}&group_id=${groupID}&album_id=${albumId}`);
+
+    // Загружаем фотографию
+    const uploadUrl = uploadUrlResponse.body.response.upload_url;
+    const data = {
+      file1: {
+        buffer: photoBuffer,
+        filename: 'filename.jpg',
+        content_type: 'image/jpeg',
+      }
+    };
+
+    const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
+
+    // Сохраняем фотографию
+    const { server, photos_list, hash } = JSON.parse(photoInfoResponse.body);
+    return await needle('get', `${apiUrl}/photos.save?v=${apiVersion}&album_id=${albumId}&group_id=${groupID}&photos_list=${photos_list}&server=${server}&hash=${hash}&access_token=${personalAccessToken}`);
+  } catch (error) {
+    console.error(`Error in addPhotoToAlbum(): ${error.message}`);
   }
 
 };
