@@ -1,7 +1,7 @@
 const statisticsConstants = require('./statistics-constants');
 const db = require('../db');
 const vk = require('../vk');
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 const needle = require('needle');
 const util = require('../util');
 
@@ -149,6 +149,8 @@ module.exports.getLeaderboardPhotos = async function (statisticsObject) {
   const dateLine = `${month} ${year}`;
 
   const templateImage = await loadImage('./app/statistics/leaderboardPhotoTemplate.jpg');
+  registerFont('./app/statistics/book-antiqua.ttf', { family: 'Book Antiqua', weight: 'normal' });
+  registerFont('./app/statistics/book-antiqua-bold.ttf', { family: 'Book Antiqua', weight: 'bold' });
 
   for (const user of statisticsObject.mostActiveUsers) {
     const canvas = createCanvas(templateImage.width, templateImage.height);
