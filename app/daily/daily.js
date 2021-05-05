@@ -4,7 +4,14 @@ const holidays = require('./holidays');
 const statistics = require('../statistics/statistics');
 const util = require('util');
 const db = require('../db');
-const { getConcatenatedItems, getPluralForm } = require('../util');
+require('dotenv').config();
+const {
+  getConcatenatedItems,
+  getPluralForm,
+  getMonthNameInNominativeCase,
+  getMonthNameInInstrumentalCase,
+  getMonthNameInPrepositionalCase,
+} = require('../util');
 
 function getWeatherMessage(weather, forecast) {
   if (!weather || !forecast) {
@@ -42,8 +49,7 @@ async function getAdsMessage() {
   return response.rows[0].value;
 }
 
-async function getStatisticsMessage() {
-  const statisticsObject = await statistics.getStatistics();
+async function getStatisticsMessage(statisticsObject) {
   const previousMonthIndex = new Date().getMonth() - 1;
 
   const totalAmountMessage = getTotalAmountMessage(statisticsObject.totalAmount);
@@ -73,8 +79,12 @@ async function getStatisticsMessage() {
   return resultMessage;
 }
 
-function firstDayOfMonth() {
-  return new Date().getDate() === 1;
+function statisticsShouldBeShown() {
+  return process.env.DEBUG_STATISTICS === '1' || new Date().getDate() === 1;
+}
+
+function statisticsShouldBeReset() {
+  return process.env.DEBUG_STATISTICS !== '1' && new Date().getDate() === 1;
 }
 
 function getTotalAmountMessage(totalAmount) {
@@ -93,17 +103,17 @@ function getRepostsAmountMessage(repostsAmount) {
   return `${repostsAmount} ${getPluralForm(repostsAmount, 'репост', 'репоста', 'репостов')}`;
 }
 
-async function getMostActiveUserNamesMessage(mostActiveUsersIds, previousMonthIndex) {
-  const mostActiveUsersNames = await getMostActiveUsersNames(mostActiveUsersIds);
+async function getMostActiveUserNamesMessage(mostActiveUsers, previousMonthIndex) {
+  const mostActiveUsersNames = getMostActiveUsersNames(mostActiveUsers);
   const concatenatedMostActiveUsersNames = getConcatenatedItems(mostActiveUsersNames);
 
   return `
-${mostActiveUsersIds.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.
+${mostActiveUsers.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.
 `;
 }
 
-async function getMostActiveUsersNames(mostActiveUsersIds) {
-  return await Promise.all(mostActiveUsersIds.map(async uid => (await sender.getUserInfo(uid)).first_name));
+function getMostActiveUsersNames(mostActiveUsers) {
+  return mostActiveUsers.map(user => user.first_name);
 }
 
 function getComparisonMessage(monthBeforePreviousAmount, previousMonthAmount) {
@@ -129,21 +139,6 @@ function getComparisonMessage(monthBeforePreviousAmount, previousMonthAmount) {
   } else {
     return 'незначительно уменьшилось';
   }
-}
-
-function getMonthNameInNominativeCase(monthIndex) {
-  const months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
-  return months[(monthIndex + 12) % 12];
-}
-
-function getMonthNameInPrepositionalCase(monthIndex) {
-  const months = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
-  return months[(monthIndex + 12) % 12];
-}
-
-function getMonthNameInInstrumentalCase(monthIndex) {
-  const months = ['январём', 'февралём', 'мартом', 'апрелем', 'маем', 'июнем', 'июлем', 'августом', 'сентябрём', 'октябрём', 'ноябрём', 'декабрём'];
-  return months[(monthIndex + 12) % 12];
 }
 
 module.exports = async() => {
@@ -180,10 +175,17 @@ module.exports = async() => {
     console.log(`Ads message sent response: ${ await sender.sendMessage(ads) }`);
   }
 
-  if (firstDayOfMonth()) {
-    const statisticsMessage = await getStatisticsMessage();
+  if (statisticsShouldBeShown()) {
+    const statisticsObject = await statistics.getStatistics();
+    const statisticsMessage = await getStatisticsMessage(statisticsObject);
     console.log(`Statistics: ${ statisticsMessage }`);
     console.log(`Statistics message sent response: ${ await sender.sendMessage(statisticsMessage) }`);
+    const leaderboardPhotos = await statistics.getLeaderboardPhotos(statisticsObject);
+    for (const photoBuffer of leaderboardPhotos) {
+      await sender.sendPhotoToChat(photoBuffer);
+    }
+  }
+  if (statisticsShouldBeReset()) {
     await statistics.resetStatistics();
   }
 

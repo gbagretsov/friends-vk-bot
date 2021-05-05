@@ -221,11 +221,14 @@ describe('Get statistics', () => {
         { id: 5555, value: 1 },
         { id: 6666, value: 1 },
     ]});
+    const vk = require('../vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
     expect(statistics.mostActiveUsers.length).toBe(1);
-    expect(statistics.mostActiveUsers[0]).toBe(3333);
+    expect(statistics.mostActiveUsers[0].id).toBe(3333);
+    expect(statistics.mostActiveUsers[0].first_name).toBe('Name 3333');
+    expect(vk.getUserInfo.mock.calls[0][0]).toBe(3333);
   });
 
   test('Bot correctly returns data for most active user (case when there are two most active users)', async () => {
@@ -235,12 +238,17 @@ describe('Get statistics', () => {
         { id: 5555, value: 1 },
         { id: 6666, value: 1 },
       ]});
+    const vk = require('../vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
     expect(statistics.mostActiveUsers.length).toBe(2);
-    expect(statistics.mostActiveUsers).toContain(3333);
-    expect(statistics.mostActiveUsers).toContain(4444);
+    expect(statistics.mostActiveUsers[0].id).toBe(3333);
+    expect(statistics.mostActiveUsers[0].first_name).toBe('Name 3333');
+    expect(vk.getUserInfo.mock.calls[0][0]).toBe(3333);
+    expect(statistics.mostActiveUsers[1].id).toBe(4444);
+    expect(statistics.mostActiveUsers[1].first_name).toBe('Name 4444');
+    expect(vk.getUserInfo.mock.calls[1][0]).toBe(4444);
   });
 
   test('Bot correctly returns data for most active user (case when there are three most active users)', async () => {
@@ -250,13 +258,20 @@ describe('Get statistics', () => {
         { id: 5555, value: 123 },
         { id: 6666, value: 1 },
       ]});
+    const vk = require('../vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
     expect(statistics.mostActiveUsers.length).toBe(3);
-    expect(statistics.mostActiveUsers).toContain(3333);
-    expect(statistics.mostActiveUsers).toContain(4444);
-    expect(statistics.mostActiveUsers).toContain(5555);
+    expect(statistics.mostActiveUsers[0].id).toBe(3333);
+    expect(statistics.mostActiveUsers[0].first_name).toBe('Name 3333');
+    expect(vk.getUserInfo.mock.calls[0][0]).toBe(3333);
+    expect(statistics.mostActiveUsers[1].id).toBe(4444);
+    expect(statistics.mostActiveUsers[1].first_name).toBe('Name 4444');
+    expect(vk.getUserInfo.mock.calls[1][0]).toBe(4444);
+    expect(statistics.mostActiveUsers[2].id).toBe(5555);
+    expect(statistics.mostActiveUsers[2].first_name).toBe('Name 5555');
+    expect(vk.getUserInfo.mock.calls[2][0]).toBe(5555);
   });
 });
 
@@ -308,6 +323,15 @@ function setMocks(options) {
       return Promise.resolve(statistics);
     } else {
       return Promise.resolve({ rows: []});
+    }
+  });
+
+  const vk = require('../vk');
+  jest.spyOn(vk, 'getUserInfo');
+  vk.getUserInfo.mockImplementation(id => {
+    return {
+      id,
+      first_name: `Name ${id}`,
     }
   });
 }

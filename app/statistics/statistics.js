@@ -1,6 +1,9 @@
 const statisticsConstants = require('./statistics-constants');
 const db = require('../db');
 const vk = require('../vk');
+const { createCanvas, loadImage } = require('canvas');
+const needle = require('needle');
+const util = require('../util');
 
 async function gatherStatistics(message) {
   const result = await db.query('SELECT * FROM friends_vk_bot.statistics');
@@ -42,6 +45,37 @@ async function gatherStatistics(message) {
   db.query(updateQuery).catch(error => console.error(error));
 }
 
+function getUserImageDrawArea(userImage) {
+  const userImageAvailableDrawArea = {
+    x: 98,
+    y: 165,
+    width: 440,
+    height: 440,
+  };
+
+  const actualWidth = userImage.width;
+  const actualHeight = userImage.height;
+
+  let resultWidth = userImageAvailableDrawArea.width;
+  let resultX = userImageAvailableDrawArea.x;
+  let resultHeight = resultWidth / actualWidth * actualHeight;
+  let resultY = (userImageAvailableDrawArea.height - resultHeight) / 2 + userImageAvailableDrawArea.y;
+
+  if (resultHeight > userImageAvailableDrawArea.height) {
+    resultHeight = userImageAvailableDrawArea.height;
+    resultY = userImageAvailableDrawArea.y;
+    resultWidth = resultHeight / actualHeight * actualWidth;
+    resultX = (userImageAvailableDrawArea.width - resultWidth) / 2 + userImageAvailableDrawArea.x;
+  }
+
+  return {
+    x: resultX,
+    y: resultY,
+    width: resultWidth,
+    height: resultHeight,
+  };
+}
+
 module.exports.handleMessage = function(message) {
   db.query(
     `SELECT conversation_message_id
@@ -72,7 +106,11 @@ module.exports.getStatistics = async function() {
 
   const userRows = rows.filter(row => row.id > 0 && row.value > 0);
   const maxMessagesAmount = userRows.reduce((currentMax, currentRow) => currentRow.value > currentMax ? currentRow.value : currentMax, -1);
-  const mostActiveUsers = userRows.filter(user => user.value === maxMessagesAmount).map(user => user.id);
+  const mostActiveUsers = await Promise.all(
+    userRows
+      .filter(user => user.value === maxMessagesAmount)
+      .map(async user => (await vk.getUserInfo(user.id)))
+  );
 
   return {
     totalAmount: rows.find(row => row.id === statisticsConstants.TOTAL_AMOUNT).value,
@@ -100,4 +138,56 @@ module.exports.resetStatistics = async function() {
   resetQuery += `UPDATE friends_vk_bot.statistics SET value = 0 WHERE id <> ${statisticsConstants.PREVIOUS_MONTH_AMOUNT};\n`;
   resetQuery += 'END TRANSACTION';
   db.query(resetQuery).catch(error => console.error(error));
+};
+
+module.exports.getLeaderboardPhotos = async function (statisticsObject) {
+  const result = [];
+
+  const date = new Date();
+  const month = util.getMonthNameInNominativeCase(date.getMonth() - 1);
+  const year = date.getFullYear();
+  const dateLine = `${month} ${year}`;
+
+  const templateImage = await loadImage('./app/statistics/leaderboardPhotoTemplate.jpg');
+
+  for (const user of statisticsObject.mostActiveUsers) {
+    const canvas = createCanvas(templateImage.width, templateImage.height);
+    const context = canvas.getContext('2d');
+    context.quality = 'best';
+    context.patternQuality = 'best';
+    context.drawImage(templateImage, 0, 0, templateImage.width, templateImage.height);
+
+    const redirectOptions = { follow_max: 2 };
+    const userPhotoBuffer = (await needle('get', user.photo_max_orig, null, redirectOptions)).body;
+    const userImage = await loadImage(userPhotoBuffer);
+    const userImageDrawArea = getUserImageDrawArea(userImage);
+    const padding = 20;
+    context.fillStyle = '#b5a08b';
+    context.fillRect(
+      userImageDrawArea.x,
+      userImageDrawArea.y,
+      userImageDrawArea.width,
+      userImageDrawArea.height
+    );
+    context.drawImage(
+      userImage,
+      userImageDrawArea.x + padding,
+      userImageDrawArea.y + padding,
+      userImageDrawArea.width - 2 * padding,
+      userImageDrawArea.height - 2 * padding
+    );
+
+    const nameLine = `${user.first_name} ${user.last_name}`;
+    context.font = 'bold 18pt \'Book Antiqua\'';
+    context.textAlign = 'center';
+    context.fillStyle = '#3c3429';
+    context.fillText(nameLine, templateImage.width / 2, 658);
+
+    context.font = '14pt \'Book Antiqua\'';
+    context.fillText(dateLine, templateImage.width / 2, 682);
+
+    result.push(canvas.toBuffer('image/jpeg'));
+  }
+
+  return result;
 };

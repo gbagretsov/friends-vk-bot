@@ -47,7 +47,7 @@ async function handleMessage(message) {
     const redirectOptions = { follow_max: 2 };
     needle('get', customReaction.content, null, redirectOptions).then(response => {
       const imageBuffer = response.body;
-      vk.sendPhoto(imageBuffer);
+      vk.sendPhotoToChat(imageBuffer);
     });
   }
   // Ролик на YouTube

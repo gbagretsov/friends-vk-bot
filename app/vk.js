@@ -71,7 +71,7 @@ module.exports.getUserName = async function(uid) {
 };
 
 module.exports.getUserInfo = async function(uid) {
-  const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl';
+  const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl,photo_max_orig';
   try {
     const response = await axios.get(`${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
     if (response.data.error) {
@@ -84,7 +84,7 @@ module.exports.getUserInfo = async function(uid) {
   }
 };
 
-module.exports.sendPhoto = async function(photoBuffer) {
+module.exports.sendPhotoToChat = async function(photoBuffer) {
   try {
     // Получаем адрес сервера для загрузки фото
     const uploadUrlResponse = await axios.get(`${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);

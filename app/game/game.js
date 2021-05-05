@@ -122,7 +122,7 @@ async function handleGameRequestMessage(text) {
         'Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?',
       ];
       await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
-      await vk.sendPhoto(taskImgBuffer);
+      await vk.sendPhotoToChat(taskImgBuffer);
       answer = task.answer;
       if (Math.random() > 0.5) {
         await vk.sendMessage(getLettersHintMessage());
@@ -191,7 +191,7 @@ async function giveHint(previousGameId) {
   ];
 
   await vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)]);
-  await vk.sendPhoto(hintImgBuffer);
+  await vk.sendPhotoToChat(hintImgBuffer);
   if (!lettersHintSent) {
     await vk.sendMessage(getLettersHintMessage());
   }

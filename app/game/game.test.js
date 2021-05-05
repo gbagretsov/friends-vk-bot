@@ -65,7 +65,7 @@ test('When bot receives a game start request and game is not started, new game s
   expect(db.query).toHaveBeenCalledTimes(1);
   expect(sender.sendMessage).toHaveBeenCalledTimes(1);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Игра начинается/);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(1);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
 });
 
 test('When bot receives a game start request and game is not started, bot does not pass the message further', () => {
@@ -85,7 +85,7 @@ test('When bot receives a game start request and game is running, new game does 
   await waitMs(500);
   expect(db.query).toHaveBeenCalledTimes(1);
   expect(sender.sendMessage).toHaveBeenCalledTimes(1);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(1);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
 });
 
 test('When bot receives a game start request and game is running, bot does not pass the message further', () => {
@@ -122,7 +122,7 @@ test('When a game is running and bot receives correct answer, ' +
   await waitMs(500);
   expect(sender.getUserName).toHaveBeenCalledTimes(1);
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(1);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
   expect(admin.addWord).not.toHaveBeenCalled();
 });
 
@@ -194,7 +194,7 @@ test('When a game is running and bot does not get correct answer during first ro
   jest.runOnlyPendingTimers();
   await waitMs(500);
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/подсказка/);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(2);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(2);
 });
 
 test('When a game is running and bot does not get correct answer during second round, ' +
@@ -229,7 +229,7 @@ test('When a game is running and bot does not get correct answer during second r
   await waitMs(500);
   expect(sender.sendMessage).toHaveBeenCalledTimes(4);
   expect(sender.sendMessage.mock.calls[3][0]).not.toMatch(/И в этом раунде/);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(2);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(2);
   expect(sender.getUserName).toHaveBeenCalledTimes(0);
   expect(admin.addWord).toHaveBeenCalledTimes(0);
 });
@@ -270,7 +270,7 @@ test('When bot receives a game start request and game is not started and daily q
   const sender = require('../vk');
   game(messageWithGameRequest);
   await waitMs(500);
-  expect(sender.sendPhoto).toHaveBeenCalledTimes(0);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(0);
 });
 
 test('When bot receives a game start request and game is not started and daily quota of pictures search is exceeded, ' +
@@ -342,7 +342,7 @@ function setMocks(options) {
   jest.doMock('../vk');
   const sender = require('../vk');
   sender.sendMessage.mockResolvedValue('ok');
-  sender.sendPhoto.mockResolvedValue('ok');
+  sender.sendPhotoToChat.mockResolvedValue('ok');
   sender.getUserName
     .mockResolvedValueOnce('Евлампий')
     .mockResolvedValueOnce('Афанасий');

@@ -19,6 +19,7 @@ beforeEach(() => {
   const sender = require('../vk');
   sender.sendSticker.mockResolvedValue('ok');
   sender.sendMessage.mockResolvedValue('ok');
+  sender.sendPhotoToChat.mockResolvedValue('ok');
 });
 
 afterEach(() => {
@@ -50,6 +51,7 @@ function mockStatistics(statistics) {
   const statisticsModule = require('../statistics/statistics');
   statisticsModule.getStatistics.mockResolvedValue(statistics);
   statisticsModule.resetStatistics.mockResolvedValue();
+  statisticsModule.getLeaderboardPhotos.mockImplementation(object => object.mostActiveUsers);
 }
 
 test('If holidays are present and ads is present and it is not first day of month, then 3 messages are sent to chat in correct order - weather, holidays, ads', async () => {
@@ -389,17 +391,15 @@ test('Bot correctly shows most active users (case with one user)', async () => {
     audioMessagesAmount: 10,
     stickersAmount: 20,
     repostsAmount: 5,
-    mostActiveUsers: [ 2222 ],
+    mostActiveUsers: [{ first_name: 'Арсений' }],
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
   const sender = require('../vk');
-  sender.getUserInfo.mockResolvedValueOnce({ first_name: 'Арсений' });
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самый активный участник/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
-  expect(sender.getUserInfo).toHaveBeenCalledTimes(1);
-  expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
 });
 
 test('Bot correctly shows most active users (case with two users)', async () => {
@@ -411,21 +411,16 @@ test('Bot correctly shows most active users (case with two users)', async () => 
     audioMessagesAmount: 10,
     stickersAmount: 20,
     repostsAmount: 5,
-    mostActiveUsers: [ 2222, 3333 ],
+    mostActiveUsers: [ { first_name: 'Арсений' }, { first_name: 'Борис' } ],
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
   const sender = require('../vk');
-  sender.getUserInfo
-    .mockResolvedValueOnce({ first_name: 'Арсений' })
-    .mockResolvedValueOnce({ first_name: 'Борис' });
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самые активные участники/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Борис/);
-  expect(sender.getUserInfo).toHaveBeenCalledTimes(2);
-  expect(sender.getUserInfo).toHaveBeenCalledWith(2222);
-  expect(sender.getUserInfo).toHaveBeenCalledWith(3333);
+  expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(2);
 });
 
 test('Bot does not show most active users if there were no messages in previous month', async () => {
@@ -445,7 +440,7 @@ test('Bot does not show most active users if there were no messages in previous 
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самые активные участники/);
   expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самый активный участник/);
-  expect(sender.getUserInfo).not.toHaveBeenCalled();
+  expect(sender.sendPhotoToChat).not.toHaveBeenCalled();
 });
 
 test('If it is not first day of month, statistics are not shown for previous month', async () => {
