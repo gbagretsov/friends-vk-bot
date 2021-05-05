@@ -27,3 +27,18 @@ module.exports.getConcatenatedItems = function(items) {
     }
   });
 };
+
+module.exports.getMonthNameInNominativeCase = function(monthIndex) {
+  const months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+  return months[(monthIndex + 12) % 12];
+};
+
+module.exports.getMonthNameInPrepositionalCase = function(monthIndex) {
+  const months = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
+  return months[(monthIndex + 12) % 12];
+};
+
+module.exports.getMonthNameInInstrumentalCase = function(monthIndex) {
+  const months = ['январём', 'февралём', 'мартом', 'апрелем', 'маем', 'июнем', 'июлем', 'августом', 'сентябрём', 'октябрём', 'ноябрём', 'декабрём'];
+  return months[(monthIndex + 12) % 12];
+};
