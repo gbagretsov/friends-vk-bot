@@ -19,8 +19,6 @@ const messageWithoutText = { text: '' };
 const messageWithAddWordRequest = { text: 'Бот, запомни слово покемон' };
 const messageWithDeleteWordRequest = { text: 'Бот, забудь слово покемон' };
 
-let pictureResponseExample;
-
 const searchQuotaExceededResponse = {
   error: {
     errors: [{
@@ -39,11 +37,6 @@ const googleSearchResponse = {
 const taskFromDb = { name: 'абракадабра' };
 
 const originalSetTimeout = setTimeout;
-
-beforeAll(async () => {
-  const needle = require('needle');
-  pictureResponseExample = await needle('get', 'https://www.softlab.ru/upload/iblock/e5f/bot_big.png');
-});
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -335,7 +328,7 @@ function setMocks(options) {
       });
     }
     if (url.includes('jpg')) {
-      return Promise.resolve(pictureResponseExample);
+      return Promise.resolve({});
     }
   });
 
