@@ -18,11 +18,19 @@ function getWeatherMessage(weather, forecast) {
     return `Доброе утро!
 Я не смог узнать прогноз погоды 😞`;
   }
+  const hoursOffset = parseInt(process.env.TIME_ZONE_HOURS_OFFSET, 10);
+  const concatenatedWeatherForecast = forecast.reduce((sum, cur) => {
+    const date = new Date(cur.dt * 1000);
+    return `${sum}
+- в ${(date.getUTCHours() + hoursOffset) % 24}:00 ${getWeatherLine(cur)}`;
+  }, '');
   return `Доброе утро!
-Сейчас на улице ${ weather.weather[0].description }, температура ${ Math.round(weather.main.temp)}°C, ветер ${ weather.wind.speed.toFixed(1)} м/с
-Прогноз погоды на сегодня:
-- днём ${ forecast[1].weather[0].description }, температура ${ Math.round(forecast[1].main.temp) }°C, ветер ${ forecast[1].wind.speed.toFixed(1) } м/с
-- вечером ${ forecast[3].weather[0].description }, температура ${ Math.round(forecast[3].main.temp)}°C, ветер ${ forecast[3].wind.speed.toFixed(1) } м/с`;
+Сейчас на улице ${getWeatherLine(weather)}
+Прогноз погоды на сегодня: ${concatenatedWeatherForecast}`;
+}
+
+function getWeatherLine(weatherObject) {
+  return `${ weatherObject.weather[0].description }, ${ Math.round(weatherObject.main.temp)}°C, ветер ${ Math.round(weatherObject.wind.speed)} м/с`;
 }
 
 function getHolidaysMessage(holidays) {
