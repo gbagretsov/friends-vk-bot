@@ -1,11 +1,11 @@
 const cheerio = require('cheerio');
-const axios = require('axios');
+const needle = require('needle');
 
 module.exports.getHolidays = async function() {
 
   try {
-    const response = await axios.get('https://www.calend.ru');
-    const body = response.data;
+    const response = await needle('get', 'https://www.calend.ru');
+    const body = response.body;
 
     const $ = cheerio.load(body);
 
@@ -31,10 +31,6 @@ module.exports.getHolidays = async function() {
 
     return holidays;
   } catch (error) {
-    if (error.response) {
-      console.log('Error: ' + JSON.stringify(error.response.data));
-    } else if (error.request) {
-      console.log('Error: ' + error.message);
-    }
+    console.log('Error: ' + JSON.stringify(error));
   }
 };
