@@ -1,6 +1,7 @@
 const vk = require('../vk');
 const db = require('../db');
 const needle = require('needle');
+const retry = require('async-retry');
 
 const ADDITIONAL_PROBABILITY_INCREASE_STEP = 5;
 
@@ -45,7 +46,10 @@ async function handleMessage(message) {
   // Картинка
   if (customReaction.type === 2) {
     const redirectOptions = { follow_max: 2 };
-    needle('get', customReaction.content, null, redirectOptions).then(response => {
+    const retryParams = { retries: 5 };
+    retry(async () => {
+      return await needle('get', customReaction.content, null, redirectOptions);
+    }, retryParams).then(response => {
       const imageBuffer = response.body;
       vk.sendPhotoToChat(imageBuffer);
     });
