@@ -317,7 +317,7 @@ test('Bot can send a picture as a reaction', async done => {
     const imgBuffer = sender.sendPhotoToChat.mock.calls[0][0];
     expect(imgBuffer.length).toBe(12598);
     done();
-  }, 500);
+  }, 4000);
 });
 
 test('Bot can send a YouTube video as a reaction', async done => {
