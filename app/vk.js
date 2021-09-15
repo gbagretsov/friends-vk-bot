@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const needle = require('needle');
+const { timeout } = require('./util');
 
 const accessToken = process.env.VK_ACCESS_TOKEN;
 const peerID = process.env.VK_PEER_ID;
@@ -10,17 +11,11 @@ const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
 const apiVersion = '5.110';
 
-const delayPromise = function(ms) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-};
-
 module.exports.sendMessage = async function(message, delay) {
   const setTypingStatusIfNeeded = async function() {
     if (delay) {
       await needle('get', `${apiUrl}/messages.setActivity?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
-      return await delayPromise(delay);
+      return await timeout(delay);
     }
   };
 
