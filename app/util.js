@@ -42,3 +42,7 @@ module.exports.getMonthNameInInstrumentalCase = function(monthIndex) {
   const months = ['январём', 'февралём', 'мартом', 'апрелем', 'маем', 'июнем', 'июлем', 'августом', 'сентябрём', 'октябрём', 'ноябрём', 'декабрём'];
   return months[(monthIndex + 12) % 12];
 };
+
+module.exports.timeout = function(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
