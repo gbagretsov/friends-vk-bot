@@ -11,18 +11,14 @@
 
 ### Настройка локального окружения
 
-Необходимо установить:
-- NodeJS v10
-- Heroku CLI
-- PostgreSQL
-- ngrok
-
-Запуск сервера локально: ```npm run watch dev```
-
-Туннелирование для доступа ВК API к локальному серверу: ```ngrok http <PORT>```
-
-Все используемые переменные окружения описаны в `.env.example`
-
-Схема БД и пример данных в папке `migrations`. Запуск миграций: `npm run migrate up`
+- Установите следующие инструменты:
+  - NodeJS >=14, npm >=7
+  - Heroku CLI
+  - PostgreSQL >=10.18
+  - ngrok
+- В корне проекта создайте файл `.env` с конфигурацией. Все используемые переменные окружения описаны в `.env.example`
+- Создайте БД и укажите URL для доступа к БД в файле `.env`. Схема БД и пример данных в папке `migrations`. Запуск миграций: `npm run migrate up`
+- Запустите локальный сервер: ```npm run watch dev```
+- Настройте туннелирование для доступа ВК API к локальному серверу: ```ngrok http <PORT>```
 
 Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline,video,photos&response_type=token`
