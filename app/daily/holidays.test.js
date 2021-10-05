@@ -1,5 +1,3 @@
-const needle = require('needle');
-
 afterEach(() => {
   jest.clearAllMocks();
   jest.resetModules();
@@ -7,9 +5,7 @@ afterEach(() => {
 
 async function createMocksForDate(year, month, day) {
   const mockedDate = new Date(year, month - 1, day, 2);
-  const mockHolidaysResponse = await needle('get', `https://www.calend.ru/day/${year}-${month}-${day}/`);
   Date.now = jest.spyOn(Date, 'now').mockImplementation(() => mockedDate.getTime());
-  jest.doMock('needle', () => () => Promise.resolve(mockHolidaysResponse));
 }
 
 test('Only New year is celebrated on 1st January 2020', async () => {
