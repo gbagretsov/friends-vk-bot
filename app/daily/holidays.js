@@ -4,7 +4,10 @@ const needle = require('needle');
 module.exports.getHolidays = async function() {
 
   try {
-    const response = await needle('get', 'https://www.calend.ru');
+    const today = new Date(Date.now());
+    const url = `https://www.calend.ru/day/${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}/`;
+    console.log(url);
+    const response = await needle('get', url);
     const body = response.body;
 
     const $ = cheerio.load(body);
@@ -22,7 +25,6 @@ module.exports.getHolidays = async function() {
     }).get();
 
     // Обрабатываем случай 31 декабря и 1 января (Новый Год)
-    const today = new Date(Date.now());
     if (today.getMonth() === 11 && today.getDate() === 31 ||
       today.getMonth() === 0 && today.getDate() === 1) {
       holidays = holidays.filter(holiday => !/[н|Н]овы[й|м]/.test(holiday));
