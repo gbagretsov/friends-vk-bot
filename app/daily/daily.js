@@ -33,7 +33,7 @@ function getWeatherLine(weatherObject) {
   return `${ weatherObject.weather[0].description }, ${ Math.round(weatherObject.main.temp)}°C, ветер ${ Math.round(weatherObject.wind.speed)} м/с`;
 }
 
-function getHolidaysMessage(holidays) {
+async function getHolidaysMessage(holidays) {
   if (!holidays) {
     return 'Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен';
   } else if (holidays.length) {
@@ -48,7 +48,9 @@ function getHolidaysMessage(holidays) {
 
     return phrases[Math.floor(Math.random() * phrases.length)];
   } else {
-    return 'Сегодня праздников нет 😞';
+    const response = await db.query('SELECT value FROM friends_vk_bot.state WHERE key = \'absent_holidays_phrases\';');
+    const absentHolidaysPhrases = response.rows[0].value.split('\n');
+    return absentHolidaysPhrases[Math.floor(Math.random() * absentHolidaysPhrases.length)];
   }
 }
 
@@ -171,7 +173,7 @@ module.exports = async() => {
   console.log(`Weather message: ${ weatherMessage }`);
   console.log(`Weather message sent response: ${ await sender.sendMessage(weatherMessage) }`);
   
-  let holidaysMessage = getHolidaysMessage(todayHolidays);
+  const holidaysMessage = await getHolidaysMessage(todayHolidays);
   console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
   if (holidaysMessage) {
     console.log(`Holidays message sent response: ${ await sender.sendMessage(holidaysMessage) }`);
