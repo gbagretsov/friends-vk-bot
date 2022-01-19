@@ -5,28 +5,35 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 
-import './Ads.scss';
+import './Settings.scss';
 
-class Ads extends Component{
+class Settings extends Component{
 
   constructor(props) {
     super(props);
     this.state = {
       ads: '',
+      absentHolidaysPhrases: '',
       pending: false,
     };
   }
 
-  handleChange = (event) => {
+  handleAdsChange = (event) => {
     this.setState({
       ads: event.target.value,
+    });
+  };
+
+  handleAbsentHolidaysPhrasesChange = (event) => {
+    this.setState({
+      absentHolidaysPhrases: event.target.value,
     });
   };
 
   componentDidMount = async () => {
     this.setState({ pending: true });
 
-    let url = `api/ads?token=${this.props.token}`;
+    let url = `api/settings?token=${this.props.token}`;
 
     let params = {
       headers: {
@@ -38,8 +45,8 @@ class Ads extends Component{
     try {
       let response = await fetch(url, params);
       let data = await response.json();
-      if (data.ads !== null && data.ads !== undefined) {
-        this.setState({ ads: data.ads });
+      if (data.ads !== null && data.ads !== undefined && data.absentHolidaysPhrases !== null && data.absentHolidaysPhrases !== undefined) {
+        this.setState({ ads: data.ads, absentHolidaysPhrases: data.absentHolidaysPhrases });
       } else {
         throw new Error(data.error);
       }
@@ -51,15 +58,16 @@ class Ads extends Component{
 
   };
 
-  trySaveAds = async () => {
+  trySaveSettings = async () => {
     this.setState({
       pending: true,
     });
 
-    let url = 'api/ads';
+    let url = 'api/settings';
     let data = {
       token: this.props.token,
       ads: this.state.ads,
+      absentHolidaysPhrases: this.state.absentHolidaysPhrases,
     };
 
     let params = {
@@ -87,21 +95,32 @@ class Ads extends Component{
   };
 
   render(){
-    let { ads, pending } = this.state;
+    let { ads, absentHolidaysPhrases, pending } = this.state;
     return(
-      <div className="ads-wrapper">
+      <div className="settings-wrapper">
         <Paper className="paper">
           <TextField
             id="ads"
             label="Реклама"
-            onChange={this.handleChange}
+            className="setting-field"
+            onChange={this.handleAdsChange}
             value={ads}
             disabled={pending}
             multiline={true}
             fullWidth={true}
           />
+          <TextField
+            id="absent-holidays-phrases"
+            label="Варианты сообщений при отсутствии праздников"
+            className="setting-field"
+            onChange={this.handleAbsentHolidaysPhrasesChange}
+            value={absentHolidaysPhrases}
+            disabled={pending}
+            multiline={true}
+            fullWidth={true}
+          />
           <div className="button-wrapper">
-            <Button variant="contained" color="primary" onClick={this.trySaveAds} disabled={pending}>
+            <Button variant="contained" color="primary" onClick={this.trySaveSettings} disabled={pending}>
               Сохранить
               { pending && <CircularProgress size={24} className="progress"/>}
             </Button>
@@ -113,10 +132,10 @@ class Ads extends Component{
 
 }
 
-Ads.propTypes = {
+Settings.propTypes = {
   token: PropTypes.string.isRequired,
   onSaved: PropTypes.func,
   onError: PropTypes.func,
 };
 
-export default Ads;
+export default Settings;

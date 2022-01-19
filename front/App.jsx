@@ -7,7 +7,7 @@ import Tab from '@material-ui/core/Tab';
 import './App.scss';
 
 import Token from './token/Token.jsx';
-import Ads from './ads/Ads.jsx';
+import Settings from './settings/Settings.jsx';
 import Message from './message/Message.jsx';
 import Words from './words/Words.jsx';
 import CustomReactions from './custom-reactions/CustomReactions';
@@ -73,9 +73,9 @@ class App extends Component {
   renderMainTab = () => {
     return(
       <div>
-        <Ads
+        <Settings
           token={this.state.token}
-          onSaved={() => this.showMessage('Реклама сохранена', 'success')}
+          onSaved={() => this.showMessage('Настройки сохранены', 'success')}
           onError={(error) => this.showMessage(error, 'error')}
         />
         <Words

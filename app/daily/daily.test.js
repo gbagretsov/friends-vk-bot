@@ -27,11 +27,19 @@ afterEach(() => {
   jest.resetModules();
 });
 
-function mockAds(ads) {
+function mockDatabaseCalls(ads) {
   jest.doMock('../db');
   const db = require('../db');
-  db.query.mockReturnValue({
-    rows: [{ value: ads }],
+  db.query.mockImplementation(request => {
+    if (request.includes('ads')) {
+      return {
+        rows: [{ value: ads }]
+      };
+    } else if (request.includes('absent_holidays_phrases')) {
+      return {
+        rows: [{ value: 'Сегодня праздников нет' }]
+      };
+    }
   });
 }
 
@@ -55,7 +63,7 @@ function mockStatistics(statistics) {
 }
 
 test('If holidays are present and ads is present and it is not first day of month, then 3 messages are sent to chat in correct order - weather, holidays, ads', async () => {
-  mockAds('Ads message');
+  mockDatabaseCalls('Ads message');
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -68,7 +76,7 @@ test('If holidays are present and ads is present and it is not first day of mont
 });
 
 test('If holidays are present and ads is not present and it is not first day of month, then 2 messages are sent to chat in correct order - weather, holidays', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -80,7 +88,7 @@ test('If holidays are present and ads is not present and it is not first day of 
 });
 
 test('If holidays are not present and ads is present and it is not first day of month, then 3 messages are sent to chat in correct order - weather, no holidays message, ads', async () => {
-  mockAds('Ads other message');
+  mockDatabaseCalls('Ads other message');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -93,7 +101,7 @@ test('If holidays are not present and ads is present and it is not first day of 
 });
 
 test('If holidays are not present and ads is not present and it is not first day of month, then 2 messages are sent to chat in correct order - weather, no holidays message', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -105,7 +113,7 @@ test('If holidays are not present and ads is not present and it is not first day
 });
 
 test('Holiday message is correct if 1 holiday is celebrated today', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -115,7 +123,7 @@ test('Holiday message is correct if 1 holiday is celebrated today', async () => 
 });
 
 test('Holiday message is correct if 2 holidays are celebrated today', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays(['Holiday 1', 'Holiday 2']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -125,7 +133,7 @@ test('Holiday message is correct if 2 holidays are celebrated today', async () =
 });
 
 test('Holiday message is correct if 3 holidays are celebrated today', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -135,7 +143,7 @@ test('Holiday message is correct if 3 holidays are celebrated today', async () =
 });
 
 test('Holiday message is correct if 4 holidays are celebrated today', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3', 'Holiday 4']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -145,7 +153,7 @@ test('Holiday message is correct if 4 holidays are celebrated today', async () =
 });
 
 test('If it is first day of month, statistics are shown for previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -163,7 +171,7 @@ test('If it is first day of month, statistics are shown for previous month', asy
 });
 
 test('If it is first day of month, statistics are reset', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -181,7 +189,7 @@ test('If it is first day of month, statistics are reset', async () => {
 });
 
 test('Bot correctly displays statistics for previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -203,7 +211,7 @@ test('Bot correctly displays statistics for previous month', async () => {
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when equals)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -221,7 +229,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when increased insignificantly)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -239,7 +247,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when decreased insignificantly)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -257,7 +265,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when increased significantly)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -275,7 +283,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
 });
 
 test('Bot correctly displays changes in comparison to month before previous one (case when decreased significantly)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -293,7 +301,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
 });
 
 test('Bot correctly displays name of month before previous one', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -311,7 +319,7 @@ test('Bot correctly displays name of month before previous one', async () => {
 });
 
 test('Bot correctly handles case when there is no statistics for month before previous one', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -329,7 +337,7 @@ test('Bot correctly handles case when there is no statistics for month before pr
 });
 
 test('Bot correctly handles case when there were zero messages in month before previous one', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -347,7 +355,7 @@ test('Bot correctly handles case when there were zero messages in month before p
 });
 
 test('Bot correctly handles case when there were zero messages in previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -365,7 +373,7 @@ test('Bot correctly handles case when there were zero messages in previous month
 });
 
 test('Bot correctly handles case when there were zero messages in month before previous one and zero messages in previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -383,7 +391,7 @@ test('Bot correctly handles case when there were zero messages in month before p
 });
 
 test('Bot correctly shows most active users (case with one user)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -403,7 +411,7 @@ test('Bot correctly shows most active users (case with one user)', async () => {
 });
 
 test('Bot correctly shows most active users (case with two users)', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -424,7 +432,7 @@ test('Bot correctly shows most active users (case with two users)', async () => 
 });
 
 test('Bot does not show most active users if there were no messages in previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 1));
   mockStatistics({
@@ -444,7 +452,7 @@ test('Bot does not show most active users if there were no messages in previous 
 });
 
 test('If it is not first day of month, statistics are not shown for previous month', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
@@ -454,7 +462,7 @@ test('If it is not first day of month, statistics are not shown for previous mon
 });
 
 test('If it is not first day of month, statistics are not reset', async () => {
-  mockAds('');
+  mockDatabaseCalls('');
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');

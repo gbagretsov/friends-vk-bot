@@ -19,7 +19,7 @@ function checkToken(req, res, next) {
 router.use(checkToken);
 
 router.use('/words', require('./words').router);
-router.use('/ads', require('./ads').router);
+router.use('/settings', require('./settings').router);
 router.use('/customReactions', require('./custom-reactions').router);
 
 router.post('/', (req, res) => {
