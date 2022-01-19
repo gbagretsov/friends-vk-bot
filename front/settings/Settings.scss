@@ -1,7 +1,10 @@
 @import '../mixins';
 
-.ads-wrapper {
-  
+.settings-wrapper {
+  .setting-field {
+    margin-bottom: 1em;
+  }
+
   .button-wrapper {
     margin-top: 1em;
     position: relative;
