@@ -21,13 +21,20 @@ import withMobileDialog from '@material-ui/core/withMobileDialog';
 
 import './CustomReactionEditor.scss';
 
+const ResponseType = {
+  TEXT: 1,
+  PICTURE: 2,
+  YOUTUBE_VIDEO: 3,
+  STICKER: 4,
+};
+
 class CustomReactionEditor extends Component{
 
-  responseTypes = [
-    { value: 1, label: 'Фраза' },
-    { value: 2, label: 'Картинка' },
-    { value: 3, label: 'Видео на YouTube' },
-    { value: 4, label: 'Стикер' },
+  responseTypeLabels = [
+    { value: ResponseType.TEXT, label: 'Фраза' },
+    { value: ResponseType.PICTURE, label: 'Картинка' },
+    { value: ResponseType.YOUTUBE_VIDEO, label: 'Видео на YouTube' },
+    { value: ResponseType.STICKER, label: 'Стикер' },
   ];
 
   constructor(props) {
@@ -182,7 +189,7 @@ class CustomReactionEditor extends Component{
                     margin={'none'}
                     onChange={event => this.setResponseType(index, event.target.value)}
                   >
-                    {this.responseTypes.map(option => (
+                    {this.responseTypeLabels.map(option => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
                       </MenuItem>
@@ -197,11 +204,11 @@ class CustomReactionEditor extends Component{
                     margin={'none'}
                     className={'text-field-with-buttons text-field-with-long-label'}
                     style={{'marginLeft': '1em'}}
-                    multiline={response.type === 1}
+                    multiline={response.type === ResponseType.TEXT}
                     onChange={event => this.setResponseContent(index, event.target.value)}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">
-                        { !!response.content && response.type !== 1 &&
+                        { !!response.content && response.type !== ResponseType.TEXT &&
                         <IconButton href={this.getLinkForResponse(response)} target="_blank">
                           <OpenInNewIcon fontSize="small"/>
                         </IconButton> }
@@ -293,16 +300,16 @@ class CustomReactionEditor extends Component{
   }
 
   getResponseContentLabelByType = (type) => {
-    if (type === 1) {
+    if (type === ResponseType.TEXT) {
       return 'Фраза';
     }
-    if (type === 2) {
-      return 'Ссылка на картинку JPG';
+    if (type === ResponseType.PICTURE) {
+      return 'Ссылка на публичную картинку JPG в Google Диске';
     }
-    if (type === 3) {
+    if (type === ResponseType.YOUTUBE_VIDEO) {
       return 'ID видео на YouTube';
     }
-    if (type === 4) {
+    if (type === ResponseType.STICKER) {
       return 'ID стикера';
     }
     return 'Содержимое ответа';
@@ -369,13 +376,13 @@ class CustomReactionEditor extends Component{
 
   getLinkForResponse = (response) => {
     const { type, content } = response;
-    if (type === 2) {
+    if (type === ResponseType.PICTURE) {
       return content;
     }
-    if (type === 3) {
+    if (type === ResponseType.YOUTUBE_VIDEO) {
       return `https://youtube.com/watch?v=${content}`;
     }
-    if (type === 4) {
+    if (type === ResponseType.STICKER) {
       return `https://vk.com/sticker/1-${content}-256`;
     }
     return '';

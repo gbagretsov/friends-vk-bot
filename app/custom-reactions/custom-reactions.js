@@ -1,7 +1,6 @@
 const vk = require('../vk');
 const db = require('../db');
 const needle = require('needle');
-const retry = require('async-retry');
 
 const ADDITIONAL_PROBABILITY_INCREASE_STEP = 5;
 
@@ -45,11 +44,9 @@ async function handleMessage(message) {
   }
   // Картинка
   if (customReaction.type === 2) {
-    const redirectOptions = { follow_max: 2 };
-    const retryParams = { retries: 5 };
-    retry(async () => {
-      return await needle('get', customReaction.content, null, redirectOptions);
-    }, retryParams).then(response => {
+    const redirectOptions = { follow_max: 1 };
+    const downloadLink = getDownloadLinkByGoogleDiskWebViewLink(customReaction.content);
+    needle('get', downloadLink, null, redirectOptions).then(response => {
       const imageBuffer = response.body;
       vk.sendPhotoToChat(imageBuffer);
     });
@@ -134,6 +131,12 @@ async function resetAdditionalProbability(customReactions) {
   } catch(error) {
     console.log(error);
   }
+}
+
+function getDownloadLinkByGoogleDiskWebViewLink(googleDiskWebViewLink) {
+  return googleDiskWebViewLink
+    .replace('https://drive.google.com/file/d/', 'https://drive.google.com/uc?id=')
+    .replace('/view?usp=sharing', '&export=download');
 }
 
 module.exports = async function(message) {
