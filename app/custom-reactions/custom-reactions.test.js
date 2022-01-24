@@ -84,7 +84,7 @@ const onePictureReaction = [
     baseProbability: 50,
     additionalProbability: 0,
     type: 2,
-    content: 'https://i.ytimg.com/vi/OCO3qYvqQ8w/hqdefault.jpg'
+    content: 'https://drive.google.com/file/d/1jJb8Clqoza_BDBhkiyv7Kqj9EUwAd8SE/view?usp=sharing'
   },
 ];
 
@@ -294,7 +294,7 @@ test('Bot can send a picture as a reaction', async () => {
   await timeout(4000);
   expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
   const imgBuffer = sender.sendPhotoToChat.mock.calls[0][0];
-  expect(imgBuffer.length).toBe(12598);
+  expect(imgBuffer.length).toBe(63801);
 });
 
 test('Bot can send a YouTube video as a reaction', async () => {
