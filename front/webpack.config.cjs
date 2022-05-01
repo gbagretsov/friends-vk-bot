@@ -2,7 +2,7 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-  entry: './front/index.js',
+  entry: './front/src/index.js',
   mode: 'development',
   module: {
     rules: [
@@ -20,7 +20,7 @@ module.exports = {
   },
   resolve: { extensions: ['*', '.js', '.jsx'] },
   output: {
-    path: path.resolve(__dirname, 'public/dist/'),
+    path: path.resolve(__dirname, '../compiled/public/dist/'),
     filename: 'bundle.js'
   },
   plugins: [

@@ -1,2 +1,2 @@
-web: node index.js
+web: node compiled/app/index.js
 release: npm run migrate up

@@ -6,18 +6,18 @@
     "node": "^14.0.0",
     "npm": "^7.0.0"
   },
-  "main": "index.js",
+  "main": "compiled/app/index.js",
   "scripts": {
-    "start": "node index.js",
-    "heroku-postbuild": "webpack --mode production",
-    "dev": "npm run build && heroku local",
-    "daily": "node app/daily/run-daily.js",
-    "polls-watch": "node app/polls-watch/run-polls-watch.js",
+    "heroku-postbuild": "npm run build-front-prod && npm run build-back",
+    "dev": "npm run build-front && npm run build-back && node compiled/app/index",
+    "daily": "npm run build-back && node compiled/app/daily/run-daily",
+    "polls-watch": "npm run build-back && node compiled/app/polls-watch/run-polls-watch",
     "test": "jest --env=node --silent",
     "watch": "npm-watch",
     "migrate": "node-pg-migrate",
-    "build": "webpack --mode development",
-    "prod": "webpack --mode production"
+    "build-back": "tsc --project app",
+    "build-front": "tsc --project front && webpack --config front/webpack.config.cjs --mode development",
+    "build-front-prod": "tsc --project front && webpack --config front/webpack.config.cjs --mode production"
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
@@ -44,6 +44,9 @@
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.6",
     "@babel/preset-react": "^7.14.5",
+    "@types/express": "^4.17.13",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.2",
     "css-loader": "^6.2.0",
@@ -54,6 +57,7 @@
     "node-sass": "^6.0.1",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.2.1",
+    "typescript": "^4.6.4",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0"
   },
@@ -61,17 +65,15 @@
     "dev": {
       "patterns": [
         "app",
-        "front",
-        "./index.js"
+        "front"
       ],
-      "extensions": "js,jsx,scss"
+      "extensions": "ts,js,jsx,scss"
     },
     "daily": {
       "patterns": [
-        "app",
-        "./index.js"
+        "app"
       ],
-      "extensions": "js"
+      "extensions": "ts,js"
     }
   },
   "license": "MIT"
