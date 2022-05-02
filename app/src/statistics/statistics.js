@@ -148,9 +148,9 @@ module.exports.getLeaderboardPhotos = async function (statisticsObject) {
   const year = date.getFullYear();
   const dateLine = `${month} ${year}`;
 
-  const templateImage = await loadImage('./app/statistics/leaderboardPhotoTemplate.jpg');
-  registerFont('./app/statistics/book-antiqua.ttf', { family: 'Book Antiqua', weight: 'normal' });
-  registerFont('./app/statistics/book-antiqua-bold.ttf', { family: 'Book Antiqua', weight: 'bold' });
+  const templateImage = await loadImage('assets/leaderboardPhotoTemplate.jpg');
+  registerFont('assets/book-antiqua.ttf', { family: 'Book Antiqua', weight: 'normal' });
+  registerFont('assets/book-antiqua-bold.ttf', { family: 'Book Antiqua', weight: 'bold' });
 
   for (const user of statisticsObject.mostActiveUsers) {
     const canvas = createCanvas(templateImage.width, templateImage.height);
