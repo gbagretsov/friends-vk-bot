@@ -1,4 +1,4 @@
-const { getPluralForm, getConcatenatedItems } = require('./util');
+import {getConcatenatedItems, getPluralForm} from './util';
 
 describe('Plural form', () => {
   test('Plural form for 0', () => {

@@ -1,4 +1,4 @@
-module.exports.getPluralForm = function(number, one, two, five) {
+export function getPluralForm(number: number, one: string, two: string, five: string): string {
   // src: https://gist.github.com/tomfun/830fa6d8030d16007bbab50a5b21ef97
   let n = Math.abs(number);
   n %= 100;
@@ -13,9 +13,9 @@ module.exports.getPluralForm = function(number, one, two, five) {
     return two;
   }
   return five;
-};
+}
 
-module.exports.getConcatenatedItems = function(items) {
+export function getConcatenatedItems(items: string[]): string {
   if (!items || !items.length) {
     return '';
   }
@@ -26,23 +26,23 @@ module.exports.getConcatenatedItems = function(items) {
       return `${sum}, ${cur}`;
     }
   });
-};
+}
 
-module.exports.getMonthNameInNominativeCase = function(monthIndex) {
+export function getMonthNameInNominativeCase(monthIndex: number): string {
   const months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
   return months[(monthIndex + 12) % 12];
-};
+}
 
-module.exports.getMonthNameInPrepositionalCase = function(monthIndex) {
+export function getMonthNameInPrepositionalCase(monthIndex: number): string {
   const months = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
   return months[(monthIndex + 12) % 12];
-};
+}
 
-module.exports.getMonthNameInInstrumentalCase = function(monthIndex) {
+export function getMonthNameInInstrumentalCase(monthIndex: number): string {
   const months = ['январём', 'февралём', 'мартом', 'апрелем', 'маем', 'июнем', 'июлем', 'августом', 'сентябрём', 'октябрём', 'ноябрём', 'декабрём'];
   return months[(monthIndex + 12) % 12];
-};
+}
 
-module.exports.timeout = function(ms) {
+export function timeout(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
-};
+}
