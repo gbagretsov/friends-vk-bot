@@ -1,7 +1,7 @@
-const sender = require('../vk');
 require('dotenv').config();
 
 jest.mock('../vk');
+const sender = require('../vk');
 sender.sendMessage.mockResolvedValue('ok');
 sender.getUserName.mockImplementation(id => id === 1 ? Promise.resolve('Павел') : Promise.resolve('Марк'));
 
