@@ -8,6 +8,7 @@
   },
   "main": "compiled/app/index.js",
   "scripts": {
+    "start": "npm run watch dev",
     "heroku-postbuild": "npm run build-front-prod && npm run build-back",
     "dev": "npm run build-front && npm run build-back && node compiled/app/index",
     "daily": "npm run build-back && node compiled/app/daily/run-daily",

@@ -18,7 +18,7 @@
   - ngrok
 - В корне проекта создайте файл `.env` с конфигурацией. Все используемые переменные окружения описаны в `.env.example`
 - Создайте БД и укажите URL для доступа к БД в файле `.env`. Схема БД и пример данных в папке `migrations`. Запуск миграций: `npm run migrate up`
-- Запустите локальный сервер: ```npm run watch dev```
+- Запустите локальный сервер: ```npm start```
 - Настройте туннелирование для доступа ВК API к локальному серверу: ```ngrok http <PORT>```
 
 Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline,video,photos&response_type=token`
