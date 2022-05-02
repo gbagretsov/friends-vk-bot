@@ -18,7 +18,8 @@
     "migrate": "node-pg-migrate",
     "build-back": "tsc --project app",
     "build-front": "tsc --project front && webpack --config front/webpack.config.cjs --mode development",
-    "build-front-prod": "tsc --project front && webpack --config front/webpack.config.cjs --mode production"
+    "build-front-prod": "tsc --project front && webpack --config front/webpack.config.cjs --mode production",
+    "build-dev": "npm run build-front && npm run build-back"
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
@@ -66,6 +67,13 @@
   },
   "watch": {
     "dev": {
+      "patterns": [
+        "app",
+        "front"
+      ],
+      "extensions": "ts,js,jsx,scss"
+    },
+    "build-dev": {
       "patterns": [
         "app",
         "front"
