@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
 
-import receiver from './receiver';
+import receiver from './receiver/receiver';
 import {router as apiRouter} from './api/api';
 
 const app = express();
