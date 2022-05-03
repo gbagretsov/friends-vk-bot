@@ -7,4 +7,6 @@ npm-debug.log
 *.dev
 .DS_Store
 
-public/dist
+compiled/public/dist
+compiled/app
+compiled/front
