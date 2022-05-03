@@ -1,6 +1,7 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
+      DATABASE_URL: string;
       GAME_STEP_INTERVAL?: number;
       GOOGLE_KEY: string;
       GOOGLE_SEARCH_ENGINE_ID: string;

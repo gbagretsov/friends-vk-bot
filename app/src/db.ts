@@ -1,19 +1,19 @@
-const { Client } = require('pg');
+import {Client, QueryResult} from 'pg';
 
-const getClient = function() {
+async function getClient(): Promise<Client> {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
   });
-  client.connect();
+  await client.connect();
   return client;
-};
+}
 
-module.exports.query = async function(query) {
-  const client = getClient();
+export async function query<T>(query: string): Promise<QueryResult<T>> {
+  const client = await getClient();
   try {
     return await client.query(query);
   } finally {
-    client.end();
+    await client.end();
   }
-};
+}
