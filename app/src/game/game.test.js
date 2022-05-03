@@ -54,7 +54,7 @@ test('When bot receives a game start request and game is not started, new game s
      '(bot generates a task and sends a greeting message and a picture with task)', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   game(messageWithGameRequest);
   await waitMs(500);
@@ -74,7 +74,7 @@ test('When bot receives a game start request and game is running, new game does 
      '(bot does not generate a new task, does not send a greeting message and does not send a picture with task)', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   game(messageWithGameRequest);
   game(messageWithGameRequest);
@@ -94,7 +94,7 @@ test('When bot receives a game start request and game is running, bot does not p
 test('When a game is running and bot receives correct answer, bot sends a success message with winner name', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   game(messageWithCorrectAnswer);
@@ -108,7 +108,7 @@ test('When a game is running and bot receives correct answer, ' +
      'the game stops (no new hints are sent, no new words messages are handled)', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const admin = require('./admin');
   game(messageWithGameRequest);
   await waitMs(100);
@@ -125,7 +125,7 @@ test('When a game is running and bot receives correct answer, ' +
 test('Bot can recognize a correct answer in uppercase', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   game(messageWithCorrectAnswerInUppercase);
@@ -139,7 +139,7 @@ test('When a game is running and bot receives more than one correct answer, ' +
      'bot sends only one success message with first winner name', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   game(messageWithCorrectAnswer);
@@ -184,7 +184,7 @@ test('When a game is running and bot receives a message without text, bot passes
 test('When a game is running and bot does not get correct answer during first round, bot sends a hint', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   jest.runOnlyPendingTimers();
@@ -197,7 +197,7 @@ test('When a game is running and bot does not get correct answer during second r
      'bot sends a failure info and a correct answer', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   jest.runAllTimers();
@@ -213,7 +213,7 @@ test('When a game is running and bot does not get correct answer during second r
      'the game stops (no new hints are sent, no new words messages are handled)', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const admin = require('./admin');
   game(messageWithGameRequest);
   await waitMs(100);
@@ -233,7 +233,7 @@ test('When a game is running and bot does not get correct answer during second r
 test('Bot can send an additional hint with first letter in first round', async () => {
   setMocks({ letterHintInFirstRound: true });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   jest.runAllTimers();
@@ -248,7 +248,7 @@ test('If bot did not send an additional hint with first letter in first round, '
      'it sends additional hint with first letter in second round', async () => {
   setMocks({ letterHintInFirstRound: false });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(100);
   jest.runAllTimers();
@@ -263,7 +263,7 @@ test('When bot receives a game start request and game is not started and daily q
      'new game does not start (task is not sent)', async () => {
   setMocks({ searchQuotaExceeded: true });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(500);
   expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(0);
@@ -273,7 +273,7 @@ test('When bot receives a game start request and game is not started and daily q
      'bot sends a \'tired\' sticker and a refusal message', async () => {
   setMocks({ searchQuotaExceeded: true });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   game(messageWithGameRequest);
   await waitMs(500);
   expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -285,7 +285,7 @@ test('When bot receives a game start request and game is not started and daily q
 test('When bot receives a word addition request, bot extracts a word, remembers it and sends a success message', async () => {
   setMocks();
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const admin = require('./admin');
   game(messageWithAddWordRequest);
   await waitMs(100);
@@ -299,7 +299,7 @@ test('When bot receives a word addition request and this word exists already, ' 
      'bot sends a message with information about duplicated word', async () => {
   setMocks({ duplicatedWord: true });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const admin = require('./admin');
   game(messageWithAddWordRequest);
   await waitMs(100);
@@ -312,7 +312,7 @@ test('When bot receives a word addition request and this word exists already, ' 
 test('When bot receives a word deletion request, bot extracts a word, deletes it and sends a success message', async () => {
   setMocks({ duplicatedWord: true });
   const game = require('./game');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const admin = require('./admin');
   game(messageWithDeleteWordRequest);
   await waitMs(100);
@@ -335,8 +335,8 @@ function setMocks(options) {
     }
   });
 
-  jest.doMock('../vk');
-  const sender = require('../vk');
+  jest.doMock('../../vk');
+  const sender = require('../vk/vk');
   sender.sendMessage.mockResolvedValue('ok');
   sender.sendPhotoToChat.mockResolvedValue('ok');
   sender.getUserName

@@ -1,4 +1,4 @@
-const vk = require('../vk');
+const vk = require('../vk/vk');
 require('dotenv').config();
 
 module.exports = function(message) {  

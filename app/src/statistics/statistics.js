@@ -1,6 +1,6 @@
 const statisticsConstants = require('./statistics-constants');
 const db = require('../db');
-const vk = require('../vk');
+const vk = require('../vk/vk');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const needle = require('needle');
 const util = require('../util');
@@ -26,7 +26,7 @@ async function gatherStatistics(message) {
     updateQuery += `INSERT INTO friends_vk_bot.statistics VALUES(${message.from_id}, ${senderCounter});\n`;
   }
 
-  if (vk.getStickerId(message)) {
+  if (vk.isStickerMessage(message)) {
     const stickersCounter = rows.find(row => row.id === statisticsConstants.STICKERS_AMOUNT).value + 1;
     updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${stickersCounter} WHERE id = ${statisticsConstants.STICKERS_AMOUNT};\n`;
   }

@@ -1,4 +1,4 @@
-const sender = require('../vk');
+const sender = require('../vk/vk');
 const weather = require('./weather');
 const holidays = require('./holidays');
 const statistics = require('../statistics/statistics');

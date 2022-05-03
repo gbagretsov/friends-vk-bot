@@ -2,7 +2,7 @@ const needle = require('needle');
 require('dotenv').config();
 const uuid = require('uuid');
 
-const vk = require('../vk');
+const vk = require('../vk/vk');
 const dbClient = require('../db');
 const admin = require('./admin');
 const { getPluralForm } = require('../util');

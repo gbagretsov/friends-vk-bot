@@ -1,5 +1,5 @@
 const {timeout} = require('../util');
-const messageWithAppropriatePhrase = { text: 'appropriate phrase' };
+const messageWithAppropriatePhrase = { text: 'appropriate phrase', attachments: [] };
 const messageWithAppropriateSticker = {
   text: '',
   attachments: [{
@@ -121,7 +121,7 @@ test('When bot receives a text message and finds appropriate rule, and random ch
      'bot sends a reaction stored in that rule', async () => {
   setMocks({ randomCheck: 0.001, reactions: oneTextReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
@@ -135,7 +135,7 @@ test('When bot receives a text message and finds appropriate rule, ' +
      'bot sends a reaction stored in that rule', async () => {
   setMocks({ randomCheck: 0.6, reactions: oneTextReactionWithAdditionalProbability });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
@@ -148,7 +148,7 @@ test('When bot receives a sticker and finds appropriate rule, and random check i
      'bot sends a reaction stored in that rule', async () => {
   setMocks({ randomCheck: 0.001, reactions: oneTextReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   await customReactions(messageWithAppropriateSticker);
   await timeout(100);
@@ -161,7 +161,7 @@ test('When bot finds appropriate rule to react, and random check is successful, 
      'and there are more than one possible reaction, bot sends only one reaction', async () => {
   setMocks({ randomCheck: 0.001, reactions: twoTextReactions });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
   expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -194,7 +194,7 @@ test('When bot finds appropriate rule to react, and random check is not successf
      'bot does not send anything', async () => {
   setMocks({ randomCheck: 0.99, reactions: oneTextReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
@@ -235,7 +235,7 @@ test('When bot finds appropriate rule to react, and random check is not successf
 test('When bot does not find a rule to react, bot does not send anything', async () => {
   setMocks({ randomCheck: 0.001, reactions: [] });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   const db = require('../db');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
@@ -289,7 +289,7 @@ test('When bot finds appropriate rule to react, and random check is successful o
 test('Bot can send a picture as a reaction', async () => {
   setMocks({ randomCheck: 0.001, reactions: onePictureReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(4000);
   expect(sender.sendPhotoToChat).toHaveBeenCalledTimes(1);
@@ -300,7 +300,7 @@ test('Bot can send a picture as a reaction', async () => {
 test('Bot can send a YouTube video as a reaction', async () => {
   setMocks({ randomCheck: 0.001, reactions: oneYouTubeVideoReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
   expect(sender.sendYouTubeVideo).toHaveBeenCalledTimes(1);
@@ -310,7 +310,7 @@ test('Bot can send a YouTube video as a reaction', async () => {
 test('Bot can send a sticker as a reaction', async () => {
   setMocks({ randomCheck: 0.001, reactions: oneStickerReaction });
   const customReactions = require('./custom-reactions');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await customReactions(messageWithAppropriatePhrase);
   await timeout(100);
   expect(sender.sendSticker).toHaveBeenCalledTimes(1);
@@ -319,7 +319,7 @@ test('Bot can send a sticker as a reaction', async () => {
 
 
 function setMocks(options) {
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   sender.sendMessage = jest.fn().mockResolvedValue('ok');
   sender.sendPhotoToChat = jest.fn().mockResolvedValue('ok');
   sender.sendSticker = jest.fn().mockResolvedValue('ok');

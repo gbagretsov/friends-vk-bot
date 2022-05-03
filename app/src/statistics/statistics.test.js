@@ -222,7 +222,7 @@ describe('Get statistics', () => {
         { id: 5555, value: 1 },
         { id: 6666, value: 1 },
     ]});
-    const vk = require('../vk');
+    const vk = require('../vk/vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
@@ -239,7 +239,7 @@ describe('Get statistics', () => {
         { id: 5555, value: 1 },
         { id: 6666, value: 1 },
       ]});
-    const vk = require('../vk');
+    const vk = require('../vk/vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
@@ -259,7 +259,7 @@ describe('Get statistics', () => {
         { id: 5555, value: 123 },
         { id: 6666, value: 1 },
       ]});
-    const vk = require('../vk');
+    const vk = require('../vk/vk');
     const getStatistics = require('./statistics').getStatistics;
     const statistics = await getStatistics();
     expect(statistics.mostActiveUsers).toBeTruthy();
@@ -327,7 +327,7 @@ function setMocks(options) {
     }
   });
 
-  const vk = require('../vk');
+  const vk = require('../vk/vk');
   jest.spyOn(vk, 'getUserInfo');
   vk.getUserInfo.mockImplementation(id => {
     return {

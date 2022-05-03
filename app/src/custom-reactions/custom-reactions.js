@@ -1,4 +1,4 @@
-const vk = require('../vk');
+const vk = require('../vk/vk');
 const db = require('../db');
 const needle = require('needle');
 

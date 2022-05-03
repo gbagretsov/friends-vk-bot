@@ -1,4 +1,4 @@
-const vk = require('../vk');
+const vk = require('../vk/vk');
 const db = require('../db');
 const { getConcatenatedItems } = require('../util');
 
@@ -116,7 +116,7 @@ module.exports.watchPolls = async function() {
     console.log(`Watching poll ${poll.poll_info.id} of user ${poll.poll_info.owner_id}`);
     console.log(`Question is: ${poll.poll_info.question}`);
     const currentTimestamp = Math.floor(Date.now() / 1000);
-    if (poll.closed || (poll.poll_info.end_date > 0 && poll.poll_info.end_date <= currentTimestamp)) {
+    if (poll.poll_info.closed || (poll.poll_info.end_date > 0 && poll.poll_info.end_date <= currentTimestamp)) {
       console.log(`Poll ${poll.poll_info.question} is now closed`);
       deletePollFromDb(poll.poll_info);
       return;
@@ -148,7 +148,7 @@ module.exports.watchPolls = async function() {
 };
 
 module.exports.handleLookForPollInIncomingMessage = function(message) {
-  if (message.attachments && message.attachments[0] && message.attachments[0].type === 'poll') {
+  if (vk.isPoll(message)) {
     const poll = message.attachments[0].poll;
     if (!poll.anonymous) {
       const query = `INSERT INTO friends_vk_bot.polls VALUES (${poll.id}, ${poll.owner_id});`;

@@ -15,8 +15,8 @@ beforeEach(() => {
   weather.getCurrentWeather.mockReturnValue(weatherMockResponse);
   weather.getForecast.mockReturnValue(forecastMockResponse);
 
-  jest.doMock('../vk');
-  const sender = require('../vk');
+  jest.doMock('../vk/vk');
+  const sender = require('../vk/vk');
   sender.sendSticker.mockResolvedValue('ok');
   sender.sendMessage.mockResolvedValue('ok');
   sender.sendPhotoToChat.mockResolvedValue('ok');
@@ -67,7 +67,7 @@ test('If holidays are present and ads is present and it is not first day of mont
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(3);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -80,7 +80,7 @@ test('If holidays are present and ads is not present and it is not first day of 
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -92,7 +92,7 @@ test('If holidays are not present and ads is present and it is not first day of 
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(3);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -105,7 +105,7 @@ test('If holidays are not present and ads is not present and it is not first day
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage).toHaveBeenCalledTimes(2);
   expect(sender.sendMessage.mock.calls[0][0]).toMatch(/Прогноз погоды/);
@@ -117,7 +117,7 @@ test('Holiday message is correct if 1 holiday is celebrated today', async () => 
   mockHolidays(['Holiday 1']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1\?/);
 });
@@ -127,7 +127,7 @@ test('Holiday message is correct if 2 holidays are celebrated today', async () =
   mockHolidays(['Holiday 1', 'Holiday 2']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1 и Holiday 2\?/);
 });
@@ -137,7 +137,7 @@ test('Holiday message is correct if 3 holidays are celebrated today', async () =
   mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1, Holiday 2 и Holiday 3\?/);
 });
@@ -147,7 +147,7 @@ test('Holiday message is correct if 4 holidays are celebrated today', async () =
   mockHolidays(['Holiday 1', 'Holiday 2', 'Holiday 3', 'Holiday 4']);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[1][0]).toMatch(/сегодня Holiday 1, Holiday 2, Holiday 3 и Holiday 4\?/);
 });
@@ -165,7 +165,7 @@ test('If it is first day of month, statistics are shown for previous month', asy
     previousMonthAmount: -1,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Статистика/);
 });
@@ -201,7 +201,7 @@ test('Bot correctly displays statistics for previous month', async () => {
     previousMonthAmount: -1,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Статистика беседы за декабрь/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/100 сообщений/);
@@ -223,7 +223,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
     previousMonthAmount: 100,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/не изменилось/);
 });
@@ -241,7 +241,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
     previousMonthAmount: 499,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/незначительно увеличилось/);
 });
@@ -259,7 +259,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
     previousMonthAmount: 501,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/незначительно уменьшилось/);
 });
@@ -277,7 +277,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
     previousMonthAmount: 500,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/увеличилось на 10%/);
 });
@@ -295,7 +295,7 @@ test('Bot correctly displays changes in comparison to month before previous one 
     previousMonthAmount: 500,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/уменьшилось на 10%/);
 });
@@ -313,7 +313,7 @@ test('Bot correctly displays name of month before previous one', async () => {
     previousMonthAmount: 100,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/с ноябрём/);
 });
@@ -331,7 +331,7 @@ test('Bot correctly handles case when there is no statistics for month before pr
     previousMonthAmount: null,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/общее количество сообщений/);
 });
@@ -349,7 +349,7 @@ test('Bot correctly handles case when there were zero messages in month before p
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/увеличилось на ∞%/);
 });
@@ -367,7 +367,7 @@ test('Bot correctly handles case when there were zero messages in previous month
     previousMonthAmount: 200,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/уменьшилось на 100%/);
 });
@@ -385,7 +385,7 @@ test('Bot correctly handles case when there were zero messages in month before p
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/не изменилось/);
 });
@@ -403,7 +403,7 @@ test('Bot correctly shows most active users (case with one user)', async () => {
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самый активный участник/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
@@ -423,7 +423,7 @@ test('Bot correctly shows most active users (case with two users)', async () => 
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Самые активные участники/);
   expect(sender.sendMessage.mock.calls[2][0]).toMatch(/Арсений/);
@@ -444,7 +444,7 @@ test('Bot does not show most active users if there were no messages in previous 
     previousMonthAmount: 0,
   });
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самые активные участники/);
   expect(sender.sendMessage.mock.calls[2][0]).not.toMatch(/Самый активный участник/);
@@ -456,7 +456,7 @@ test('If it is not first day of month, statistics are not shown for previous mon
   mockHolidays([]);
   mockDate(new Date(2020, 0, 10));
   const daily = require('./daily');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   await daily();
   expect(sender.sendMessage.mock.calls[2]).toBeUndefined();
 });

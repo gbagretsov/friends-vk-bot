@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-jest.mock('../vk');
-const sender = require('../vk');
+jest.mock('../vk/vk');
+const sender = require('../vk/vk');
 sender.sendMessage.mockResolvedValue('ok');
 sender.getUserName.mockImplementation(id => id === 1 ? Promise.resolve('Павел') : Promise.resolve('Марк'));
 

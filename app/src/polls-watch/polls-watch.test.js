@@ -102,7 +102,7 @@ describe('Polls observer', () => {
       dbWatchedPolls: []
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).not.toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -142,7 +142,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -161,7 +161,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -183,7 +183,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -204,7 +204,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -224,7 +224,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -247,7 +247,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).not.toHaveBeenCalled();
@@ -266,7 +266,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).not.toHaveBeenCalled();
@@ -305,7 +305,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).not.toHaveBeenCalled();
@@ -349,7 +349,7 @@ describe('Polls observer', () => {
       )],
     });
     const pollsObserver = require('./polls-watch').watchPolls;
-    const sender = require('../vk');
+    const sender = require('../vk/vk');
     pollsObserver();
     setTimeout(() => {
       expect(sender.sendMessage).toHaveBeenCalledTimes(2);
@@ -379,13 +379,14 @@ describe('Polls observer', () => {
 
 
 function setMocks(options) {
-  jest.doMock('../vk');
-  const sender = require('../vk');
+  jest.doMock('../vk/vk');
+  const sender = require('../vk/vk');
 
   if (options && options.vkGetPollsResponse) {
     sender.getPolls.mockResolvedValue(options.vkGetPollsResponse);
     sender.getConversationMembers.mockResolvedValue(conversationMembers);
   }
+  sender.isPoll.mockImplementation(message => message.attachments[0]?.type === 'poll');
 
   jest.doMock('../db');
   const db = require('../db');

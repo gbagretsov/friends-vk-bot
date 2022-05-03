@@ -10,7 +10,8 @@ const messageWithAudioAttachment = {
 };
 
 const messageWithoutAudioAttachment = {
-  text: 'Common message'
+  text: 'Common message',
+  attachments: [],
 };
 
 const speechRecognizedBody = {
@@ -49,7 +50,7 @@ test('When bot receives an audio message, it stops further handling of this mess
 test('When bot receives an audio message and text is recognized, bot sends exactly one message in response', done => {
   setMocks();
   const speech = require('./speech');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   speech(messageWithAudioAttachment);
   setTimeout(() => {
     expect(sender.sendMessage).toHaveBeenCalledTimes(1);
@@ -60,7 +61,7 @@ test('When bot receives an audio message and text is recognized, bot sends exact
 test('When bot receives an audio message and text is recognized, bot sends a message with transcript and correctness value', done => {
   setMocks();
   const speech = require('./speech');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   speech(messageWithAudioAttachment);
   setTimeout(() => {
     expect(sender.sendMessage.mock.calls[0][0]).toMatch(/"Расшифровка записи"/);
@@ -72,7 +73,7 @@ test('When bot receives an audio message and text is recognized, bot sends a mes
 test('When bot receives an audio message and text is recognized, bot sends a message considering sender\'s name and sex', done => {
   setMocks();
   const speech = require('./speech');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   speech(messageWithAudioAttachment);
   speech(messageWithAudioAttachment);
   setTimeout(() => {
@@ -87,7 +88,7 @@ test('When bot receives an audio message and text is recognized, bot sends a mes
 test('When bot receives an audio message and text is not recognized, bot does not send any messages', done => {
   setMocks(false);
   const speech = require('./speech');
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   speech(messageWithAudioAttachment);
   setTimeout(() =>{
     expect(sender.sendMessage).not.toHaveBeenCalled();
@@ -104,7 +105,7 @@ test('When bot receives a common message, it does not send any messages', done =
   setMocks();
   const speech = require('./speech');
   speech(messageWithoutAudioAttachment);
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   setTimeout(() => {
     expect(sender.sendMessage).not.toHaveBeenCalled();
     done();
@@ -120,7 +121,7 @@ function setMocks(textRecognized = true) {
       return Promise.resolve({ body: textRecognized ? speechRecognizedBody : speechNotRecognizedBody });
     }
   });
-  const sender = require('../vk');
+  const sender = require('../vk/vk');
   sender.sendMessage = jest.fn().mockResolvedValue('ok');
   sender.getUserInfo = jest.fn()
     .mockResolvedValueOnce({ first_name: 'Иван', sex: 0 })

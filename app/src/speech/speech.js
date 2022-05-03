@@ -17,7 +17,7 @@ Mp32Wav.prototype.saveForWav = function fixedSaveForWav(buffer, savePath, filena
     throw new Error(`saveForWav err: ${err.message}`);
   }
 };
-const vk = require('../vk');
+const vk = require('../vk/vk');
 
 let handleAudioMessage = async (audioMessage) => {
   // Получаем аудиозапись
