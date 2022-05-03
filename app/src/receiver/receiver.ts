@@ -3,8 +3,8 @@ config();
 
 import {Express, Response, Request} from 'express';
 
-import {VkEvent} from '../vk/VkEvent';
-import {VkMessageHandler} from './VkMessageHandler';
+import {VkEvent} from '../vk/model/VkEvent';
+import {VkMessageHandler} from './model/VkMessageHandler';
 
 import handleByGameModule from '../game/game';
 import handleByChatModule from '../chat/chat';

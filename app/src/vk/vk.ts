@@ -7,11 +7,11 @@ import {
   VkErrorResponse,
   VkExecuteErrorsResponse,
   VkSuccessResponse
-} from './VkResponse';
-import {VkUser} from './VkUser';
-import {VkConversation} from './VkConversation';
-import {VkPoll} from './VkPoll';
-import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './VkMessage';
+} from './model/VkResponse';
+import {VkUser} from './model/VkUser';
+import {VkConversation} from './model/VkConversation';
+import {VkPoll} from './model/VkPoll';
+import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './model/VkMessage';
 
 config();
 
