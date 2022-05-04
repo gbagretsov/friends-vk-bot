@@ -201,3 +201,8 @@ export function isRepost(message: VkMessage): boolean {
 export function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
+
+export default {
+  sendMessage,
+  getUserName,
+};
