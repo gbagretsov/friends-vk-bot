@@ -43,7 +43,7 @@ async function sendMessage(message: string, delay?: number): Promise<boolean> {
   return true;
 }
 
-async function sendSticker(stickerId: number): Promise<boolean> {
+async function sendSticker(stickerId: number | string): Promise<boolean> {
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
   const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}&random_id=${randomId}`);

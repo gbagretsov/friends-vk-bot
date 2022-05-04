@@ -17,3 +17,7 @@ export async function query<T>(query: string): Promise<QueryResult<T>> {
     await client.end();
   }
 }
+
+export default {
+  query,
+};
