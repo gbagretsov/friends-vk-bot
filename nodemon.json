@@ -1,0 +1,12 @@
+{
+  "watch": [
+    "app",
+    ".env"
+  ],
+  "ext": "ts,js,env",
+  "ignore": [
+    "app/**/*.test.ts",
+    "app/**/*.test.js",
+    "app/**/*.config.js"
+  ]
+}

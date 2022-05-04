@@ -8,18 +8,15 @@
   },
   "main": "compiled/app/index.js",
   "scripts": {
-    "start": "npm run watch dev",
+    "start": "nodemon app/src/index.ts",
     "heroku-postbuild": "npm run build-front-prod && npm run build-back",
-    "dev": "npm run build-front && npm run build-back && node compiled/app/index",
     "daily": "npm run build-back && node compiled/app/daily/run-daily",
     "polls-watch": "npm run build-back && node compiled/app/polls-watch/run-polls-watch",
-    "test": "jest --env=node --config=./app/jest.config.js --silent",
-    "watch": "npm-watch",
+    "test": "jest --config=./app/jest.config.js",
     "migrate": "node-pg-migrate",
     "build-back": "tsc --project app",
     "build-front": "tsc --project front && webpack --config front/webpack.config.cjs --mode development",
-    "build-front-prod": "tsc --project front && webpack --config front/webpack.config.cjs --mode production",
-    "build-dev": "npm run build-front && npm run build-back"
+    "build-front-prod": "tsc --project front && webpack --config front/webpack.config.cjs --mode production"
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
@@ -59,34 +56,14 @@
     "jest": "^27.4.7",
     "mini-css-extract-plugin": "^2.3.0",
     "node-sass": "^6.0.1",
+    "nodemon": "^2.0.16",
     "sass-loader": "^12.1.0",
     "style-loader": "^3.2.1",
     "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
     "typescript": "^4.6.4",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0"
-  },
-  "watch": {
-    "dev": {
-      "patterns": [
-        "app",
-        "front"
-      ],
-      "extensions": "ts,js,jsx,scss"
-    },
-    "build-dev": {
-      "patterns": [
-        "app",
-        "front"
-      ],
-      "extensions": "ts,js,jsx,scss"
-    },
-    "daily": {
-      "patterns": [
-        "app"
-      ],
-      "extensions": "ts,js"
-    }
   },
   "license": "MIT"
 }

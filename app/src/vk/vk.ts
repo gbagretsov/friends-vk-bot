@@ -23,7 +23,7 @@ const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
 const apiVersion = '5.110';
 
-export async function sendMessage(message: string, delay?: number): Promise<boolean> {
+async function sendMessage(message: string, delay?: number): Promise<boolean> {
   const setTypingStatusIfNeeded = async function() {
     if (delay) {
       await needle('get', `${apiUrl}/messages.setActivity?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
@@ -43,7 +43,7 @@ export async function sendMessage(message: string, delay?: number): Promise<bool
   return true;
 }
 
-export async function sendSticker(stickerId: number): Promise<boolean> {
+async function sendSticker(stickerId: number | string): Promise<boolean> {
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
   const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}&random_id=${randomId}`);
@@ -58,7 +58,7 @@ export async function sendSticker(stickerId: number): Promise<boolean> {
 /**
  * @deprecated use getUserInfo
  */
-export async function getUserName(uid: number): Promise<string | false> {
+async function getUserName(uid: number): Promise<string | false> {
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
@@ -68,7 +68,7 @@ export async function getUserName(uid: number): Promise<string | false> {
   return vkResponse.response[0].first_name;
 }
 
-export async function getUserInfo(uid: number): Promise<VkUser | false> {
+async function getUserInfo(uid: number): Promise<VkUser | false> {
   const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl,photo_max_orig';
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
@@ -79,7 +79,7 @@ export async function getUserInfo(uid: number): Promise<VkUser | false> {
   return vkResponse.response[0];
 }
 
-export async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
+async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
   // Получаем адрес сервера для загрузки фото
   const uploadUrlResponse =
     await needle('get', `${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
@@ -111,7 +111,7 @@ export async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
   await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}&random_id=${randomId}`);
 }
 
-export async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<void> {
+async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<void> {
   // Получаем адрес сервера для загрузки фото
   const uploadUrlResponse = await needle('get', `${apiUrl}/photos.getUploadServer?v=${apiVersion}&access_token=${personalAccessToken}&group_id=${groupID}&album_id=${albumId}`);
 
@@ -133,7 +133,7 @@ export async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Pro
 
 }
 
-export async function getPolls(polls: { id: string, ownerId: string }[]): Promise<{ poll_info: VkPoll; voters: number[] }[] | boolean> {
+async function getPolls(polls: { id: string, ownerId: string }[]): Promise<{ poll_info: VkPoll; voters: number[] }[] | boolean> {
   const pollIds = polls.map(poll => poll.id).join(',');
   const ownerIds = polls.map(poll => poll.ownerId).join(',');
   const response = await needle('get', `${apiUrl}/execute.getPolls?v=${apiVersion}&access_token=${personalAccessToken}&poll_ids=${pollIds}&owner_ids=${ownerIds}&peer_id=${personalPeerID}`);
@@ -149,7 +149,7 @@ export async function getPolls(polls: { id: string, ownerId: string }[]): Promis
   return vkResponse.response;
 }
 
-export async function getConversationMembers(): Promise<VkUser[] | false> {
+async function getConversationMembers(): Promise<VkUser[] | false> {
   const response = await needle('get', `${apiUrl}/messages.getConversationMembers?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&fields=first_name_gen,screen_name,sex`);
   const vkResponse = response.body as VkSuccessResponse<VkConversation> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
@@ -159,7 +159,7 @@ export async function getConversationMembers(): Promise<VkUser[] | false> {
   return vkResponse.response.profiles;
 }
 
-export async function sendYouTubeVideo(youTubeVideoId: string): Promise<boolean> {
+async function sendYouTubeVideo(youTubeVideoId: string): Promise<boolean> {
   const saveVideoResponse = await needle('get', `${apiUrl}/video.save?v=${apiVersion}&access_token=${personalAccessToken}&is_private=1&wallpost=0&link=https://www.youtube.com/watch?v=${youTubeVideoId}`);
   if (isVkErrorResponse(saveVideoResponse.body)) {
     console.error(`video.save: ${saveVideoResponse.body.error.error_msg}`);
@@ -180,12 +180,13 @@ export async function sendYouTubeVideo(youTubeVideoId: string): Promise<boolean>
   return true;
 }
 
-export function getStickerId(message: VkMessage): number | undefined {
+function getStickerId(message: VkMessage): number | undefined {
   if (isStickerMessage(message)) {
     return (message.attachments[0] as VkMessageStickerAttachment).sticker.sticker_id;
   }
 }
 
+// TODO: remove redundant export
 export function isStickerMessage(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.STICKER;
 }
@@ -201,3 +202,20 @@ export function isRepost(message: VkMessage): boolean {
 export function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
+
+export default {
+  sendMessage,
+  sendSticker,
+  getUserName,
+  getUserInfo,
+  sendPhotoToChat,
+  addPhotoToAlbum,
+  getPolls,
+  getConversationMembers,
+  sendYouTubeVideo,
+  getStickerId,
+  isStickerMessage,
+  isAudioMessage,
+  isRepost,
+  isPoll,
+};

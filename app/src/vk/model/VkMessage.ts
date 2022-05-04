@@ -1,8 +1,9 @@
 import {VkPoll} from './VkPoll';
 
 export type VkMessage = {
-  peer_id: number,
-  text: string,
+  from_id: number;
+  peer_id: number;
+  text: string;
   attachments: VkMessageAttachment[];
 }
 
