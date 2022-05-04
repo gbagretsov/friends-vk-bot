@@ -21,7 +21,6 @@
     "src/**/*.test.js"
   ],
   "ts-node": {
-    "transpileOnly": true,
     "files": true
   }
 }
