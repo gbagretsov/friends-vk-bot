@@ -9,6 +9,7 @@ async function getClient(): Promise<Client> {
   return client;
 }
 
+// TODO: remove redundant export
 export async function query<T>(query: string): Promise<QueryResult<T>> {
   const client = await getClient();
   try {
