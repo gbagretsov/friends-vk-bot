@@ -186,19 +186,20 @@ function getStickerId(message: VkMessage): number | undefined {
   }
 }
 
-function isStickerMessage(message: VkMessage): boolean {
+// TODO: remove redundant export
+export function isStickerMessage(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.STICKER;
 }
 
-function isAudioMessage(message: VkMessage): boolean {
+export function isAudioMessage(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.AUDIO_MESSAGE;
 }
 
-function isRepost(message: VkMessage): boolean {
+export function isRepost(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.WALL;
 }
 
-function isPoll(message: VkMessage): boolean {
+export function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
 
