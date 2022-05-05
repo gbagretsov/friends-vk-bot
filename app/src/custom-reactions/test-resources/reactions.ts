@@ -69,6 +69,16 @@ export const mixedSuccessfulAndFailedRandomCheck: CustomReaction[] = [
   },
 ];
 
+export const oneDisabledReaction: CustomReaction[] = [
+  {
+    id: 1,
+    baseProbability: 0,
+    additionalProbability: 0,
+    type: CustomReactionType.TEXT,
+    content: 'This is disabled reaction'
+  },
+];
+
 export const onePictureReaction: CustomReaction[] = [
   {
     id: 1,
