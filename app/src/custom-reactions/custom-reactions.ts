@@ -21,6 +21,11 @@ async function handleMessage(message: VkMessage): Promise<boolean> {
     return false;
   }
 
+  if (customReactions.findIndex(reaction => reaction.baseProbability > 0) === -1) {
+    console.log('All possible custom reactions are disabled, return');
+    return false;
+  }
+
   const randomCheck = Math.random() * 100;
   console.log(`Random check is ${randomCheck}%`);
 

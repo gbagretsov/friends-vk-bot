@@ -164,6 +164,32 @@ describe('Custom reactions', () => {
     });
   });
 
+  describe('Disabled reactions', () => {
+    test('When bot finds appropriate rule to react, and reaction is disabled, ' +
+      'bot does not send anything', async () => {
+      setMocks({ randomCheck: 0, reactions: testReactions.oneDisabledReaction });
+      await customReactions(testMessages.messageWithAppropriatePhrase);
+      await Promise.resolve();
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(testMessages.messageWithAppropriatePhrase.text);
+      expect(sendMessageSpy).not.toHaveBeenCalled();
+    });
+
+    test('When bot finds appropriate rule to react, and reaction is disabled, ' +
+      'bot does not increase additional probability for that rule', async () => {
+      setMocks({ randomCheck: 0, reactions: testReactions.oneDisabledReaction });
+      await customReactions(testMessages.messageWithAppropriatePhrase);
+      await Promise.resolve();
+      expect(dbQuerySpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('When bot finds appropriate rule to react, and reaction is disabled, ' +
+      'bot passes incoming message further', async () => {
+      setMocks({ randomCheck: 0, reactions: testReactions.oneDisabledReaction });
+      const result = await customReactions(testMessages.messageWithAppropriatePhrase);
+      expect(result).toBe(false);
+    });
+  });
+
   describe('Different reaction types', () => {
 
     // Bot can send a text as a reaction - checked earlier
