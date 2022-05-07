@@ -19,7 +19,7 @@ const retryParams: Options = {
   retries: 5,
 };
 
-export async function getCurrentWeather(): Promise<Weather | undefined> {
+async function getCurrentWeather(): Promise<Weather | undefined> {
   try {
     const response = await retry(async () => {
       return await needle('get', `${WEATHER_API_URL}/weather`, { ...params }, {});
@@ -30,7 +30,7 @@ export async function getCurrentWeather(): Promise<Weather | undefined> {
   }
 }
 
-export async function getForecast(): Promise<WeatherForecast | undefined> {
+async function getForecast(): Promise<WeatherForecast | undefined> {
   try {
     const response = await retry(async () => {
       return await needle('get', `${WEATHER_API_URL}/forecast`, { ...params, cnt: 6 }, {});
@@ -40,3 +40,8 @@ export async function getForecast(): Promise<WeatherForecast | undefined> {
     console.log('Error: ' + JSON.stringify(error));
   }
 }
+
+export default {
+  getCurrentWeather,
+  getForecast,
+};

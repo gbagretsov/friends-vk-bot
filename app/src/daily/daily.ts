@@ -1,6 +1,6 @@
 import vk from '../vk/vk';
-import { getCurrentWeather, getForecast } from './weather';
-import { getHolidays } from './holidays';
+import weather from './weather';
+import holidays from './holidays';
 import statistics from '../statistics/statistics';
 import util from 'util';
 import db from '../db';
@@ -164,9 +164,9 @@ export default async () => {
   ];
 
   const [ currentWeather, forecast, todayHolidays ] = await Promise.all([
-    getCurrentWeather(),
-    getForecast(),
-    getHolidays(),
+    weather.getCurrentWeather(),
+    weather.getForecast(),
+    holidays.getHolidays(),
   ]);
 
   console.log(`Weather: ${ util.inspect(currentWeather) }`);

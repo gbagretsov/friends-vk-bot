@@ -7,7 +7,7 @@ const HOLIDAY_CATEGORIES = [
   'Праздники ООН',
 ];
 
-export async function getHolidays(): Promise<string[] | undefined> {
+async function getHolidays(): Promise<string[] | undefined> {
 
   try {
     const today = new Date(Date.now());
@@ -44,3 +44,7 @@ export async function getHolidays(): Promise<string[] | undefined> {
     console.log('Error: ' + JSON.stringify(error));
   }
 }
+
+export default {
+  getHolidays,
+};
