@@ -2,7 +2,7 @@ import cheerio from 'cheerio';
 import needle from 'needle';
 
 const HOLIDAY_CATEGORIES = [
-  'Российские праздники',
+  'Праздники России',
   'Международные праздники',
   'Праздники ООН',
 ];
