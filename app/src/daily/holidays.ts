@@ -1,7 +1,13 @@
-const cheerio = require('cheerio');
-const needle = require('needle');
+import cheerio from 'cheerio';
+import needle from 'needle';
 
-module.exports.getHolidays = async function() {
+const HOLIDAY_CATEGORIES = [
+  'Праздники России',
+  'Международные праздники',
+  'Праздники ООН',
+];
+
+async function getHolidays(): Promise<string[] | undefined> {
 
   try {
     const today = new Date(Date.now());
@@ -14,9 +20,11 @@ module.exports.getHolidays = async function() {
 
     const allHolidayElements = $('.block.holidays .itemsNet').children('li');
     const suitableHolidayElements = allHolidayElements.filter(function () {
-      let html = $(this).html();
-      // Оставляем российские праздники, международные праздники и праздники ООН
-      return html.includes('/1.gif') || html.includes('/15.gif') || html.includes('/79.gif');
+      const html = $(this).html();
+      if (!html) {
+        return false;
+      }
+      return HOLIDAY_CATEGORIES.some(category => html.includes(category));
     });
 
     // Берём названия праздников из заголовков
@@ -35,4 +43,8 @@ module.exports.getHolidays = async function() {
   } catch (error) {
     console.log('Error: ' + JSON.stringify(error));
   }
+}
+
+export default {
+  getHolidays,
 };

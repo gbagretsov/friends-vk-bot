@@ -68,7 +68,8 @@ async function getUserName(uid: number): Promise<string | false> {
   return vkResponse.response[0].first_name;
 }
 
-async function getUserInfo(uid: number): Promise<VkUser | false> {
+// TODO: remove redundant export
+export async function getUserInfo(uid: number): Promise<VkUser | false> {
   const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl,photo_max_orig';
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
