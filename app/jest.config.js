@@ -6,6 +6,7 @@ module.exports = {
   clearMocks: true,
   detectOpenHandles: true,
   testMatch: [
+    '**/util.test.ts',
     '**/chat.test.ts',
     '**/custom-reactions.test.ts',
     '**/daily.test.ts',

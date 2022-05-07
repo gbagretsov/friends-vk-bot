@@ -1,7 +1,18 @@
-import holidaysModule from './holidays';
 import {holidays20200130} from './test-resources/holidays-pages/2020-1-30';
 import {holidays20200301} from './test-resources/holidays-pages/2020-3-1';
 import {holidays20201231} from './test-resources/holidays-pages/2020-12-31';
+
+jest.doMock('needle', () => {
+  const urlResult: Map<string, string> = new Map<string, string>();
+  urlResult.set('https://www.calend.ru/day/2020-1-30/', holidays20200130);
+  urlResult.set('https://www.calend.ru/day/2020-3-1/', holidays20200301);
+  urlResult.set('https://www.calend.ru/day/2020-12-31/', holidays20201231);
+  return (action: string, url: string) => Promise.resolve({
+    body: urlResult.get(url)
+  });
+});
+
+import holidaysModule from './holidays';
 
 jest.useFakeTimers('modern');
 
@@ -10,17 +21,6 @@ async function createMocksForDate(year: number, month: number, day: number): Pro
 }
 
 describe('Holidays', () => {
-  beforeAll(() => {
-    jest.mock('needle', () => {
-      const urlResult: Map<string, string> = new Map<string, string>();
-      urlResult.set('https://www.calend.ru/day/2020-1-30/', holidays20200130);
-      urlResult.set('https://www.calend.ru/day/2020-3-1/', holidays20200301);
-      urlResult.set('https://www.calend.ru/day/2020-12-31/', holidays20201231);
-      return (action: string, url: string) => Promise.resolve({
-        body: urlResult.get(url)
-      });
-    });
-  });
     
   test('No Russian, international or UN holidays are celebrated on 30th January 2020', async () => {
     await createMocksForDate(2020, 1, 30);
