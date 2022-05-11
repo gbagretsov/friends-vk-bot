@@ -1,4 +1,6 @@
-import {Client, QueryResult} from 'pg';
+import {Client, QueryResult, types} from 'pg';
+
+types.setTypeParser(types.builtins.INT8, val => parseInt(val, 10));
 
 async function getClient(): Promise<Client> {
   const client = new Client({
