@@ -12,6 +12,8 @@ import * as statisticsObjects from './test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
 
 process.env.DEBUG_STATISTICS = '0';
+process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
+
 jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
 jest.mock('./weather');
 jest.mock('./holidays');
