@@ -58,24 +58,24 @@ async function sendSticker(stickerId: number | string): Promise<boolean> {
 /**
  * @deprecated use getUserInfo
  */
-async function getUserName(uid: number): Promise<string | false> {
+async function getUserName(uid: number): Promise<string | null> {
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.log(`Error in getUserName(): ${vkResponse.error.error_msg}`);
-    return false;
+    return null;
   }
   return vkResponse.response[0].first_name;
 }
 
 // TODO: remove redundant export
-export async function getUserInfo(uid: number): Promise<VkUser | false> {
+export async function getUserInfo(uid: number): Promise<VkUser | null> {
   const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl,photo_max_orig';
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in getUserInfo(): ${vkResponse.error.error_msg}`);
-    return false;
+    return null;
   }
   return vkResponse.response[0];
 }
@@ -134,28 +134,28 @@ async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<vo
 
 }
 
-async function getPolls(polls: { id: string, ownerId: string }[]): Promise<{ poll_info: VkPoll; voters: number[] }[] | boolean> {
+async function getPolls(polls: { id: string, ownerId: string }[]): Promise<{ poll_info: VkPoll; voters: number[] }[] | null> {
   const pollIds = polls.map(poll => poll.id).join(',');
   const ownerIds = polls.map(poll => poll.ownerId).join(',');
   const response = await needle('get', `${apiUrl}/execute.getPolls?v=${apiVersion}&access_token=${personalAccessToken}&poll_ids=${pollIds}&owner_ids=${ownerIds}&peer_id=${personalPeerID}`);
   const vkResponse = response.body as VkSuccessResponse<{ poll_info: VkPoll; voters: number[] }[]> | VkErrorResponse | VkExecuteErrorsResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in getPolls(): ${vkResponse.error.error_msg}`);
-    return false;
+    return null;
   }
   if (isVkExecuteErrorResponse(vkResponse)) {
     console.error(`Error in getPolls(): ${vkResponse.execute_errors[0].error_msg}`);
-    return false;
+    return null;
   }
   return vkResponse.response;
 }
 
-async function getConversationMembers(): Promise<VkUser[] | false> {
+async function getConversationMembers(): Promise<VkUser[] | null> {
   const response = await needle('get', `${apiUrl}/messages.getConversationMembers?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&fields=first_name_gen,screen_name,sex`);
   const vkResponse = response.body as VkSuccessResponse<VkConversation> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in getConversationMembers(): ${vkResponse.error.error_msg}`);
-    return false;
+    return null;
   }
   return vkResponse.response.profiles;
 }
@@ -181,9 +181,11 @@ async function sendYouTubeVideo(youTubeVideoId: string): Promise<boolean> {
   return true;
 }
 
-function getStickerId(message: VkMessage): number | undefined {
+function getStickerId(message: VkMessage): number | null {
   if (isStickerMessage(message)) {
     return (message.attachments[0] as VkMessageStickerAttachment).sticker.sticker_id;
+  } else {
+    return null;
   }
 }
 
