@@ -11,7 +11,7 @@ import handleByChatModule from '../chat/chat';
 import handleBySpeechModule from '../speech/speech';
 import { handleLookForPollInIncomingMessage as handleByPollsWatchModule } from '../polls-watch/polls-watch';
 import handleByCustomReactionsModule from '../custom-reactions/custom-reactions';
-import { handleMessage as handleByStatisticsModule } from '../statistics/statistics';
+import handleByStatisticsModule from '../statistics/statistics';
 
 const peerID = process.env.VK_PEER_ID.toString();
 
