@@ -1,7 +1,7 @@
 import vk from '../vk/vk';
 import weather from './weather';
 import holidays from './holidays';
-import statistics from '../statistics/statistics';
+import {getStatistics, resetStatistics} from '../statistics/statistics';
 import util from 'util';
 import db from '../db';
 import {
@@ -14,10 +14,11 @@ import {config} from 'dotenv';
 import {Weather} from './model/Weather';
 import {WeatherForecast} from './model/WeatherForecast';
 import {VkUser} from '../vk/model/VkUser';
+import {Statistics} from '../statistics/model/Statistics';
 
 config();
 
-function getWeatherMessage(weather?: Weather, forecast?: WeatherForecast): string {
+function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | null): string {
   if (!weather || !forecast) {
     return 'Доброе утро! \n Я не смог узнать прогноз погоды 😞';
   }
@@ -36,7 +37,7 @@ function getWeatherLine(weatherObject: Weather): string {
   return `${ weatherObject.weather[0].description }, ${ Math.round(weatherObject.main.temp)}°C, ветер ${ Math.round(weatherObject.wind.speed)} м/с`;
 }
 
-async function getHolidaysMessage(holidays?: string[]): Promise<string> {
+async function getHolidaysMessage(holidays: string[] | null): Promise<string> {
   if (!holidays) {
     return 'Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен';
   } else if (holidays.length) {
@@ -64,8 +65,7 @@ async function getAdsMessage(): Promise<string> {
   return response.rows[0].value;
 }
 
-// TODO: add types for statistics
-async function getStatisticsMessage(statisticsObject: any): Promise<string> {
+async function getStatisticsMessage(statisticsObject: Statistics): Promise<string> {
   const previousMonthIndex = new Date().getMonth() - 1;
 
   const totalAmountMessage = getTotalAmountMessage(statisticsObject.totalAmount);
@@ -193,20 +193,22 @@ export default async () => {
 
   const albumId = process.env.VK_LEADERBOARD_ALBUM_ID;
   if (statisticsShouldBeShown()) {
-    const statisticsObject = await statistics.getStatistics();
-    const statisticsMessage = await getStatisticsMessage(statisticsObject);
-    console.log(`Statistics: ${ statisticsMessage }`);
-    console.log(`Statistics message sent response: ${ await vk.sendMessage(statisticsMessage) }`);
-    const leaderboardPhotos = await statistics.getLeaderboardPhotos(statisticsObject);
-    for (const photoBuffer of leaderboardPhotos) {
-      await vk.sendPhotoToChat(photoBuffer);
-      if (albumId) {
-        await vk.addPhotoToAlbum(photoBuffer, albumId);
+    const statisticsObject = await getStatistics();
+    if (statisticsObject) {
+      const statisticsMessage = await getStatisticsMessage(statisticsObject);
+      console.log(`Statistics: ${statisticsMessage}`);
+      console.log(`Statistics message sent response: ${await vk.sendMessage(statisticsMessage)}`);
+      const leaderboardPhotos = statisticsObject.leaderboardPhotos;
+      for (const photoBuffer of leaderboardPhotos) {
+        await vk.sendPhotoToChat(photoBuffer);
+        if (albumId) {
+          await vk.addPhotoToAlbum(photoBuffer, albumId);
+        }
       }
     }
   }
   if (statisticsShouldBeReset()) {
-    await statistics.resetStatistics();
+    await resetStatistics();
   }
 
 };

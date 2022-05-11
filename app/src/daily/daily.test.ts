@@ -9,8 +9,11 @@ import {QueryResult} from 'pg';
 import {Weather} from './model/Weather';
 import {WeatherForecast} from './model/WeatherForecast';
 import * as statisticsObjects from './test-resources/statistics-objects';
+import {Statistics} from '../statistics/model/Statistics';
 
 process.env.DEBUG_STATISTICS = '0';
+process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
+
 jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
 jest.mock('./weather');
 jest.mock('./holidays');
@@ -30,21 +33,20 @@ enum MessagesOrder {
 const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
+const addPhotoToAlbumSpy = jest.spyOn(vk, 'addPhotoToAlbum').mockResolvedValue();
 
-function mockWeather(weatherResponse: Weather | undefined, weatherForecastResponse: WeatherForecast | undefined) {
+function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null) {
   jest.spyOn(weather, 'getCurrentWeather').mockResolvedValue(weatherResponse);
   jest.spyOn(weather, 'getForecast').mockResolvedValue(weatherForecastResponse);
 }
 
-function mockHolidays(holidaysList: string[] | undefined): void {
+function mockHolidays(holidaysList: string[] | null): void {
   jest.spyOn(holidays, 'getHolidays').mockResolvedValue(holidaysList);
 }
 
-// TODO: use model for statistics
-function mockStatistics(statisticsObject: any): void {
+function mockStatistics(statisticsObject: Statistics): void {
   jest.spyOn(statistics, 'getStatistics').mockResolvedValue(statisticsObject);
   jest.spyOn(statistics, 'resetStatistics').mockResolvedValue();
-  jest.spyOn(statistics, 'getLeaderboardPhotos').mockImplementation(object => object.mostActiveUsers);
 }
 
 function mockDate(date: Date): void {
@@ -59,8 +61,8 @@ function mockDatabaseCalls(value: string): void {
 
 describe('Sticker', () => {
   test('Bot sends sticker to chat', async () => {
-    mockWeather(undefined, undefined);
-    mockHolidays(undefined);
+    mockWeather(null, null);
+    mockHolidays(null);
     mockDatabaseCalls('');
     mockDate(new Date(2020, 0, 10));
     await daily();
@@ -70,7 +72,7 @@ describe('Sticker', () => {
 
 describe('Weather forecast', () => {
   beforeAll(() => {
-    mockHolidays(undefined);
+    mockHolidays(null);
     mockDatabaseCalls('');
     mockDate(new Date(2020, 0, 10));
   });
@@ -82,7 +84,7 @@ describe('Weather forecast', () => {
   });
 
   test('If weather is not available, bot sends failure message to chat', async () => {
-    mockWeather(undefined, undefined);
+    mockWeather(null, null);
     await daily();
     expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Я не смог узнать прогноз погоды/);
   });
@@ -90,7 +92,7 @@ describe('Weather forecast', () => {
 
 describe('Holidays', () => {
   beforeAll(() => {
-    mockWeather(undefined, undefined);
+    mockWeather(null, null);
     mockDatabaseCalls('');
     mockDate(new Date(2020, 0, 10));
   });
@@ -110,7 +112,7 @@ describe('Holidays', () => {
   });
 
   test('If holidays are not available, bot sends failure message to chat', async () => {
-    mockHolidays(undefined);
+    mockHolidays(null);
     await daily();
     expect(sendMessageSpy.mock.calls[MessagesOrder.HOLIDAYS][0]).toMatch('Я не смог узнать, какие сегодня праздники');
   });
@@ -118,7 +120,7 @@ describe('Holidays', () => {
 
 describe('Custom daily message', () => {
   beforeAll(() => {
-    mockWeather(undefined, undefined);
+    mockWeather(null, null);
     mockHolidays(['Новый год']);
     mockDate(new Date(2020, 0, 10));
   });
@@ -140,7 +142,7 @@ describe('Custom daily message', () => {
 
 describe('Statistics', () => {
   beforeAll(() =>{
-    mockWeather(undefined, undefined);
+    mockWeather(null, null);
     mockHolidays(['Новый год']);
     mockDatabaseCalls('Custom daily message');
   });
@@ -239,6 +241,7 @@ describe('Statistics', () => {
       expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Самый активный участник');
       expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Арсений');
       expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(1);
+      expect(addPhotoToAlbumSpy).toHaveBeenCalledTimes(1);
     });
 
     test('Bot correctly shows most active users (case with two users)', async () => {
@@ -248,6 +251,7 @@ describe('Statistics', () => {
       expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Арсений');
       expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Борис');
       expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(2);
+      expect(addPhotoToAlbumSpy).toHaveBeenCalledTimes(2);
     });
 
     test('Bot does not show most active users if there were no messages in previous month', async () => {
