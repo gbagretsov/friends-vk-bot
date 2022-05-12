@@ -2,6 +2,8 @@ import {Client, QueryResult, types} from 'pg';
 
 types.setTypeParser(types.builtins.INT8, val => parseInt(val, 10));
 
+export const DUPLICATE_KEY_PG_ERROR = '23505';
+
 async function getClient(): Promise<Client> {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
