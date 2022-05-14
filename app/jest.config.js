@@ -13,5 +13,6 @@ module.exports = {
     '**/holidays.test.ts',
     '**/statistics.test.ts',
     '**/game.test.ts',
+    '**/speech.test.ts',
   ], // TODO: add all test files when they are fixed
 };
