@@ -43,7 +43,6 @@ export function getMonthNameInInstrumentalCase(monthIndex: number): string {
   return months[(monthIndex + 12) % 12];
 }
 
-// TODO: rename to delay
-export function timeout(ms: number): Promise<void> {
+export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
