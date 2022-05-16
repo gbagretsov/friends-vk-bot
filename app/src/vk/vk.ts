@@ -1,6 +1,6 @@
 import needle from 'needle';
 import {config} from 'dotenv';
-import {timeout} from '../util';
+import {delay} from '../util';
 import {
   isVkErrorResponse,
   isVkExecuteErrorResponse,
@@ -23,11 +23,11 @@ const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
 const apiVersion = '5.110';
 
-async function sendMessage(message: string, delay?: number): Promise<boolean> {
+async function sendMessage(message: string, delayMs?: number): Promise<boolean> {
   const setTypingStatusIfNeeded = async function() {
-    if (delay) {
+    if (delayMs) {
       await needle('get', `${apiUrl}/messages.setActivity?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
-      return await timeout(delay);
+      return await delay(delayMs);
     }
   };
 
@@ -68,8 +68,7 @@ async function getUserName(uid: number): Promise<string | null> {
   return vkResponse.response[0].first_name;
 }
 
-// TODO: remove redundant export
-export async function getUserInfo(uid: number): Promise<VkUser | null> {
+async function getUserInfo(uid: number): Promise<VkUser | null> {
   const fields = 'sex,first_name_gen,first_name_dat,first_name_acc,first_name_ins,first_name_abl,photo_max_orig';
   const response = await needle('get', `${apiUrl}/users.get?v=${apiVersion}&access_token=${accessToken}&user_ids=${uid}&fields=${fields}`);
   const vkResponse = response.body as VkSuccessResponse<VkUser[]> | VkErrorResponse;
@@ -189,20 +188,19 @@ function getStickerId(message: VkMessage): number | null {
   }
 }
 
-// TODO: remove redundant export
-export function isStickerMessage(message: VkMessage): boolean {
+function isStickerMessage(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.STICKER;
 }
 
-export function isAudioMessage(message: VkMessage): boolean {
+function isAudioMessage(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.AUDIO_MESSAGE;
 }
 
-export function isRepost(message: VkMessage): boolean {
+function isRepost(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.WALL;
 }
 
-export function isPoll(message: VkMessage): boolean {
+function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
 

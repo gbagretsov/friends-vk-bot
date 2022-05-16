@@ -6,12 +6,6 @@ module.exports = {
   clearMocks: true,
   detectOpenHandles: true,
   testMatch: [
-    '**/util.test.ts',
-    '**/chat.test.ts',
-    '**/custom-reactions.test.ts',
-    '**/daily.test.ts',
-    '**/holidays.test.ts',
-    '**/statistics.test.ts',
-    '**/game.test.ts',
-  ], // TODO: add all test files when they are fixed
+    '**/*.test.ts'
+  ],
 };
