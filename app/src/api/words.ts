@@ -1,28 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../db');
+import express from 'express';
+import db, {DUPLICATE_KEY_PG_ERROR} from '../db';
+import {WordDto} from './model/words-dto/WordDto';
+import {ErrorType} from './model/ErrorType';
 
+const router = express.Router();
 router.get('/', async (req, res) => {
 
   try {
-    const r = await db.query('SELECT * FROM friends_vk_bot.words ORDER BY id DESC;');
-    let words = r.rows;
-    res.json(words.map(word => {
-      return {
-        id: word.id,
-        name: word.name,
-        isApproved: word.approved,
-      };
-    }));
+    const r = await db.query<WordDto>('SELECT id, name, approved AS "isApproved" FROM friends_vk_bot.words ORDER BY id DESC;');
+    res.json(r.rows);
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 });
 
 router.post('/', async (req, res) => {
 
-  let name = req.body.name;
+  const name = req.body.name as string;
 
   if (req.body.demo) {
     res.json({
@@ -32,16 +27,18 @@ router.post('/', async (req, res) => {
     return;
   }
 
-  // TODO: валидация
-
   try {
-    const r = await db.query(`INSERT INTO friends_vk_bot.words (name) VALUES ('${ name }') RETURNING id;`);
-    let id = r.rows[0].id;
-    let word = { id, name, isApproved: true };
+    const r = await db.query<{id: number}>(`INSERT INTO friends_vk_bot.words (name) VALUES ('${ name }') RETURNING id;`);
+    const id = r.rows[0].id;
+    const word: WordDto = { id, name, isApproved: true };
     res.json({ success: true, word });
   } catch(error) {
     console.log(error);
-    res.json({ error: error.code === '23505' ? 'duplicate' : 'internal' });
+    res.json({
+      error: (error as any).code === DUPLICATE_KEY_PG_ERROR ?
+        ErrorType.DUPLICATE :
+        ErrorType.INTERNAL
+    });
   }
 });
 
@@ -52,15 +49,15 @@ router.post('/:id', async (req, res) => {
     return;
   }
 
-  let id = req.params.id;
-  let name = req.body.name;
+  const id = req.params.id;
+  const name = req.body.name as string;
 
   try {
     await db.query(`UPDATE friends_vk_bot.words SET name='${name}' WHERE id=${id};`);
     res.json({ success: true });
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 
 });
@@ -72,14 +69,14 @@ router.post('/:id/approve', async (req, res) => {
     return;
   }
 
-  let id = req.params.id;
+  const id = req.params.id;
 
   try {
     await db.query(`UPDATE friends_vk_bot.words SET approved=true WHERE id=${id};`);
     res.json({ success: true });
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 
 });
@@ -91,16 +88,16 @@ router.delete('/:id', async (req, res) => {
     return;
   }
 
-  let id = req.params.id;
+  const id = req.params.id;
 
   try {
     await db.query(`DELETE FROM friends_vk_bot.words WHERE id=${id};`);
     res.json({ success: true });
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 
 });
 
-module.exports.router = router;
+export {router};

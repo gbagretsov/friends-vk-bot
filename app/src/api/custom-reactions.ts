@@ -1,6 +1,15 @@
-const express = require('express');
+import express from 'express';
+import db from '../db';
+import {ErrorType} from './model/ErrorType';
+import {CustomReactionDto} from './model/custom-reactions-dto/CustomReactionDto';
+import {CustomReactionPhraseDto} from './model/custom-reactions-dto/CustomReactionPhraseDto';
+import {CustomReactionStickerDto} from './model/custom-reactions-dto/CustomReactionStickerDto';
+import {CustomReactionResponseDto} from './model/custom-reactions-dto/CustomReactionResponseDto';
+import {CustomReactionPhraseUpdate} from './model/custom-reactions-dto/CustomReactionPhraseUpdate';
+import {CustomReactionResponseUpdate} from './model/custom-reactions-dto/CustomReactionResponseUpdate';
+import {CustomReactionStickerUpdate} from './model/custom-reactions-dto/CustomReactionStickerUpdate';
+
 const router = express.Router();
-const db = require('../db');
 
 router.get('/', async (req, res) => {
   try {
@@ -9,41 +18,29 @@ router.get('/', async (req, res) => {
     res.json(customReactions);
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 });
 
 router.get('/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    let response = await db.query(`SELECT id, name, base_probability AS probability FROM friends_vk_bot.custom_reactions WHERE id = ${id};`);
-    const customReaction = response.rows[0];
-    response = await db.query(`SELECT * FROM friends_vk_bot.phrases WHERE reaction_id = ${id} ORDER BY id;`);
-    customReaction.phrases = response.rows.map(phrase => {
-      return {
-        id: phrase.id,
-        text: phrase.text
-      };
-    });
-    response = await db.query(`SELECT * FROM friends_vk_bot.stickers WHERE reaction_id = ${id} ORDER BY id;`);
-    customReaction.stickers = response.rows.map(sticker => {
-      return {
-        id: sticker.id,
-        stickerId: sticker.sticker_id,
-      };
-    });
-    response = await db.query(`SELECT * FROM friends_vk_bot.responses WHERE reaction_id = ${id} ORDER BY id;`);
-    customReaction.responses = response.rows.map(response => {
-      return {
-        id: response.id,
-        type: response.type,
-        content: response.content
-      };
-    });
+    const customReactionDbResponse = await db.query<CustomReactionDto>(`SELECT id, name, base_probability AS probability FROM friends_vk_bot.custom_reactions WHERE id = ${id};`);
+    const customReaction = customReactionDbResponse.rows[0];
+
+    const phrasesDbResponse = await db.query<CustomReactionPhraseDto>(`SELECT * FROM friends_vk_bot.phrases WHERE reaction_id = ${id} ORDER BY id;`);
+    customReaction.phrases = phrasesDbResponse.rows;
+
+    const stickersDbResponse = await db.query<CustomReactionStickerDto>(`SELECT id, sticker_id AS "stickerId" FROM friends_vk_bot.stickers WHERE reaction_id = ${id} ORDER BY id;`);
+    customReaction.stickers = stickersDbResponse.rows;
+
+    const responsesDbResponse = await db.query<CustomReactionResponseDto>(`SELECT * FROM friends_vk_bot.responses WHERE reaction_id = ${id} ORDER BY id;`);
+    customReaction.responses = responsesDbResponse.rows;
+
     res.json(customReaction);
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 });
 
@@ -55,7 +52,7 @@ router.post('/', async (req, res) => {
 
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
-  const r = await db.query(`INSERT INTO friends_vk_bot.custom_reactions (name, base_probability) VALUES ('${name}', ${probability}) RETURNING id;`);
+  const r = await db.query<{id: number}>(`INSERT INTO friends_vk_bot.custom_reactions (name, base_probability) VALUES ('${name}', ${probability}) RETURNING id;`);
   const reactionId = r.rows[0].id;
 
   let query = 'BEGIN TRANSACTION;\n';
@@ -67,7 +64,7 @@ router.post('/', async (req, res) => {
     res.json({ success: true, id: reactionId });
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 });
 
@@ -77,7 +74,7 @@ router.post('/:id', async (req, res) => {
     return;
   }
 
-  const reactionId = req.params.id;
+  const reactionId = parseInt(req.params.id);
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
   let query = 'BEGIN TRANSACTION;\n';
@@ -90,7 +87,7 @@ router.post('/:id', async (req, res) => {
     res.json({ success: true });
   } catch(error) {
     console.log(error);
-    res.json({ error: 'internal' });
+    res.json({ error: ErrorType.INTERNAL });
   }
 });
 
@@ -112,7 +109,8 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-function getQueryForReactionUpdate(reactionId, phrases, stickers, responses) {
+function getQueryForReactionUpdate(reactionId: number, phrases: CustomReactionPhraseUpdate[],
+  stickers: CustomReactionStickerUpdate[], responses: CustomReactionResponseUpdate[]): string {
   let query = '';
 
   phrases.forEach(phrase => {
@@ -153,4 +151,4 @@ function getQueryForReactionUpdate(reactionId, phrases, stickers, responses) {
   return query;
 }
 
-module.exports.router = router;
+export { router };
