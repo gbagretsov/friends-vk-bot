@@ -45,19 +45,23 @@ function showUvIndex(): boolean {
 function getUvIndexInfo(uvIndex: number): string {
   let dangerLevel: string;
   let recommendations: string;
+  let dangerLevelIcon: string;
   if (uvIndex < 3) {
     dangerLevel = 'низкий';
+    dangerLevelIcon = '✅';
     recommendations = 'Защита не требуется. Пребывание вне помещения не представляет опасности.';
   } else if (uvIndex < 6) {
     dangerLevel = 'средний';
+    dangerLevelIcon = '⚠';
     recommendations = 'Необходима защита. В полуденные часы оставайтесь в тени. ' +
       'Носите одежду с длинными рукавами и шляпу. Пользуйтесь солнцезащитным кремом.';
   } else {
     dangerLevel = 'высокий';
+    dangerLevelIcon = '❗';
     recommendations = 'Необходима усиленная защита. Полуденные часы пережидайте внутри помещения. Вне помещения оставайтесь в тени. ' +
       'Обязательно носите одежду с длинными рукавами, шляпу, пользуйтесь солнцезащитным кремом.';
   }
-  return `Индекс УФ-излучения = ${uvIndex}, уровень опасности ${dangerLevel}. ${recommendations}`;
+  return `${dangerLevelIcon} Индекс УФ-излучения = ${uvIndex}, уровень опасности ${dangerLevel}. ${recommendations}`;
 }
 
 function getWeatherLine(weatherObject: Weather): string {
