@@ -1,5 +1,6 @@
 import cheerio from 'cheerio';
 import needle from 'needle';
+import {Month} from '../util';
 
 const HOLIDAY_CATEGORIES = [
   'Праздники России',
@@ -32,9 +33,8 @@ async function getHolidays(): Promise<string[] | null> {
       return $(this).find('.title a').text().trim();
     }).get();
 
-    // Обрабатываем случай 31 декабря и 1 января (Новый Год)
-    if (today.getMonth() === 11 && today.getDate() === 31 ||
-      today.getMonth() === 0 && today.getDate() === 1) {
+    if (today.getMonth() === Month.DECEMBER && today.getDate() === 31 ||
+      today.getMonth() === Month.JANUARY && today.getDate() === 1) {
       holidays = holidays.filter(holiday => !/[н|Н]овы[й|м]/.test(holiday));
       holidays = ['Новый год', ...holidays];
     }

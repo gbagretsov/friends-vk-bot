@@ -5,6 +5,7 @@ export type Weather = {
   },
   wind: {
     speed: number;
+    gust?: number;
   },
   dt: number;
 }

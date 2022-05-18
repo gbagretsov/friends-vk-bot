@@ -4,12 +4,13 @@ import vk from '../vk/vk';
 import db from '../db';
 import * as statistics from '../statistics/statistics';
 import daily from './daily';
-import {weatherForecastResponse, weatherResponse} from './test-resources/weather-response';
+import * as weatherResponses from './test-resources/weather-response';
 import {QueryResult} from 'pg';
 import {Weather} from './model/Weather';
 import {WeatherForecast} from './model/WeatherForecast';
 import * as statisticsObjects from './test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
+import {Month} from '../util';
 
 process.env.DEBUG_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
@@ -34,10 +35,12 @@ const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
 const addPhotoToAlbumSpy = jest.spyOn(vk, 'addPhotoToAlbum').mockResolvedValue();
+let getUvIndexSpy: jest.SpyInstance;
 
-function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null) {
+function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
   jest.spyOn(weather, 'getCurrentWeather').mockResolvedValue(weatherResponse);
   jest.spyOn(weather, 'getForecast').mockResolvedValue(weatherForecastResponse);
+  getUvIndexSpy = jest.spyOn(weather, 'getUvIndex').mockResolvedValue(uvIndex);
 }
 
 function mockHolidays(holidaysList: string[] | null): void {
@@ -61,10 +64,10 @@ function mockDatabaseCalls(value: string): void {
 
 describe('Sticker', () => {
   test('Bot sends sticker to chat', async () => {
-    mockWeather(null, null);
+    mockWeather(null, null, null);
     mockHolidays(null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
     await daily();
     expect(sendStickerSpy).toHaveBeenCalledTimes(1);
   });
@@ -74,27 +77,104 @@ describe('Weather forecast', () => {
   beforeAll(() => {
     mockHolidays(null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If weather is available, bot sends weather to chat', async () => {
-    mockWeather(weatherResponse, weatherForecastResponse);
+    mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
     await daily();
     expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Прогноз погоды на сегодня/);
   });
 
   test('If weather is not available, bot sends failure message to chat', async () => {
-    mockWeather(null, null);
+    mockWeather(null, null, null);
     await daily();
     expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Я не смог узнать прогноз погоды/);
+  });
+
+  describe('UV Index', () => {
+    beforeAll(() => {
+      mockDate(new Date(2020, Month.JUNE, 10));
+    });
+
+    test('Bot shows info about UV index during warm months', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения/);
+    });
+
+    test('Bot shows recommendations for low UV index', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 0, уровень опасности низкий/);
+    });
+
+    test('Bot shows recommendations for medium UV index', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 3);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 3, уровень опасности средний/);
+    });
+
+    test('Bot shows recommendations for high UV index', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 6);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 6, уровень опасности высокий/);
+    });
+
+    test('Bot does not show UV info if UV index is not available', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/Индекс УФ излучения/);
+      expect(getUvIndexSpy).toHaveBeenCalled();
+    });
+
+    test('Bot does not show UV info during cold months', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 1);
+      mockDate(new Date(2020, Month.JANUARY, 10));
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/Индекс УФ-излучения/);
+    });
+  });
+
+  describe('Wind speed', () => {
+    test('Bot shows warning icon if wind speed is high', async () => {
+      mockWeather(weatherResponses.weatherResponseHighWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
+
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseHighWindSpeedHighGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
+    });
+
+    test('Bot shows warning icon if gust speed is high', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedHighGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ порывы до 10 м\/с/);
+    });
+
+    test('Bot shows only one warning icon if both wind speed and gust speed are high', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseHighWindSpeedHighGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/порывы/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/⚠ порывы/);
+    });
+
+    test('Bot does not show warning icon if both wind speed and gust speed are low', async () => {
+      mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
+      await daily();
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/⚠/);
+    });
+
   });
 });
 
 describe('Holidays', () => {
   beforeAll(() => {
-    mockWeather(null, null);
+    mockWeather(null, null, null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If holidays are available and present, bot sends holidays list to chat', async () => {
@@ -120,9 +200,9 @@ describe('Holidays', () => {
 
 describe('Custom daily message', () => {
   beforeAll(() => {
-    mockWeather(null, null);
+    mockWeather(null, null, null);
     mockHolidays(['Новый год']);
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If custom daily message is set, bot sends custom daily message to chat', async () => {
@@ -142,14 +222,14 @@ describe('Custom daily message', () => {
 
 describe('Statistics', () => {
   beforeAll(() =>{
-    mockWeather(null, null);
+    mockWeather(null, null, null);
     mockHolidays(['Новый год']);
     mockDatabaseCalls('Custom daily message');
   });
 
   describe('First day of month', () => {
     beforeAll(() => {
-      mockDate(new Date(2020, 0, 1));
+      mockDate(new Date(2020, Month.JANUARY, 1));
     });
 
     test('Statistics are shown for previous month', async () => {
@@ -265,7 +345,7 @@ describe('Statistics', () => {
 
   describe('Not first day of month', () => {
     beforeAll(() => {
-      mockDate(new Date(2020, 0, 10));
+      mockDate(new Date(2020, Month.JANUARY, 10));
     });
 
     test('Statistics are not shown for previous month', async () => {
