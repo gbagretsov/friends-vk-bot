@@ -5,7 +5,8 @@ declare global {
       GAME_STEP_INTERVAL?: string;
       GOOGLE_KEY: string;
       GOOGLE_SEARCH_ENGINE_ID: string;
-      OPENWEATHER_APPID: string;
+      OPENWEATHERMAP_APPID: string;
+      WEATHERBIT_IO_API_KEY: string;
       TIME_ZONE_HOURS_OFFSET: string;
       VK_ACCESS_TOKEN: string;
       VK_CONFIRMATION_RESPONSE: string;

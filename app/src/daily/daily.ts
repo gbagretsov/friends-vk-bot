@@ -18,7 +18,7 @@ import {Statistics} from '../statistics/model/Statistics';
 
 config();
 
-function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | null): string {
+function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | null, uvIndex: number | null): string {
   if (!weather || !forecast) {
     return 'Доброе утро! \n Я не смог узнать прогноз погоды 😞';
   }
@@ -28,9 +28,36 @@ function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | 
     return `${sum}
             - в ${(date.getUTCHours() + hoursOffset) % 24}:00 ${getWeatherLine(cur)}`;
   }, '');
-  return `Доброе утро!
+  let weatherMessage = `Доброе утро!
     Сейчас на улице ${getWeatherLine(weather)} \n
     Прогноз погоды на сегодня: ${concatenatedWeatherForecast}`;
+  if (uvIndex !== null && showUvIndex()) {
+    weatherMessage += `\n\n${getUvIndexInfo(uvIndex)}`;
+  }
+  return weatherMessage;
+}
+
+function showUvIndex(): boolean {
+  // TODO: check date
+  return true;
+}
+
+function getUvIndexInfo(uvIndex: number): string {
+  let dangerLevel: string;
+  let recommendations: string;
+  if (uvIndex < 3) {
+    dangerLevel = 'низкий';
+    recommendations = 'Защита не требуется. Пребывание вне помещения не представляет опасности.';
+  } else if (uvIndex < 6) {
+    dangerLevel = 'средний';
+    recommendations = 'Необходима защита. В полуденные часы оставайтесь в тени. ' +
+      'Носите одежду с длинными рукавами и шляпу. Пользуйтесь солнцезащитным кремом.';
+  } else {
+    dangerLevel = 'высокий';
+    recommendations = 'Необходима усиленная защита. Полуденные часы пережидайте внутри помещения. Вне помещения оставайтесь в тени. ' +
+      'Обязательно носите одежду с длинными рукавами, шляпу, пользуйтесь солнцезащитным кремом.';
+  }
+  return `Индекс УФ-излучения = ${uvIndex}, уровень опасности ${dangerLevel}. ${recommendations}`;
 }
 
 function getWeatherLine(weatherObject: Weather): string {
@@ -163,15 +190,16 @@ export default async () => {
     16, 21, 28, 29, 30, 50, 52, 2079, 2770, 2778, 2780, 3003, 4323, 4343, 4346, 4535,
   ];
 
-  const [ currentWeather, forecast, todayHolidays ] = await Promise.all([
+  const [ currentWeather, forecast, uvIndex, todayHolidays ] = await Promise.all([
     weather.getCurrentWeather(),
     weather.getForecast(),
+    weather.getUvIndex(),
     holidays.getHolidays(),
   ]);
 
   console.log(`Weather: ${ util.inspect(currentWeather) }`);
   console.log(`Forecast: ${ util.inspect(forecast) }`);
-  const weatherMessage = getWeatherMessage(currentWeather, forecast);
+  const weatherMessage = getWeatherMessage(currentWeather, forecast, uvIndex);
 
   const randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
   console.log(`Sticker sent response: ${ await vk.sendSticker(randomID) }`);
