@@ -36,9 +36,13 @@ async function getCurrentWeather(): Promise<Weather | null> {
     const response = await retry(async () => {
       return await needle('get', `${OPENWEATHERMAP_API_URL}/weather`, { ...OPENWEATHERMAP_PARAMS }, {});
     }, retryParams);
+    if (!response.body.weather) {
+      console.log(`getCurrentWeather error: ${JSON.stringify(response.body)}`);
+      return null;
+    }
     return response.body as Weather;
   } catch (error) {
-    console.log('Error: ' + JSON.stringify(error));
+    console.log(`getCurrentWeather error: ${JSON.stringify(error)}`);
     return null;
   }
 }
@@ -48,9 +52,13 @@ async function getForecast(): Promise<WeatherForecast | null> {
     const response = await retry(async () => {
       return await needle('get', `${OPENWEATHERMAP_API_URL}/forecast`, { ...OPENWEATHERMAP_PARAMS, cnt: 6 }, {});
     }, retryParams);
+    if (!response.body.list) {
+      console.log(`getForecast error: ${JSON.stringify(response.body)}`);
+      return null;
+    }
     return response.body.list as WeatherForecast;
   } catch (error) {
-    console.log('Error: ' + JSON.stringify(error));
+    console.log(`getForecast error: ${JSON.stringify(error)}`);
     return null;
   }
 }
@@ -60,9 +68,13 @@ async function getUvIndex(): Promise<number | null> {
     const response = await retry(async () => {
       return await needle('get', `${WEATHERBIT_IO_API_URL}/forecast/daily`, WEATHERBIT_IO_PARAMS, {});
     }, retryParams);
+    if (response.body.error) {
+      console.log(`getUvIndex error: ${response.body.error}`);
+      return null;
+    }
     return response.body.data[0].uv;
   } catch (error) {
-    console.log('Error: ' + JSON.stringify(error));
+    console.log(`getUvIndex Error: ${JSON.stringify(error)}`);
     return null;
   }
 }
