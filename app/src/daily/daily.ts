@@ -18,6 +18,15 @@ import {Statistics} from '../statistics/model/Statistics';
 
 config();
 
+const NO_WARNING_ICON = '✅';
+const WARNING_ICON = '⚠';
+const DANGER_ICON = '❗';
+
+const MEDIUM_UV_INDEX = 3;
+const HIGH_UV_INDEX = 6;
+
+const HIGH_WIND_SPEED = 10;
+
 function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | null, uvIndex: number | null): string {
   if (!weather || !forecast) {
     return 'Доброе утро! \n Я не смог узнать прогноз погоды 😞';
@@ -46,26 +55,37 @@ function getUvIndexInfo(uvIndex: number): string {
   let dangerLevel: string;
   let recommendations: string;
   let dangerLevelIcon: string;
-  if (uvIndex < 3) {
-    dangerLevel = 'низкий';
-    dangerLevelIcon = '✅';
-    recommendations = 'Защита не требуется. Пребывание вне помещения не представляет опасности.';
-  } else if (uvIndex < 6) {
+  if (uvIndex >= HIGH_UV_INDEX) {
+    dangerLevel = 'высокий';
+    dangerLevelIcon = DANGER_ICON;
+    recommendations = 'Необходима усиленная защита. Полуденные часы пережидайте внутри помещения. Вне помещения оставайтесь в тени. ' +
+      'Обязательно носите одежду с длинными рукавами, шляпу, пользуйтесь солнцезащитным кремом.';
+  } else if (uvIndex >= MEDIUM_UV_INDEX) {
     dangerLevel = 'средний';
-    dangerLevelIcon = '⚠';
+    dangerLevelIcon = WARNING_ICON;
     recommendations = 'Необходима защита. В полуденные часы оставайтесь в тени. ' +
       'Носите одежду с длинными рукавами и шляпу. Пользуйтесь солнцезащитным кремом.';
   } else {
-    dangerLevel = 'высокий';
-    dangerLevelIcon = '❗';
-    recommendations = 'Необходима усиленная защита. Полуденные часы пережидайте внутри помещения. Вне помещения оставайтесь в тени. ' +
-      'Обязательно носите одежду с длинными рукавами, шляпу, пользуйтесь солнцезащитным кремом.';
+    dangerLevel = 'низкий';
+    dangerLevelIcon = NO_WARNING_ICON;
+    recommendations = 'Защита не требуется. Пребывание вне помещения не представляет опасности.';
   }
   return `${dangerLevelIcon} Индекс УФ-излучения = ${uvIndex}, уровень опасности ${dangerLevel}. ${recommendations}`;
 }
 
 function getWeatherLine(weatherObject: Weather): string {
-  return `${ weatherObject.weather[0].description }, ${ Math.round(weatherObject.main.temp)}°C, ветер ${ Math.round(weatherObject.wind.speed)} м/с`;
+  const windSpeed = Math.round(weatherObject.wind.speed);
+  const windWarningIcon = windSpeed >= HIGH_WIND_SPEED ? WARNING_ICON : '';
+  let weatherLine = `${ weatherObject.weather[0].description }, ${ Math.round(weatherObject.main.temp) }°C, ` +
+    `${windWarningIcon} ветер ${ windSpeed } м/с`;
+  if (weatherObject.wind.gust) {
+    const windGustSpeed = Math.round(weatherObject.wind.gust);
+    const gustWarningIcon = windGustSpeed >= HIGH_WIND_SPEED && windSpeed < HIGH_WIND_SPEED ?
+      WARNING_ICON :
+      '';
+    weatherLine += `, ${gustWarningIcon} порывы до ${ windGustSpeed } м/с`;
+  }
+  return weatherLine;
 }
 
 async function getHolidaysMessage(holidays: string[] | null): Promise<string> {

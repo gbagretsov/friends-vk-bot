@@ -1,7 +1,7 @@
 import {Weather} from '../model/Weather';
 import {WeatherForecast} from '../model/WeatherForecast';
 
-export const weatherResponse: Weather = {
+export const weatherResponseLowWindSpeed: Weather = {
   weather: [{ description: 'солнечно' }],
   main: {
     temp: 10,
@@ -12,11 +12,49 @@ export const weatherResponse: Weather = {
   dt: 1651921680,
 };
 
-export const weatherForecastResponse: WeatherForecast = [
-  weatherResponse,
-  weatherResponse,
-  weatherResponse,
-  weatherResponse,
-  weatherResponse,
-  weatherResponse,
-];
+export const weatherResponseHighWindSpeed: Weather = {
+  weather: [{ description: 'солнечно' }],
+  main: {
+    temp: 10,
+  },
+  wind: {
+    speed: 10,
+  },
+  dt: 1651921680,
+};
+
+export const weatherForecastResponseLowWindSpeedLowGustSpeed: WeatherForecast = [{
+  weather: [{ description: 'солнечно' }],
+  main: {
+    temp: 10,
+  },
+  wind: {
+    speed: 1,
+    gust: 2,
+  },
+  dt: 1651921680,
+}];
+
+export const weatherForecastResponseLowWindSpeedHighGustSpeed: WeatherForecast = [{
+  weather: [{ description: 'солнечно' }],
+  main: {
+    temp: 10,
+  },
+  wind: {
+    speed: 1,
+    gust: 10,
+  },
+  dt: 1651921680,
+}];
+
+export const weatherForecastResponseHighWindSpeedHighGustSpeed: WeatherForecast = [{
+  weather: [{ description: 'солнечно' }],
+  main: {
+    temp: 10,
+  },
+  wind: {
+    speed: 10,
+    gust: 15,
+  },
+  dt: 1651921680,
+}];
