@@ -10,6 +10,7 @@ import {Weather} from './model/Weather';
 import {WeatherForecast} from './model/WeatherForecast';
 import * as statisticsObjects from './test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
+import {Month} from '../util';
 
 process.env.DEBUG_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
@@ -66,7 +67,7 @@ describe('Sticker', () => {
     mockWeather(null, null, null);
     mockHolidays(null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
     await daily();
     expect(sendStickerSpy).toHaveBeenCalledTimes(1);
   });
@@ -76,7 +77,7 @@ describe('Weather forecast', () => {
   beforeAll(() => {
     mockHolidays(null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If weather is available, bot sends weather to chat', async () => {
@@ -93,7 +94,7 @@ describe('Weather forecast', () => {
 
   describe('UV Index', () => {
     beforeAll(() => {
-      mockDate(new Date(2020, 5, 10));
+      mockDate(new Date(2020, Month.JUNE, 10));
     });
 
     test('Bot shows info about UV index during warm months', async () => {
@@ -129,10 +130,9 @@ describe('Weather forecast', () => {
 
     test('Bot does not show UV info during cold months', async () => {
       mockWeather(weatherResponse, weatherForecastResponse, 1);
-      mockDate(new Date(2020, 0, 10));
+      mockDate(new Date(2020, Month.JANUARY, 10));
       await daily();
       expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/Индекс УФ-излучения/);
-      expect(getUvIndexSpy).not.toHaveBeenCalled();
     });
   });
 });
@@ -141,7 +141,7 @@ describe('Holidays', () => {
   beforeAll(() => {
     mockWeather(null, null, null);
     mockDatabaseCalls('');
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If holidays are available and present, bot sends holidays list to chat', async () => {
@@ -169,7 +169,7 @@ describe('Custom daily message', () => {
   beforeAll(() => {
     mockWeather(null, null, null);
     mockHolidays(['Новый год']);
-    mockDate(new Date(2020, 0, 10));
+    mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
   test('If custom daily message is set, bot sends custom daily message to chat', async () => {
@@ -196,7 +196,7 @@ describe('Statistics', () => {
 
   describe('First day of month', () => {
     beforeAll(() => {
-      mockDate(new Date(2020, 0, 1));
+      mockDate(new Date(2020, Month.JANUARY, 1));
     });
 
     test('Statistics are shown for previous month', async () => {
@@ -312,7 +312,7 @@ describe('Statistics', () => {
 
   describe('Not first day of month', () => {
     beforeAll(() => {
-      mockDate(new Date(2020, 0, 10));
+      mockDate(new Date(2020, Month.JANUARY, 10));
     });
 
     test('Statistics are not shown for previous month', async () => {

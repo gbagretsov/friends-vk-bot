@@ -8,7 +8,7 @@ import {
   getConcatenatedItems,
   getMonthNameInInstrumentalCase,
   getMonthNameInNominativeCase, getMonthNameInPrepositionalCase,
-  getPluralForm
+  getPluralForm, Month
 } from '../util';
 import {config} from 'dotenv';
 import {Weather} from './model/Weather';
@@ -38,8 +38,8 @@ function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | 
 }
 
 function showUvIndex(): boolean {
-  // TODO: check date
-  return true;
+  const today = new Date();
+  return today.getMonth() >= Month.MAY && today.getMonth() <= Month.SEPTEMBER;
 }
 
 function getUvIndexInfo(uvIndex: number): string {
