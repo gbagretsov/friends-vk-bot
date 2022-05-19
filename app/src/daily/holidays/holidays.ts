@@ -14,9 +14,12 @@ async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
 
     const $ = cheerio.load(body);
 
-    const allHolidayElements = $('.block.holidays .itemsNet').children('li');
-    const suitableHolidayElements = allHolidayElements.filter(function () {
-      const html = $(this).html();
+    const allHolidayElements = [
+      ...$('.block.holidays .itemsNet').children('li').get(),
+      ...$('.block.thisDay .itemsNet').children('li').get(),
+    ];
+    const suitableHolidayElements = allHolidayElements.filter(element => {
+      const html = $(element).html();
       if (!html) {
         return false;
       }
@@ -25,11 +28,11 @@ async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
 
     const holidaysByCategory: Map<HolidayCategory, Holiday[]> = new Map();
 
-    suitableHolidayElements.each(function () {
-      const category: HolidayCategory = $(this).find('.link a').text().trim() as HolidayCategory;
+    suitableHolidayElements.forEach(element => {
+      const category: HolidayCategory = $(element).find('.link a').text().trim() as HolidayCategory;
       const holiday: Holiday = {
-        name: $(this).find('.title a').text().trim(),
-        link: $(this).find('.title a').attr().href,
+        name: $(element).find('.title a').text().trim(),
+        link: $(element).find('.title a').attr().href,
       };
       if (holidaysByCategory.has(category)) {
         holidaysByCategory.get(category)!.push(holiday);
