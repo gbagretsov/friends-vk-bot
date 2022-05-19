@@ -1,5 +1,5 @@
-import {Weather} from '../model/Weather';
-import {WeatherForecast} from '../model/WeatherForecast';
+import {Weather} from '../weather/model/Weather';
+import {WeatherForecast} from '../weather/model/WeatherForecast';
 
 export const weatherResponseLowWindSpeed: Weather = {
   weather: [{ description: 'солнечно' }],

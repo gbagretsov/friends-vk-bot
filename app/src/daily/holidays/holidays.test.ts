@@ -13,7 +13,7 @@ jest.doMock('needle', () => {
 });
 
 import holidaysModule from './holidays';
-import {Month} from '../util';
+import {Month} from '../../util';
 
 jest.useFakeTimers('modern');
 

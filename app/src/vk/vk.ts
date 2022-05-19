@@ -12,6 +12,7 @@ import {VkUser} from './model/VkUser';
 import {VkConversation} from './model/VkConversation';
 import {VkPoll} from './model/VkPoll';
 import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './model/VkMessage';
+import {VkKeyboard} from './model/VkKeyboard';
 
 config();
 
@@ -35,6 +36,18 @@ async function sendMessage(message: string, delayMs?: number): Promise<boolean> 
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
   const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(message)}&random_id=${randomId}`);
+  const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
+    return false;
+  }
+  return true;
+}
+
+async function sendKeyboard(keyboard: VkKeyboard, text: string): Promise<boolean> {
+  const randomId = Date.now();
+  console.log(`Random message ID: ${randomId}`);
+  const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(text)}&keyboard=${encodeURIComponent(JSON.stringify(keyboard))}&random_id=${randomId}`);
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
@@ -206,6 +219,7 @@ function isPoll(message: VkMessage): boolean {
 
 export default {
   sendMessage,
+  sendKeyboard,
   sendSticker,
   getUserName,
   getUserInfo,

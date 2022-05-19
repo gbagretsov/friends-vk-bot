@@ -1,6 +1,6 @@
 import vk from '../vk/vk';
-import weather from './weather';
-import holidays from './holidays';
+import weather from './weather/weather';
+import holidays from './holidays/holidays';
 import {getStatistics, resetStatistics} from '../statistics/statistics';
 import util from 'util';
 import db from '../db';
@@ -8,13 +8,15 @@ import {
   getConcatenatedItems,
   getMonthNameInInstrumentalCase,
   getMonthNameInNominativeCase, getMonthNameInPrepositionalCase,
-  getPluralForm, Month
+  getPluralForm, Month, truncate
 } from '../util';
 import {config} from 'dotenv';
-import {Weather} from './model/Weather';
-import {WeatherForecast} from './model/WeatherForecast';
+import {Weather} from './weather/model/Weather';
+import {WeatherForecast} from './weather/model/WeatherForecast';
 import {VkUser} from '../vk/model/VkUser';
 import {Statistics} from '../statistics/model/Statistics';
+import {Holiday} from './holidays/model/Holiday';
+import {VkKeyboard} from '../vk/model/VkKeyboard';
 
 config();
 
@@ -88,26 +90,18 @@ function getWeatherLine(weatherObject: Weather): string {
   return weatherLine;
 }
 
-async function getHolidaysMessage(holidays: string[] | null): Promise<string> {
-  if (!holidays) {
-    return 'Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен';
-  } else if (holidays.length) {
-    const concatenatedHolidays = getConcatenatedItems(holidays);
-
-    const phrases = [
-      `🎉 A вы знали, что сегодня ${concatenatedHolidays}? Подробнее здесь: calend.ru`,
-      `🎉 Сегодня отмечается ${concatenatedHolidays}! Подробности на сайте calend.ru`,
-      `🎉 Готов поспорить, вы не могли дождаться, когда наступит ${concatenatedHolidays}. Этот день настал! Подробнее здесь: calend.ru`,
-      `🎉 Напишите мне в ответ, как вы будете отмечать ${concatenatedHolidays}. Если не знаете, что это, загляните сюда: calend.ru`,
-    ];
-
-    return phrases[Math.floor(Math.random() * phrases.length)];
-  } else {
-    const response = await db.query<{key: string, value: string}>
-    ('SELECT value FROM friends_vk_bot.state WHERE key = \'absent_holidays_phrases\';');
-    const absentHolidaysPhrases = response.rows[0].value.split('\n');
-    return absentHolidaysPhrases[Math.floor(Math.random() * absentHolidaysPhrases.length)];
-  }
+function getHolidaysKeyboard(holidays: Holiday[]): VkKeyboard {
+  // TODO: check size more than 6
+  return {
+    inline: true,
+    buttons: holidays.map(holiday => ([{
+      action: {
+        type: 'open_link',
+        link: holiday.link,
+        label: truncate(holiday.name, 40),
+      }
+    }])),
+  };
 }
 
 async function getAdsMessage(): Promise<string> {
@@ -231,10 +225,25 @@ export default async () => {
   console.log(`Weather message: ${ weatherMessage }`);
   console.log(`Weather message sent response: ${ await vk.sendMessage(weatherMessage) }`);
 
-  const holidaysMessage = await getHolidaysMessage(todayHolidays);
-  console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
-  if (holidaysMessage) {
-    console.log(`Holidays message sent response: ${ await vk.sendMessage(holidaysMessage) }`);
+  if (!todayHolidays) {
+    console.log(`Holidays not available - message sent response: ${
+      await vk.sendMessage('Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен')
+    }`);
+  } else if (todayHolidays.size > 0) {
+    console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
+    // TODO: more messages
+    await vk.sendMessage('Список праздников на сегодня:');
+    for (const category of todayHolidays.keys()) {
+      const holidaysKeyboard = getHolidaysKeyboard(todayHolidays.get(category)!);
+      await vk.sendKeyboard(holidaysKeyboard, category);
+    }
+  } else {
+    const response = await db.query<{key: string, value: string}>
+    ('SELECT value FROM friends_vk_bot.state WHERE key = \'absent_holidays_phrases\';');
+    const absentHolidaysPhrases = response.rows[0].value.split('\n');
+    console.log(`Holidays list is empty - message sent response: ${
+      await vk.sendMessage(absentHolidaysPhrases[Math.floor(Math.random() * absentHolidaysPhrases.length)])
+    }`);
   }
 
   const ads = await getAdsMessage();

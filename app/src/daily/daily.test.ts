@@ -1,16 +1,17 @@
-import weather from './weather';
-import holidays from './holidays';
+import weather from './weather/weather';
+import holidays from './holidays/holidays';
 import vk from '../vk/vk';
 import db from '../db';
 import * as statistics from '../statistics/statistics';
 import daily from './daily';
 import * as weatherResponses from './test-resources/weather-response';
 import {QueryResult} from 'pg';
-import {Weather} from './model/Weather';
-import {WeatherForecast} from './model/WeatherForecast';
+import {Weather} from './weather/model/Weather';
+import {WeatherForecast} from './weather/model/WeatherForecast';
 import * as statisticsObjects from './test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
 import {Month} from '../util';
+import {Holiday} from './holidays/model/Holiday';
 
 process.env.DEBUG_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
@@ -43,7 +44,7 @@ function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: W
   getUvIndexSpy = jest.spyOn(weather, 'getUvIndex').mockResolvedValue(uvIndex);
 }
 
-function mockHolidays(holidaysList: string[] | null): void {
+function mockHolidays(holidaysList: Holiday[] | null): void {
   jest.spyOn(holidays, 'getHolidays').mockResolvedValue(holidaysList);
 }
 
