@@ -12,13 +12,14 @@ import * as statisticsObjects from './test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
 import {Month} from '../util';
 import {Holiday} from './holidays/model/Holiday';
+import {HolidayCategory} from './holidays/model/HolidayCategory';
 
 process.env.DEBUG_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
 
 jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
-jest.mock('./weather');
-jest.mock('./holidays');
+jest.mock('./weather/weather');
+jest.mock('./holidays/holidays');
 jest.mock('../vk/vk');
 jest.mock('../db');
 jest.mock('../statistics/statistics');
@@ -34,6 +35,7 @@ enum MessagesOrder {
 
 const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
+const sendKeyboardSpy = jest.spyOn(vk, 'sendKeyboard').mockResolvedValue(true);
 const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
 const addPhotoToAlbumSpy = jest.spyOn(vk, 'addPhotoToAlbum').mockResolvedValue();
 let getUvIndexSpy: jest.SpyInstance;
@@ -44,8 +46,8 @@ function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: W
   getUvIndexSpy = jest.spyOn(weather, 'getUvIndex').mockResolvedValue(uvIndex);
 }
 
-function mockHolidays(holidaysList: Holiday[] | null): void {
-  jest.spyOn(holidays, 'getHolidays').mockResolvedValue(holidaysList);
+function mockHolidays(holidaysMap: Map<HolidayCategory, Holiday[]> | null): void {
+  jest.spyOn(holidays, 'getHolidays').mockResolvedValue(holidaysMap);
 }
 
 function mockStatistics(statisticsObject: Statistics): void {
@@ -179,13 +181,16 @@ describe('Holidays', () => {
   });
 
   test('If holidays are available and present, bot sends holidays list to chat', async () => {
-    mockHolidays(['Новый год']);
+    const holidaysMap: Map<HolidayCategory, Holiday[]> = new Map();
+    holidaysMap.set('Праздники России', [{ name: 'Новый год', link: '' }]);
+    mockHolidays(holidaysMap);
     await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.HOLIDAYS][0]).toMatch(/Новый год/);
+    expect(sendKeyboardSpy).toHaveBeenCalled();
+    expect(sendKeyboardSpy.mock.calls[0][0].buttons[0][0].action.label).toBe('Новый год');
   });
 
   test('If holidays are available and not present, bot sends no holidays message to chat', async () => {
-    mockHolidays([]);
+    mockHolidays(new Map());
     const noHolidaysMessage = 'Сегодня праздников нет';
     mockDatabaseCalls(noHolidaysMessage);
     await daily();
@@ -202,7 +207,7 @@ describe('Holidays', () => {
 describe('Custom daily message', () => {
   beforeAll(() => {
     mockWeather(null, null, null);
-    mockHolidays(['Новый год']);
+    mockHolidays(null);
     mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
@@ -224,7 +229,7 @@ describe('Custom daily message', () => {
 describe('Statistics', () => {
   beforeAll(() =>{
     mockWeather(null, null, null);
-    mockHolidays(['Новый год']);
+    mockHolidays(null);
     mockDatabaseCalls('Custom daily message');
   });
 
