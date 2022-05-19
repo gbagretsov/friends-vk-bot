@@ -29,6 +29,8 @@ const HIGH_UV_INDEX = 6;
 
 const HIGH_WIND_SPEED = 10;
 
+const MAX_HOLIDAYS_PER_CATEGORY = 6;
+
 function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | null, uvIndex: number | null): string {
   if (!weather || !forecast) {
     return 'Доброе утро! \n Я не смог узнать прогноз погоды 😞';
@@ -91,10 +93,9 @@ function getWeatherLine(weatherObject: Weather): string {
 }
 
 function getHolidaysKeyboard(holidays: Holiday[]): VkKeyboard {
-  // TODO: check size more than 6
   return {
     inline: true,
-    buttons: holidays.map(holiday => ([{
+    buttons: holidays.slice(0, MAX_HOLIDAYS_PER_CATEGORY).map(holiday => ([{
       action: {
         type: 'open_link',
         link: holiday.link,
@@ -239,8 +240,12 @@ export default async () => {
     ];
     await vk.sendMessage(holidaysMessages[Math.floor(Math.random() * holidaysMessages.length)]);
     for (const category of todayHolidays.keys()) {
-      const holidaysKeyboard = getHolidaysKeyboard(todayHolidays.get(category)!);
-      await vk.sendKeyboard(holidaysKeyboard, category);
+      const holidaysForCategory = todayHolidays.get(category)!;
+      const categoryMessage = holidaysForCategory.length > MAX_HOLIDAYS_PER_CATEGORY ?
+        `${category} (первые ${MAX_HOLIDAYS_PER_CATEGORY})` :
+        category;
+      const holidaysKeyboard = getHolidaysKeyboard(holidaysForCategory);
+      await vk.sendKeyboard(holidaysKeyboard, categoryMessage);
     }
   } else {
     const response = await db.query<{key: string, value: string}>
