@@ -231,8 +231,13 @@ export default async () => {
     }`);
   } else if (todayHolidays.size > 0) {
     console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
-    // TODO: more messages
-    await vk.sendMessage('Список праздников на сегодня:');
+    const holidaysMessages = [
+      '🎉 A вы знали, что сегодня отмечаются эти праздники?',
+      '🎉 Сегодня отмечаются:',
+      '🎉 Готов поспорить, вы не могли дождаться, когда наступят эти праздники:',
+      '🎉 Напишите мне в ответ, как вы будете отмечать эти праздники:',
+    ];
+    await vk.sendMessage(holidaysMessages[Math.floor(Math.random() * holidaysMessages.length)]);
     for (const category of todayHolidays.keys()) {
       const holidaysKeyboard = getHolidaysKeyboard(todayHolidays.get(category)!);
       await vk.sendKeyboard(holidaysKeyboard, category);
