@@ -47,6 +47,10 @@ export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function truncate(text: string, maxLength: number): string {
+  return (text.length > maxLength) ? text.substring(0, maxLength - 1) + '\u2026' : text;
+}
+
 export enum Month {
   JANUARY,
   FEBRUARY,
