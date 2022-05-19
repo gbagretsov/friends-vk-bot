@@ -96,7 +96,7 @@ function getWeatherLine(weatherObject: Weather): string {
 function getHolidaysKeyboard(holidays: Holiday[]): VkKeyboard {
   return {
     inline: true,
-    buttons: holidays.slice(0, MAX_HOLIDAYS_PER_CATEGORY).map(holiday => ([{
+    buttons: holidays.map(holiday => ([{
       action: {
         type: 'open_link',
         link: holiday.link,
@@ -240,17 +240,17 @@ export default async () => {
       '🎉 Напишите мне в ответ, как вы будете отмечать эти праздники:',
     ];
     await vk.sendMessage(holidaysMessages[Math.floor(Math.random() * holidaysMessages.length)]);
-    for (let i = 0; i < holidayCategories.length; i++) {
-      const holidaysForCategory = todayHolidays.get(holidayCategories[i]);
+    for (let categoryIndex = 0; categoryIndex < holidayCategories.length; categoryIndex++) {
+      const holidaysForCategory = todayHolidays.get(holidayCategories[categoryIndex]);
       if (!holidaysForCategory) {
         continue;
       }
-      const categoryIcon = holidayCategoryIcons[i];
-      const categoryMessage = holidaysForCategory.length > MAX_HOLIDAYS_PER_CATEGORY ?
-        `${categoryIcon} ${holidayCategories[i]} (первые ${MAX_HOLIDAYS_PER_CATEGORY})` :
-        `${categoryIcon} ${holidayCategories[i]}`;
-      const holidaysKeyboard = getHolidaysKeyboard(holidaysForCategory);
-      await vk.sendKeyboard(holidaysKeyboard, categoryMessage);
+      const categoryIcon = holidayCategoryIcons[categoryIndex];
+      const categoryMessage = `${categoryIcon} ${holidayCategories[categoryIndex]}`;
+      for (let holidayIndex = 0; holidayIndex < holidaysForCategory.length; holidayIndex += MAX_HOLIDAYS_PER_CATEGORY) {
+        const holidaysKeyboard = getHolidaysKeyboard(holidaysForCategory.slice(holidayIndex, holidayIndex + MAX_HOLIDAYS_PER_CATEGORY));
+        await vk.sendKeyboard(holidaysKeyboard, holidayIndex === 0 ? categoryMessage : `${categoryMessage} (продолжение)`);
+      }
     }
   } else {
     const response = await db.query<{key: string, value: string}>
