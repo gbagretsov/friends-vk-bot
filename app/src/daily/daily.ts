@@ -17,6 +17,7 @@ import {VkUser} from '../vk/model/VkUser';
 import {Statistics} from '../statistics/model/Statistics';
 import {Holiday} from './holidays/model/Holiday';
 import {VkKeyboard} from '../vk/model/VkKeyboard';
+import {holidayCategories, holidayCategoryIcons} from './holidays/model/HolidayCategory';
 
 config();
 
@@ -239,11 +240,15 @@ export default async () => {
       '🎉 Напишите мне в ответ, как вы будете отмечать эти праздники:',
     ];
     await vk.sendMessage(holidaysMessages[Math.floor(Math.random() * holidaysMessages.length)]);
-    for (const category of todayHolidays.keys()) {
-      const holidaysForCategory = todayHolidays.get(category)!;
+    for (let i = 0; i < holidayCategories.length; i++) {
+      const holidaysForCategory = todayHolidays.get(holidayCategories[i]);
+      if (!holidaysForCategory) {
+        continue;
+      }
+      const categoryIcon = holidayCategoryIcons[i];
       const categoryMessage = holidaysForCategory.length > MAX_HOLIDAYS_PER_CATEGORY ?
-        `${category} (первые ${MAX_HOLIDAYS_PER_CATEGORY})` :
-        category;
+        `${categoryIcon} ${holidayCategories[i]} (первые ${MAX_HOLIDAYS_PER_CATEGORY})` :
+        `${categoryIcon} ${holidayCategories[i]}`;
       const holidaysKeyboard = getHolidaysKeyboard(holidaysForCategory);
       await vk.sendKeyboard(holidaysKeyboard, categoryMessage);
     }
