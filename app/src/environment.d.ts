@@ -6,7 +6,9 @@ declare global {
       GOOGLE_KEY: string;
       GOOGLE_SEARCH_ENGINE_ID: string;
       OPENWEATHERMAP_APPID: string;
-      WEATHERBIT_IO_API_KEY: string;
+      ACCUWEATHER_API_KEY: string;
+      LATITUDE: string;
+      LONGITUDE: string;
       TIME_ZONE_HOURS_OFFSET: string;
       VK_ACCESS_TOKEN: string;
       VK_CONFIRMATION_RESPONSE: string;
