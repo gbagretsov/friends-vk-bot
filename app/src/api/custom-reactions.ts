@@ -45,11 +45,6 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  if (req.body.demo) {
-    res.json({ success: true, id: Math.floor(Math.random() * 1000000) });
-    return;
-  }
-
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
   const r = await db.query<{id: number}>(`INSERT INTO friends_vk_bot.custom_reactions (name, base_probability) VALUES ('${name}', ${probability}) RETURNING id;`);
@@ -69,11 +64,6 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/:id', async (req, res) => {
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
-
   const reactionId = parseInt(req.params.id);
   const { name, probability, phrases, stickers, responses } = req.body.reaction;
 
@@ -92,11 +82,6 @@ router.post('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
-
   const reactionId = req.params.id;
   const query = `DELETE FROM friends_vk_bot.custom_reactions WHERE id=${reactionId};`;
 

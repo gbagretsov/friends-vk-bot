@@ -18,10 +18,6 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
 
   const newAds = req.body.ads;
   const newAbsentHolidaysPhrases = req.body.absentHolidaysPhrases;
