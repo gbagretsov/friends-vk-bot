@@ -7,24 +7,14 @@ import {WeatherForecast} from './model/WeatherForecast';
 config();
 
 const OPENWEATHERMAP_API_URL = 'https://api.openweathermap.org/data/2.5';
-const WEATHERBIT_IO_API_URL = 'https://api.weatherbit.io/v2.0';
-
-const LAT_LON_PARAMS = {
-  lat: 53.4,
-  lon: 58.98,
-};
+const ACCUWEATHER_API_URL = 'https://dataservice.accuweather.com/';
 
 const OPENWEATHERMAP_PARAMS = {
-  ...LAT_LON_PARAMS,
+  lat: process.env.LATITUDE,
+  lon: process.env.LONGITUDE,
   APPID: process.env.OPENWEATHERMAP_APPID,
   units: 'metric',
   lang: 'ru',
-};
-
-const WEATHERBIT_IO_PARAMS = {
-  ...LAT_LON_PARAMS,
-  key: process.env.WEATHERBIT_IO_API_KEY,
-  days: 1,
 };
 
 const retryParams: Options = {
@@ -65,14 +55,33 @@ async function getForecast(): Promise<WeatherForecast | null> {
 
 async function getUvIndex(): Promise<number | null> {
   try {
-    const response = await retry(async () => {
-      return await needle('get', `${WEATHERBIT_IO_API_URL}/forecast/daily`, WEATHERBIT_IO_PARAMS, {});
+    const locationKeyResponse = await retry(async () => {
+      return await needle('get', `${ACCUWEATHER_API_URL}/locations/v1/cities/geoposition/search`, {
+        apikey: process.env.ACCUWEATHER_API_KEY,
+        q: `${process.env.LATITUDE},${process.env.LONGITUDE}`,
+      }, {});
     }, retryParams);
-    if (response.body.error) {
-      console.log(`getUvIndex error: ${response.body.error}`);
+    if (locationKeyResponse.statusCode !== 200) {
+      console.log(`getUvIndex: geo position search error: ${JSON.stringify(locationKeyResponse.body)}`);
       return null;
     }
-    return response.body.data[0].uv;
+    const locationKey = locationKeyResponse.body.Key as string;
+
+    const forecastResponse = await retry(async () => {
+      return await needle('get', `${ACCUWEATHER_API_URL}/forecasts/v1/daily/1day/${locationKey}`, {
+        apikey: process.env.ACCUWEATHER_API_KEY,
+        details: true,
+      }, {});
+    }, retryParams);
+    if (forecastResponse.statusCode !== 200) {
+      console.log(`getUvIndex: forecasts error: ${JSON.stringify(locationKeyResponse.body)}`);
+      return null;
+    }
+    const airAndPollenList = forecastResponse.body.DailyForecasts[0].AirAndPollen as {
+      Name: string,
+      Value: number,
+    }[];
+    return airAndPollenList.find(airAndPollenListItem => airAndPollenListItem.Name === 'UVIndex')!.Value;
   } catch (error) {
     console.log(`getUvIndex Error: ${JSON.stringify(error)}`);
     return null;
