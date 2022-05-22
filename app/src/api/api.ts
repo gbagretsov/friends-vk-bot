@@ -13,10 +13,6 @@ function checkToken(req: Request, res: Response, next: () => void): void {
   const receivedToken = req.body.token || req.query.token;
   const actualToken = process.env.VK_ACCESS_TOKEN;
   if (receivedToken === actualToken) {
-    req.body.demo = false;
-    next();
-  } else if (receivedToken && receivedToken.toUpperCase() === 'DEMO') {
-    req.body.demo = true;
     next();
   } else {
     res.json({ error: ErrorType.TOKEN });
@@ -30,7 +26,7 @@ router.use('/settings', settingsRouter);
 router.use('/customReactions', customReactionsRouter);
 
 router.post('/', (req, res) => {
-  res.json({ success: true, demo: req.body.demo });
+  res.json({ success: true });
 });
 
 export { router };

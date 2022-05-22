@@ -19,14 +19,6 @@ router.post('/', async (req, res) => {
 
   const name = req.body.name as string;
 
-  if (req.body.demo) {
-    res.json({
-      success: true,
-      word: { id: Math.floor(Math.random() * 1000000), name, isApproved: true },
-    });
-    return;
-  }
-
   try {
     const r = await db.query<{id: number}>(`INSERT INTO friends_vk_bot.words (name) VALUES ('${ name }') RETURNING id;`);
     const id = r.rows[0].id;
@@ -44,11 +36,6 @@ router.post('/', async (req, res) => {
 
 router.post('/:id', async (req, res) => {
 
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
-
   const id = req.params.id;
   const name = req.body.name as string;
 
@@ -64,11 +51,6 @@ router.post('/:id', async (req, res) => {
 
 router.post('/:id/approve', async (req, res) => {
 
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
-
   const id = req.params.id;
 
   try {
@@ -82,11 +64,6 @@ router.post('/:id/approve', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-
-  if (req.body.demo) {
-    res.json({ success: true });
-    return;
-  }
 
   const id = req.params.id;
 

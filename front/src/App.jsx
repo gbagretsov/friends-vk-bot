@@ -99,11 +99,8 @@ class App extends Component {
         <div className="App">
           { !authorized &&
               <Token
-                onAuthorized={(token, demo) => {
+                onAuthorized={token => {
                   this.saveToken(token);
-                  if (demo) {
-                    this.showMessage('Вы находитесь в демо-режиме. Изменения не сохраняются', 'info');
-                  }
                 }}
                 onError={(error) => this.showMessage(error, 'error')}
               />
