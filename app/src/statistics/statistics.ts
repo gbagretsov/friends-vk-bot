@@ -10,34 +10,23 @@ import {Statistics} from './model/Statistics';
 import {VkUser} from '../vk/model/VkUser';
 
 async function handleMessage(message: VkMessage): Promise<false> {
-  const result = await db.query<StatisticsDbRow>('SELECT * FROM friends_vk_bot.statistics');
-  const rows: StatisticsDbRow[] = result.rows;
   let updateQuery = 'BEGIN TRANSACTION;\n';
 
-  const totalCounter = rows.find(row => row.id === StatisticsId.TOTAL_AMOUNT)!.value + 1;
-  updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${totalCounter} WHERE id = ${StatisticsId.TOTAL_AMOUNT};\n`;
+  updateQuery += `UPDATE friends_vk_bot.statistics SET value = value + 1 WHERE id = ${StatisticsId.TOTAL_AMOUNT};\n`;
 
-  const senderRow = rows.find(row => row.id === message.from_id);
-  const senderCounter = senderRow ? senderRow.value + 1 : 1;
-  if (senderRow) {
-    updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${senderCounter} WHERE id = ${message.from_id};\n`;
-  } else {
-    updateQuery += `INSERT INTO friends_vk_bot.statistics VALUES(${message.from_id}, ${senderCounter});\n`;
-  }
+  updateQuery += `INSERT INTO friends_vk_bot.statistics VALUES(${message.from_id}, 1)
+                  ON CONFLICT (id) DO UPDATE SET value = friends_vk_bot.statistics.value + 1;\n`;
 
   if (vk.isStickerMessage(message)) {
-    const stickersCounter = rows.find(row => row.id === StatisticsId.STICKERS_AMOUNT)!.value + 1;
-    updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${stickersCounter} WHERE id = ${StatisticsId.STICKERS_AMOUNT};\n`;
+    updateQuery += `UPDATE friends_vk_bot.statistics SET value = value + 1 WHERE id = ${StatisticsId.STICKERS_AMOUNT};\n`;
   }
 
   if (vk.isAudioMessage(message)) {
-    const audioMessagesCounter = rows.find(row => row.id === StatisticsId.AUDIO_MESSAGES_AMOUNT)!.value + 1;
-    updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${audioMessagesCounter} WHERE id = ${StatisticsId.AUDIO_MESSAGES_AMOUNT};\n`;
+    updateQuery += `UPDATE friends_vk_bot.statistics SET value = value + 1 WHERE id = ${StatisticsId.AUDIO_MESSAGES_AMOUNT};\n`;
   }
 
   if (vk.isRepost(message)) {
-    const repostsCounter = rows.find(row => row.id === StatisticsId.REPOSTS_AMOUNT)!.value + 1;
-    updateQuery += `UPDATE friends_vk_bot.statistics SET value = ${repostsCounter} WHERE id = ${StatisticsId.REPOSTS_AMOUNT};\n`;
+    updateQuery += `UPDATE friends_vk_bot.statistics SET value = value + 1 WHERE id = ${StatisticsId.REPOSTS_AMOUNT};\n`;
   }
 
   updateQuery += 'END TRANSACTION';
