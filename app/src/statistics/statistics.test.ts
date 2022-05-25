@@ -22,63 +22,55 @@ describe('Statistics', () => {
     it('When bot receives a message, bot gathers info from this message', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy).toHaveBeenCalledTimes(2);
+      expect(dbQuerySpy).toHaveBeenCalledTimes(1);
     });
 
     test('During gathering of info from message bot increases total messages counter', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/SET value = 101 WHERE id = -1/);
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(/SET value = value \+ 1 WHERE id = -1/);
     });
 
     test('During gathering of info from message bot increases voice messages counter if needed', async () => {
       setMocks();
       await handleMessage(testMessages.audioMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/SET value = 6 WHERE id = -2/);
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(/SET value = value \+ 1 WHERE id = -2/);
     });
 
     test('During gathering of info from message bot increases stickers counter if needed', async () => {
       setMocks();
       await handleMessage(testMessages.stickerMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/SET value = 11 WHERE id = -3/);
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(/SET value = value \+ 1 WHERE id = -3/);
     });
 
     test('During gathering of info from message bot increases reposts counter if needed', async () => {
       setMocks();
       await handleMessage(testMessages.repostMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/SET value = 21 WHERE id = -4/);
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(/SET value = value \+ 1 WHERE id = -4/);
     });
 
     test('During gathering of info from message bot does not increase voice messages counter if not needed', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).not.toMatch(/SET value = [0-9]* WHERE id = -2/);
+      expect(dbQuerySpy.mock.calls[0][0]).not.toMatch(/SET value = value \+ 1 WHERE id = -2/);
     });
 
     test('During gathering of info from message bot does not increase stickers counter if not needed', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).not.toMatch(/SET value = [0-9]* WHERE id = -3/);
+      expect(dbQuerySpy.mock.calls[0][0]).not.toMatch(/SET value = value \+ 1 WHERE id = -3/);
     });
 
     test('During gathering of info from message bot does not increase reposts counter if not needed', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).not.toMatch(/SET value = [0-9]* WHERE id = -4/);
+      expect(dbQuerySpy.mock.calls[0][0]).not.toMatch(/SET value = value \+ 1 WHERE id = -4/);
     });
 
-    test('During gathering of info from message bot increases messages counter for the current sender ' +
-      '(case with the very first message of user)', async () => {
+    test('During gathering of info from message bot increases messages counter for the current sender', async () => {
       setMocks();
       await handleMessage(testMessages.textMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/INSERT INTO .* VALUES\(1111, 1\)/);
-    });
-
-    test('During gathering of info from message bot increases messages counter for the current sender ' +
-      '(case with not first message of user)', async () => {
-      setMocks();
-      await handleMessage(testMessages.audioMessage);
-      expect(dbQuerySpy.mock.calls[1][0]).toMatch(/SET value = 26 WHERE id = 2222/);
+      expect(dbQuerySpy.mock.calls[0][0]).toMatch(/INSERT INTO .* VALUES\(1111, 1\)/);
     });
 
     test('Bot always passes message further to following handlers', async () => {
