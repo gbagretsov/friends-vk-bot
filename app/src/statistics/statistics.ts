@@ -2,7 +2,7 @@ import db from '../db';
 import vk from '../vk/vk';
 import {createCanvas, Image, loadImage, registerFont} from 'canvas';
 import needle from 'needle';
-import { getMonthNameInNominativeCase } from '../util';
+import {getMonthNameInNominativeCase, Month} from '../util';
 import { StatisticsId } from './model/StatisticsId.enum';
 import {VkMessage} from '../vk/model/VkMessage';
 import {StatisticsDbRow} from './model/StatisticsDbRow';
@@ -102,7 +102,7 @@ async function getLeaderboardPhotos(users: VkUser[]): Promise<Buffer[]> {
 
   const date = new Date();
   const month = getMonthNameInNominativeCase(date.getMonth() - 1);
-  const year = date.getFullYear();
+  const year = date.getMonth() === Month.JANUARY ? date.getFullYear() - 1 : date.getFullYear();
   const dateLine = `${month} ${year}`;
 
   const templateImage = await loadImage('assets/leaderboardPhotoTemplate.jpg');
