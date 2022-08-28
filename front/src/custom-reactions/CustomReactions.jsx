@@ -1,19 +1,19 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import Table from '@material-ui/core/Table';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
-import TableBody from '@material-ui/core/TableBody';
-import IconButton from '@material-ui/core/IconButton';
-import AddIcon from '@material-ui/icons/Add';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CircularProgress from '@mui/material/CircularProgress';
+import Button from '@mui/material/Button';
 
 import './CustomReactions.scss';
 import CustomReactionEditor from './CustomReactionEditor';
