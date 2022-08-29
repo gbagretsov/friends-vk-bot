@@ -7,7 +7,6 @@ export const DUPLICATE_KEY_PG_ERROR = '23505';
 async function getClient(): Promise<Client> {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
   });
   await client.connect();
   return client;
