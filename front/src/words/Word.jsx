@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import TextField from '@material-ui/core/TextField';
-import IconButton from '@material-ui/core/IconButton';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
-import CheckIcon from '@material-ui/icons/Check';
-import CloseIcon from '@material-ui/icons/Close';
-import ThumbUpIcon from '@material-ui/icons/ThumbUp';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import PropTypes from 'prop-types';
 
 class Word extends Component{

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import AddIcon from '@material-ui/icons/Add';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
 import PropTypes from 'prop-types';
 
 import Word from './Word.jsx';
