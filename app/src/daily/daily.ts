@@ -4,20 +4,14 @@ import holidays from './holidays/holidays';
 import {getStatistics, resetStatistics} from '../statistics/statistics';
 import util from 'util';
 import db from '../db';
-import {
-  getConcatenatedItems,
-  getMonthNameInInstrumentalCase,
-  getMonthNameInNominativeCase, getMonthNameInPrepositionalCase,
-  getPluralForm, Month, truncate
-} from '../util';
+import {Month, truncate} from '../util';
 import {config} from 'dotenv';
 import {Weather} from './weather/model/Weather';
 import {WeatherForecast} from './weather/model/WeatherForecast';
-import {VkUser} from '../vk/model/VkUser';
-import {Statistics} from '../statistics/model/Statistics';
 import {Holiday} from './holidays/model/Holiday';
 import {VkKeyboard} from '../vk/model/VkKeyboard';
 import {holidayCategories, holidayCategoryIcons} from './holidays/model/HolidayCategory';
+import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 
 config();
 
@@ -112,96 +106,12 @@ async function getAdsMessage(): Promise<string> {
   return response.rows[0].value;
 }
 
-async function getStatisticsMessage(statisticsObject: Statistics): Promise<string> {
-  const previousMonthIndex = new Date().getMonth() - 1;
-
-  const totalAmountMessage = getTotalAmountMessage(statisticsObject.totalAmount);
-  const audioMessagesAmountMessage = getAudioMessagesAmountMessage(statisticsObject.audioMessagesAmount);
-  const stickersAmountMessage = getStickersAmountMessage(statisticsObject.stickersAmount);
-  const repostsAmountMessage = getRepostsAmountMessage(statisticsObject.repostsAmount);
-
-  const mostActiveUserNamesMessage =
-    statisticsObject.mostActiveUsers.length > 0 ?
-      getMostActiveUserNamesMessage(statisticsObject.mostActiveUsers, previousMonthIndex) :
-      null;
-
-  const comparisonMessage = statisticsObject.previousMonthAmount !== null ? getComparisonMessage(statisticsObject.previousMonthAmount, statisticsObject.totalAmount) : null;
-
-  let resultMessage = `⚠ Статистика беседы за ${getMonthNameInNominativeCase(previousMonthIndex)} ⚠
-
-    В ${getMonthNameInPrepositionalCase(previousMonthIndex)} было отправлено ${totalAmountMessage}, из них:
-    — ${audioMessagesAmountMessage}
-    — ${stickersAmountMessage}
-    — ${repostsAmountMessage}\n\n`;
-  if (comparisonMessage) {
-    resultMessage += `По сравнению с ${getMonthNameInInstrumentalCase(previousMonthIndex - 1)}, \
-      общее количество сообщений ${comparisonMessage}.\n\n`;
-  }
-  if (mostActiveUserNamesMessage) {
-    resultMessage += mostActiveUserNamesMessage;
-  }
-  return resultMessage;
-}
-
 function statisticsShouldBeShown(): boolean {
   return process.env.DEBUG_STATISTICS === '1' || new Date().getDate() === 1;
 }
 
 function statisticsShouldBeReset(): boolean {
   return process.env.DEBUG_STATISTICS !== '1' && new Date().getDate() === 1;
-}
-
-function getTotalAmountMessage(totalAmount: number): string {
-  return `${totalAmount} ${getPluralForm(totalAmount, 'сообщение', 'сообщения', 'сообщений')}`;
-}
-
-function getAudioMessagesAmountMessage(audioMessagesAmount: number): string {
-  return `${audioMessagesAmount} ${getPluralForm(audioMessagesAmount, 'голосовое сообщение', 'голосовых сообщения', 'голосовых сообщений')}`;
-}
-
-function getStickersAmountMessage(stickersAmount: number): string {
-  return `${stickersAmount} ${getPluralForm(stickersAmount, 'стикер', 'стикера', 'стикеров')}`;
-}
-
-function getRepostsAmountMessage(repostsAmount: number): string {
-  return `${repostsAmount} ${getPluralForm(repostsAmount, 'репост', 'репоста', 'репостов')}`;
-}
-
-function getMostActiveUserNamesMessage(mostActiveUsers: VkUser[], previousMonthIndex: number): string {
-  const mostActiveUsersNames = getMostActiveUsersNames(mostActiveUsers);
-  const concatenatedMostActiveUsersNames = getConcatenatedItems(mostActiveUsersNames);
-
-  return `${mostActiveUsers.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы \
-    в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.`;
-}
-
-function getMostActiveUsersNames(mostActiveUsers: VkUser[]): string[] {
-  return mostActiveUsers.map(user => user.first_name);
-}
-
-function getComparisonMessage(monthBeforePreviousAmount: number, previousMonthAmount: number): string {
-  if (previousMonthAmount === monthBeforePreviousAmount) {
-    return 'не изменилось';
-  }
-
-  if (monthBeforePreviousAmount === 0) {
-    return 'увеличилось на ∞%';
-  }
-
-  const percentageDelta = Math.round((previousMonthAmount - monthBeforePreviousAmount) / monthBeforePreviousAmount * 100);
-
-  if (percentageDelta > 0) {
-    return `увеличилось на ${percentageDelta}%`;
-  }
-  if (percentageDelta < 0) {
-    return `уменьшилось на ${-percentageDelta}%`;
-  }
-
-  if (previousMonthAmount > monthBeforePreviousAmount) {
-    return 'незначительно увеличилось';
-  } else {
-    return 'незначительно уменьшилось';
-  }
 }
 
 export default async () => {
@@ -267,20 +177,10 @@ export default async () => {
     console.log(`Ads message sent response: ${ await vk.sendMessage(ads) }`);
   }
 
-  const albumId = process.env.VK_LEADERBOARD_ALBUM_ID;
   if (statisticsShouldBeShown()) {
     const statisticsObject = await getStatistics();
     if (statisticsObject) {
-      const statisticsMessage = await getStatisticsMessage(statisticsObject);
-      console.log(`Statistics: ${statisticsMessage}`);
-      console.log(`Statistics message sent response: ${await vk.sendMessage(statisticsMessage)}`);
-      const leaderboardPhotos = statisticsObject.leaderboardPhotos;
-      for (const photoBuffer of leaderboardPhotos) {
-        await vk.sendPhotoToChat(photoBuffer);
-        if (albumId) {
-          await vk.addPhotoToAlbum(photoBuffer, albumId);
-        }
-      }
+      finalStatisticsOutputter.output(statisticsObject);
     }
   }
   if (statisticsShouldBeReset()) {
