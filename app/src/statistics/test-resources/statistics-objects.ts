@@ -1,4 +1,4 @@
-import {Statistics} from '../../statistics/model/Statistics';
+import {Statistics} from '../model/Statistics';
 import {VkUser} from '../../vk/model/VkUser';
 
 export const commonExample: Statistics = {

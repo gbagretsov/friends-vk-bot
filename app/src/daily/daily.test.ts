@@ -8,11 +8,12 @@ import * as weatherResponses from './test-resources/weather-response';
 import {QueryResult} from 'pg';
 import {Weather} from './weather/model/Weather';
 import {WeatherForecast} from './weather/model/WeatherForecast';
-import * as statisticsObjects from './test-resources/statistics-objects';
+import * as statisticsObjects from '../statistics/test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
 import {Month} from '../util';
 import {Holiday} from './holidays/model/Holiday';
 import {HolidayCategory} from './holidays/model/HolidayCategory';
+import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 
 process.env.DEBUG_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
@@ -23,6 +24,7 @@ jest.mock('./holidays/holidays');
 jest.mock('../vk/vk');
 jest.mock('../db');
 jest.mock('../statistics/statistics');
+jest.mock('../statistics/outputters/final-statistics-outputter');
 
 jest.useFakeTimers('modern');
 
@@ -36,8 +38,7 @@ enum MessagesOrder {
 const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const sendKeyboardSpy = jest.spyOn(vk, 'sendKeyboard').mockResolvedValue(true);
-const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
-const addPhotoToAlbumSpy = jest.spyOn(vk, 'addPhotoToAlbum').mockResolvedValue();
+const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output');
 let getUvIndexSpy: jest.SpyInstance;
 
 function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
@@ -241,7 +242,7 @@ describe('Statistics', () => {
     test('Statistics are shown for previous month', async () => {
       mockStatistics(statisticsObjects.commonExample);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Статистика');
+      expect(finalStatisticsOutputterSpy).toHaveBeenCalled();
     });
 
     test('Statistics are reset', async () => {
@@ -250,103 +251,6 @@ describe('Statistics', () => {
       expect(statistics.resetStatistics).toHaveBeenCalled();
     });
 
-    test('Bot correctly displays statistics for previous month', async () => {
-      mockStatistics(statisticsObjects.commonExample);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Статистика беседы за декабрь');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('100 сообщений');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('10 голосовых сообщений');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('20 стикеров');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('5 репостов');
-    });
-
-    test('Bot correctly displays changes in comparison to month before previous one (case when equals)', async () => {
-      mockStatistics(statisticsObjects.totalEqualToPrevMonth);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('не изменилось');
-    });
-
-    test('Bot correctly displays changes in comparison to month before previous one (case when increased insignificantly)', async () => {
-      mockStatistics(statisticsObjects.totalIncreasedInsignificantly);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('незначительно увеличилось');
-    });
-
-    test('Bot correctly displays changes in comparison to month before previous one (case when decreased insignificantly)', async () => {
-      mockStatistics(statisticsObjects.totalDecreasedInsignificantly);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('незначительно уменьшилось');
-    });
-
-    test('Bot correctly displays changes in comparison to month before previous one (case when increased significantly)', async () => {
-      mockStatistics(statisticsObjects.totalIncreasedSignificantly);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('увеличилось на 10%');
-    });
-
-    test('Bot correctly displays changes in comparison to month before previous one (case when decreased significantly)', async () => {
-      mockStatistics(statisticsObjects.totalDecreasedSignificantly);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('уменьшилось на 10%');
-    });
-
-    test('Bot correctly displays name of month before previous one', async () => {
-      mockStatistics(statisticsObjects.totalEqualToPrevMonth);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('с ноябрём');
-    });
-
-    test('Bot correctly handles case when there is no statistics for month before previous one', async () => {
-      mockStatistics(statisticsObjects.noDataForPrevPrevMonth);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).not.toMatch('общее количество сообщений');
-    });
-
-    test('Bot correctly handles case when there were zero messages in month before previous one', async () => {
-      mockStatistics(statisticsObjects.zeroMessagesInPrevPrevMonth);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('увеличилось на ∞%');
-    });
-
-    test('Bot correctly handles case when there were zero messages in previous month', async () => {
-      mockStatistics(statisticsObjects.zeroMessagesInTotal);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('уменьшилось на 100%');
-    });
-
-    test('Bot correctly handles case when there were zero messages in month before previous one ' +
-               'and zero messages in previous month', async () => {
-      mockStatistics(statisticsObjects.zeroMessagesInTotalAndInPrevPrevMonth);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('не изменилось');
-    });
-
-    test('Bot correctly shows most active users (case with one user)', async () => {
-      mockStatistics(statisticsObjects.oneMostActiveUser);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Самый активный участник');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Арсений');
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(1);
-      expect(addPhotoToAlbumSpy).toHaveBeenCalledTimes(1);
-    });
-
-    test('Bot correctly shows most active users (case with two users)', async () => {
-      mockStatistics(statisticsObjects.twoMostActiveUsers);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Самые активные участники');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Арсений');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).toMatch('Борис');
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(2);
-      expect(addPhotoToAlbumSpy).toHaveBeenCalledTimes(2);
-    });
-
-    test('Bot does not show most active users if there were no messages in previous month', async () => {
-      mockStatistics(statisticsObjects.zeroMessagesInTotal);
-      await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).not.toMatch('Самые активные участники');
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS][0]).not.toMatch('Самый активный участник');
-      expect(sendPhotoToChatSpy).not.toHaveBeenCalled();
-    });
   });
 
   describe('Not first day of month', () => {
@@ -356,8 +260,7 @@ describe('Statistics', () => {
 
     test('Statistics are not shown for previous month', async () => {
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.STATISTICS]).toBeUndefined();
-      expect(sendPhotoToChatSpy).not.toHaveBeenCalled();
+      expect(finalStatisticsOutputterSpy).not.toHaveBeenCalled();
     });
 
     test('Statistics are not reset', async () => {
