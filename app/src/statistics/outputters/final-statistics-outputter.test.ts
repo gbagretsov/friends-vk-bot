@@ -9,6 +9,8 @@ const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
 const addPhotoToAlbumSpy = jest.spyOn(vk, 'addPhotoToAlbum').mockResolvedValue();
 
+process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
+
 describe('Final statistics outputter', () => {
 
   beforeAll(() => {
