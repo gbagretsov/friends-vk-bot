@@ -18,7 +18,8 @@ declare global {
       VK_PERSONAL_ACCESS_TOKEN: string;
       VK_PERSONAL_PEER_ID: string;
       VK_LEADERBOARD_ALBUM_ID?: string;
-      DEBUG_STATISTICS?: '0' | '1';
+      DEBUG_FINAL_STATISTICS?: '0' | '1';
+      DEBUG_INTERMEDIATE_STATISTICS?: '0' | '1';
     }
   }
 }

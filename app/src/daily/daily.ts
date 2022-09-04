@@ -12,6 +12,7 @@ import {Holiday} from './holidays/model/Holiday';
 import {VkKeyboard} from '../vk/model/VkKeyboard';
 import {holidayCategories, holidayCategoryIcons} from './holidays/model/HolidayCategory';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
+import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
 
 config();
 
@@ -106,12 +107,17 @@ async function getAdsMessage(): Promise<string> {
   return response.rows[0].value;
 }
 
-function statisticsShouldBeShown(): boolean {
-  return process.env.DEBUG_STATISTICS === '1' || new Date().getDate() === 1;
+function finalStatisticsShouldBeShown(): boolean {
+  return process.env.DEBUG_FINAL_STATISTICS === '1' || new Date().getDate() === 1;
+}
+
+function intermediateStatisticsShouldBeShown(): boolean {
+  const today = new Date();
+  return process.env.DEBUG_INTERMEDIATE_STATISTICS === '1' || today.getDate() === 11 || today.getDate() === 21;
 }
 
 function statisticsShouldBeReset(): boolean {
-  return process.env.DEBUG_STATISTICS !== '1' && new Date().getDate() === 1;
+  return process.env.DEBUG_FINAL_STATISTICS !== '1' && new Date().getDate() === 1;
 }
 
 export default async () => {
@@ -177,10 +183,12 @@ export default async () => {
     console.log(`Ads message sent response: ${ await vk.sendMessage(ads) }`);
   }
 
-  if (statisticsShouldBeShown()) {
-    const statisticsObject = await getStatistics();
-    if (statisticsObject) {
+  const statisticsObject = await getStatistics();
+  if (statisticsObject) {
+    if (finalStatisticsShouldBeShown()) {
       finalStatisticsOutputter.output(statisticsObject);
+    } else if (intermediateStatisticsShouldBeShown()) {
+      intermediateStatisticsOutputter.output(statisticsObject);
     }
   }
   if (statisticsShouldBeReset()) {

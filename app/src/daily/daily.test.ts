@@ -14,8 +14,10 @@ import {Month} from '../util';
 import {Holiday} from './holidays/model/Holiday';
 import {HolidayCategory} from './holidays/model/HolidayCategory';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
+import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
 
-process.env.DEBUG_STATISTICS = '0';
+process.env.DEBUG_FINAL_STATISTICS = '0';
+process.env.DEBUG_INTERMEDIATE_STATISTICS = '0';
 process.env.VK_LEADERBOARD_ALBUM_ID = 'album_id';
 
 jest.spyOn(global.Math, 'random').mockReturnValue(0.1);
@@ -39,6 +41,7 @@ const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const sendKeyboardSpy = jest.spyOn(vk, 'sendKeyboard').mockResolvedValue(true);
 const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output');
+const intermediateStatisticsOutputterSpy = jest.spyOn(intermediateStatisticsOutputter, 'output');
 let getUvIndexSpy: jest.SpyInstance;
 
 function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
@@ -232,6 +235,7 @@ describe('Statistics', () => {
     mockWeather(null, null, null);
     mockHolidays(null);
     mockDatabaseCalls('Custom daily message');
+    mockStatistics(statisticsObjects.commonExample);
   });
 
   describe('First day of month', () => {
@@ -239,28 +243,61 @@ describe('Statistics', () => {
       mockDate(new Date(2020, Month.JANUARY, 1));
     });
 
-    test('Statistics are shown for previous month', async () => {
-      mockStatistics(statisticsObjects.commonExample);
+    test('Final statistics are shown for previous month', async () => {
       await daily();
       expect(finalStatisticsOutputterSpy).toHaveBeenCalled();
     });
 
+    test('Intermediate statistics are not shown for previous month', async () => {
+      await daily();
+      expect(intermediateStatisticsOutputterSpy).not.toHaveBeenCalled();
+    });
+
     test('Statistics are reset', async () => {
-      mockStatistics(statisticsObjects.commonExample);
       await daily();
       expect(statistics.resetStatistics).toHaveBeenCalled();
     });
 
   });
 
-  describe('Not first day of month', () => {
+  for (const day of [11, 21]) {
+    describe(`Day of month #${day}`, () => {
+      beforeAll(() => {
+        mockDate(new Date(2020, Month.JANUARY, day));
+      });
+
+      test('Final statistics are not shown for previous month', async () => {
+        await daily();
+        expect(finalStatisticsOutputterSpy).not.toHaveBeenCalled();
+      });
+
+      test('Intermediate statistics are shown for previous month', async () => {
+        await daily();
+        expect(intermediateStatisticsOutputterSpy).toHaveBeenCalled();
+      });
+
+      test('Statistics are not reset', async () => {
+        await daily();
+        expect(statistics.resetStatistics).not.toHaveBeenCalled();
+      });
+
+    });
+
+  }
+
+  describe('Random day of month', () => {
     beforeAll(() => {
       mockDate(new Date(2020, Month.JANUARY, 10));
     });
 
-    test('Statistics are not shown for previous month', async () => {
+    test('Final statistics are not shown for previous month', async () => {
       await daily();
       expect(finalStatisticsOutputterSpy).not.toHaveBeenCalled();
+    });
+
+    test('Intermediate statistics are not shown for previous month', async () => {
+      await daily();
+      expect(intermediateStatisticsOutputterSpy).not.toHaveBeenCalled();
     });
 
     test('Statistics are not reset', async () => {
