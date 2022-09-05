@@ -243,12 +243,12 @@ describe('Statistics', () => {
       mockDate(new Date(2020, Month.JANUARY, 1));
     });
 
-    test('Final statistics are shown for previous month', async () => {
+    test('Final statistics for previous month are shown', async () => {
       await daily();
       expect(finalStatisticsOutputterSpy).toHaveBeenCalled();
     });
 
-    test('Intermediate statistics are not shown for previous month', async () => {
+    test('Intermediate statistics for current month are not shown', async () => {
       await daily();
       expect(intermediateStatisticsOutputterSpy).not.toHaveBeenCalled();
     });
@@ -266,12 +266,12 @@ describe('Statistics', () => {
         mockDate(new Date(2020, Month.JANUARY, day));
       });
 
-      test('Final statistics are not shown for previous month', async () => {
+      test('Final statistics for previous month are not shown', async () => {
         await daily();
         expect(finalStatisticsOutputterSpy).not.toHaveBeenCalled();
       });
 
-      test('Intermediate statistics are shown for previous month', async () => {
+      test('Intermediate statistics for current month are shown', async () => {
         await daily();
         expect(intermediateStatisticsOutputterSpy).toHaveBeenCalled();
       });
@@ -290,12 +290,12 @@ describe('Statistics', () => {
       mockDate(new Date(2020, Month.JANUARY, 10));
     });
 
-    test('Final statistics are not shown for previous month', async () => {
+    test('Final statistics for previous month are not shown', async () => {
       await daily();
       expect(finalStatisticsOutputterSpy).not.toHaveBeenCalled();
     });
 
-    test('Intermediate statistics are not shown for previous month', async () => {
+    test('Intermediate statistics for current month are not shown', async () => {
       await daily();
       expect(intermediateStatisticsOutputterSpy).not.toHaveBeenCalled();
     });
