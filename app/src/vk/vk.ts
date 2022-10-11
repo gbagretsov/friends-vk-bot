@@ -13,6 +13,7 @@ import {VkConversation} from './model/VkConversation';
 import {VkPoll} from './model/VkPoll';
 import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './model/VkMessage';
 import {VkKeyboard} from './model/VkKeyboard';
+import {VkMessageNewEvent} from './model/VkMessageNewEvent';
 
 config();
 
@@ -217,6 +218,37 @@ function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
 
+async function startLongPoll(handler: (updates: VkMessageNewEvent[]) => void) {
+  const longPollTimeout = 25;
+
+  async function getLongPollServerResponse() {
+    const longPollServerResponse = await needle('get', `${apiUrl}/groups.getLongPollServer?v=${apiVersion}&access_token=${accessToken}&group_id=${groupID}`);
+    return longPollServerResponse.body.response;
+  }
+
+  let { key, server, ts } = await getLongPollServerResponse();
+
+  async function getUpdates() {
+    const updatesResponse = await needle('get', `${server}?act=a_check&key=${key}&ts=${ts}&wait=${longPollTimeout}`);
+    const updates = updatesResponse.body.updates as VkMessageNewEvent[];
+    if (!updates) {
+      console.log('Long poll error:', updatesResponse.body);
+      ({ key, server, ts } = await getLongPollServerResponse());
+      getUpdates();
+      return;
+    }
+    ts = updatesResponse.body.ts;
+    if (updates.length > 0) {
+      handler(updates);
+    } else {
+      console.log(`No updates received at ${new Date().toLocaleString()}`);
+    }
+    getUpdates();
+  }
+
+  getUpdates();
+}
+
 export default {
   sendMessage,
   sendKeyboard,
@@ -233,4 +265,5 @@ export default {
   isAudioMessage,
   isRepost,
   isPoll,
+  startLongPoll,
 };
