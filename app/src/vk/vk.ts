@@ -1,4 +1,4 @@
-import needle from 'needle';
+import needle, {NeedleOptions} from 'needle';
 import {config} from 'dotenv';
 import {delay} from '../util';
 import {
@@ -13,6 +13,8 @@ import {VkConversation} from './model/VkConversation';
 import {VkPoll} from './model/VkPoll';
 import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './model/VkMessage';
 import {VkKeyboard} from './model/VkKeyboard';
+import {VkMessageNewEvent} from './model/VkMessageNewEvent';
+import retry, {Options} from 'async-retry';
 
 config();
 
@@ -217,6 +219,62 @@ function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
 
+async function startLongPoll(handler: (updates: VkMessageNewEvent[]) => void) {
+  const longPollPlannedTimeoutSeconds = 25;
+  const longPollMaxTimeoutMs = (longPollPlannedTimeoutSeconds + 5) * 1000;
+
+  const requestTimeoutParams: NeedleOptions = {
+    read_timeout: longPollMaxTimeoutMs,
+    response_timeout: longPollMaxTimeoutMs,
+  };
+
+  const retryParams: Options = {
+    onRetry: error => console.log('Long poll - connection error:', error),
+  };
+
+  async function getLongPollServerResponse() {
+    const longPollServerResponse = await retry(async () => {
+      return await needle('get', `${apiUrl}/groups.getLongPollServer`,
+        {
+          v: apiVersion,
+          access_token: accessToken,
+          group_id: groupID,
+        }, requestTimeoutParams);
+    }, retryParams);
+    return longPollServerResponse.body.response;
+  }
+
+  let { key, server, ts } = await getLongPollServerResponse();
+
+  async function getUpdates() {
+    const updatesResponse = await retry(async () => {
+      return await needle('get', server,
+        {
+          act: 'a_check',
+          key,
+          ts,
+          wait: longPollPlannedTimeoutSeconds,
+        }, requestTimeoutParams);
+    }, retryParams);
+    const updates = updatesResponse.body.updates as VkMessageNewEvent[];
+    if (!updates) {
+      console.log('Long poll - error response:', updatesResponse.body);
+      ({ key, server, ts } = await getLongPollServerResponse());
+      getUpdates();
+      return;
+    }
+    ts = updatesResponse.body.ts;
+    if (updates.length > 0) {
+      handler(updates);
+    } else {
+      console.log(`No updates received at ${new Date().toLocaleString()}`);
+    }
+    getUpdates();
+  }
+
+  getUpdates();
+}
+
 export default {
   sendMessage,
   sendKeyboard,
@@ -233,4 +291,5 @@ export default {
   isAudioMessage,
   isRepost,
   isPoll,
+  startLongPoll,
 };
