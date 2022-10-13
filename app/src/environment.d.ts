@@ -11,7 +11,6 @@ declare global {
       LONGITUDE: string;
       TIME_ZONE_HOURS_OFFSET: string;
       VK_ACCESS_TOKEN: string;
-      VK_CONFIRMATION_RESPONSE: string;
       VK_GROUP_ID: string;
       VK_GROUP_SCREEN_NAME: string;
       VK_PEER_ID: string;
