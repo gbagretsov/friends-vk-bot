@@ -6,7 +6,8 @@ import {WeatherForecast} from './model/WeatherForecast';
 
 config();
 
-const OPENWEATHERMAP_API_URL = 'https://api.openweathermap.org/data/2.5';
+// TODO: return to https when it is available
+const OPENWEATHERMAP_API_URL = 'http://api.openweathermap.org/data/2.5';
 const ACCUWEATHER_API_URL = 'https://dataservice.accuweather.com/';
 
 const OPENWEATHERMAP_PARAMS = {
