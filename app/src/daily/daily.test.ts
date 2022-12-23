@@ -15,6 +15,7 @@ import {Holiday} from './holidays/model/Holiday';
 import {HolidayCategory} from './holidays/model/HolidayCategory';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
+import {holidaysOutputter} from './holidays/holidays-outputter';
 
 process.env.DEBUG_FINAL_STATISTICS = '0';
 process.env.DEBUG_INTERMEDIATE_STATISTICS = '0';
@@ -32,16 +33,14 @@ jest.useFakeTimers('modern');
 
 enum MessagesOrder {
   WEATHER,
-  HOLIDAYS,
   CUSTOM_DAILY_MESSAGE,
-  STATISTICS,
 } 
 
 const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
-const sendKeyboardSpy = jest.spyOn(vk, 'sendKeyboard').mockResolvedValue(true);
-const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output');
-const intermediateStatisticsOutputterSpy = jest.spyOn(intermediateStatisticsOutputter, 'output');
+const holidaysOutputterSpy = jest.spyOn(holidaysOutputter, 'output').mockReturnValue();
+const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output').mockReturnValue();
+const intermediateStatisticsOutputterSpy = jest.spyOn(intermediateStatisticsOutputter, 'output').mockReturnValue();
 let getUvIndexSpy: jest.SpyInstance;
 
 function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
@@ -184,27 +183,9 @@ describe('Holidays', () => {
     mockDate(new Date(2020, Month.JANUARY, 10));
   });
 
-  test('If holidays are available and present, bot sends holidays list to chat', async () => {
-    const holidaysMap: Map<HolidayCategory, Holiday[]> = new Map();
-    holidaysMap.set('Праздники России', [{ name: 'Новый год', link: '' }]);
-    mockHolidays(holidaysMap);
+  test('Holidays info is shown', async () => {
     await daily();
-    expect(sendKeyboardSpy).toHaveBeenCalled();
-    expect(sendKeyboardSpy.mock.calls[0][0].buttons[0][0].action.label).toBe('Новый год');
-  });
-
-  test('If holidays are available and not present, bot sends no holidays message to chat', async () => {
-    mockHolidays(new Map());
-    const noHolidaysMessage = 'Сегодня праздников нет';
-    mockDatabaseCalls(noHolidaysMessage);
-    await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.HOLIDAYS][0]).toMatch(noHolidaysMessage);
-  });
-
-  test('If holidays are not available, bot sends failure message to chat', async () => {
-    mockHolidays(null);
-    await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.HOLIDAYS][0]).toMatch('Я не смог узнать, какие сегодня праздники');
+    expect(holidaysOutputterSpy).toHaveBeenCalledTimes(1);
   });
 });
 
