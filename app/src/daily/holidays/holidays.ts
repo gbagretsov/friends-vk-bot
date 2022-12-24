@@ -1,9 +1,9 @@
 import cheerio from 'cheerio';
 import needle from 'needle';
 import {HolidayCategory, holidayCategories} from './model/HolidayCategory';
-import {Holiday} from './model/Holiday';
+import {Month} from '../../util';
 
-async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
+async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
 
   try {
     const today = new Date(Date.now());
@@ -11,6 +11,9 @@ async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
     console.log(url);
     const response = await needle('get', url);
     const body = response.body;
+
+    const isNewYearHandling = today.getMonth() === Month.DECEMBER && today.getDate() === 31 ||
+      today.getMonth() === Month.JANUARY && today.getDate() === 1;
 
     const $ = cheerio.load(body);
 
@@ -26,14 +29,17 @@ async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
       return holidayCategories.some(category => html.includes(category));
     });
 
-    const holidaysByCategory: Map<HolidayCategory, Holiday[]> = new Map();
+    const holidaysByCategory: Map<HolidayCategory, string[]> = new Map();
+    if (isNewYearHandling) {
+      holidaysByCategory.set('Международные праздники', ['Новый год']);
+    }
 
     suitableHolidayElements.forEach(element => {
       const category: HolidayCategory = $(element).find('.link a').text().trim() as HolidayCategory;
-      const holiday: Holiday = {
-        name: $(element).find('.title a').text().trim(),
-        link: $(element).find('.title a').attr().href,
-      };
+      const holiday = $(element).find('.title a').text().trim();
+      if (isNewYearHandling && /[н|Н]овы[й|м]/.test(holiday)) {
+        return;
+      }
       if (holidaysByCategory.has(category)) {
         holidaysByCategory.get(category)!.push(holiday);
       } else {
