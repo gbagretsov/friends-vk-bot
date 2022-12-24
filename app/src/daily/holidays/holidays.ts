@@ -1,9 +1,8 @@
 import cheerio from 'cheerio';
 import needle from 'needle';
 import {HolidayCategory, holidayCategories} from './model/HolidayCategory';
-import {Holiday} from './model/Holiday';
 
-async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
+async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
 
   try {
     const today = new Date(Date.now());
@@ -26,14 +25,11 @@ async function getHolidays(): Promise<Map<HolidayCategory, Holiday[]> | null> {
       return holidayCategories.some(category => html.includes(category));
     });
 
-    const holidaysByCategory: Map<HolidayCategory, Holiday[]> = new Map();
+    const holidaysByCategory: Map<HolidayCategory, string[]> = new Map();
 
     suitableHolidayElements.forEach(element => {
       const category: HolidayCategory = $(element).find('.link a').text().trim() as HolidayCategory;
-      const holiday: Holiday = {
-        name: $(element).find('.title a').text().trim(),
-        link: $(element).find('.title a').attr().href,
-      };
+      const holiday = $(element).find('.title a').text().trim();
       if (holidaysByCategory.has(category)) {
         holidaysByCategory.get(category)!.push(holiday);
       } else {

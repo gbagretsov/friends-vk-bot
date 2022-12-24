@@ -1,5 +1,4 @@
 import {HolidayCategory} from './model/HolidayCategory';
-import {Holiday} from './model/Holiday';
 import {holidaysOutputter} from './holidays-outputter';
 import vk from '../../vk/vk';
 import db from '../../db';
@@ -17,11 +16,13 @@ function mockDatabaseCalls(value: string): void {
 describe('Holidays outputter', () => {
 
   test('If holidays are available and present, bot sends holidays list to chat', async () => {
-    const holidaysMap: Map<HolidayCategory, Holiday[]> = new Map();
-    holidaysMap.set('Праздники России', [{ name: 'Новый год', link: '' }]);
+    const holidaysMap: Map<HolidayCategory, string[]> = new Map();
+    holidaysMap.set('Праздники России', ['Новый год']);
     await holidaysOutputter.output(holidaysMap);
     expect(sendKeyboardSpy).toHaveBeenCalled();
-    expect(sendKeyboardSpy.mock.calls[0][0].buttons[0][0].action.label).toBe('Новый год');
+    expect(sendKeyboardSpy.mock.calls[0][0].buttons[0][0].action.label).toBe('Подробнее');
+    expect(sendKeyboardSpy.mock.calls[0][1]).toMatch('Праздники России');
+    expect(sendKeyboardSpy.mock.calls[0][1]).toMatch('Новый год');
   });
 
   test('If holidays are available and not present, bot sends no holidays message to chat', async () => {

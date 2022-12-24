@@ -11,7 +11,6 @@ import {WeatherForecast} from './weather/model/WeatherForecast';
 import * as statisticsObjects from '../statistics/test-resources/statistics-objects';
 import {Statistics} from '../statistics/model/Statistics';
 import {Month} from '../util';
-import {Holiday} from './holidays/model/Holiday';
 import {HolidayCategory} from './holidays/model/HolidayCategory';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
@@ -49,7 +48,7 @@ function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: W
   getUvIndexSpy = jest.spyOn(weather, 'getUvIndex').mockResolvedValue(uvIndex);
 }
 
-function mockHolidays(holidaysMap: Map<HolidayCategory, Holiday[]> | null): void {
+function mockHolidays(holidaysMap: Map<HolidayCategory, string[]> | null): void {
   jest.spyOn(holidays, 'getHolidays').mockResolvedValue(holidaysMap);
 }
 

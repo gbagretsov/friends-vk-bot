@@ -15,7 +15,6 @@ jest.doMock('needle', () => {
 import holidaysModule from './holidays';
 import {Month} from '../../util';
 import {HolidayCategory} from './model/HolidayCategory';
-import {Holiday} from './model/Holiday';
 
 jest.useFakeTimers('modern');
 
@@ -27,31 +26,31 @@ describe('Holidays', () => {
     
   test('No supported holidays celebrated on 30th January 2020', async () => {
     await createMocksForDate(2020, Month.JANUARY, 30);
-    const holidays = await holidaysModule.getHolidays() as Map<HolidayCategory, Holiday[]>;
+    const holidays = await holidaysModule.getHolidays() as Map<HolidayCategory, string[]>;
     expect(holidays.size).toBe(0);
   });
   
   test('Eleven supported holidays are celebrated on 1st March 2020', async () => {
     await createMocksForDate(2020, Month.MARCH, 1);
-    const holidays = await holidaysModule.getHolidays() as Map<HolidayCategory, Holiday[]>;
+    const holidays = await holidaysModule.getHolidays() as Map<HolidayCategory, string[]>;
     expect(holidays.size).toBe(4);
-    expect(holidays.get('Праздники России')!.map(holiday => holiday.name)).toEqual([
+    expect(holidays.get('Праздники России')).toEqual([
       'День Забайкальского края',
       'День экспертно-криминалистической службы системы МВД России',
       'День хостинг-провайдера в России',
       'День джигита',
       'День кошек в России',
     ]);
-    expect(holidays.get('Международные праздники')!.map(holiday => holiday.name)).toEqual([
+    expect(holidays.get('Международные праздники')).toEqual([
       'Всемирный день комплимента',
       'Международный день детского телевидения и радиовещания',
       'Всемирный день гражданской обороны',
       'Праздник прихода весны',
     ]);
-    expect(holidays.get('Праздники ООН')!.map(holiday => holiday.name)).toEqual([
+    expect(holidays.get('Праздники ООН')).toEqual([
       'День «Ноль дискриминации»',
     ]);
-    expect(holidays.get('Православные праздники')!.map(holiday => holiday.name)).toEqual([
+    expect(holidays.get('Православные праздники')).toEqual([
       'Прощеное воскресенье',
     ]);
   });
