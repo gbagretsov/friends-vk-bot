@@ -1,6 +1,6 @@
 import {Outputter} from '../../model/Outputter';
 import vk from '../../vk/vk';
-import {holidayCategories, HolidayCategory, holidayCategoryIcons} from './model/HolidayCategory';
+import {allCategories, HolidayCategory, holidayCategoryIcons, holidayCategoryTitles} from './model/HolidayCategory';
 import util from 'util';
 import db from '../../db';
 import {VkKeyboard} from '../../vk/model/VkKeyboard';
@@ -32,13 +32,15 @@ export const holidaysOutputter: Outputter<Map<HolidayCategory, string[]> | null>
         '🎉 Напишите мне в ответ, как вы будете отмечать эти праздники:',
       ];
       let holidaysMessage = holidaysIntroductionMessages[Math.floor(Math.random() * holidaysIntroductionMessages.length)];
-      for (let categoryIndex = 0; categoryIndex < holidayCategories.length; categoryIndex++) {
-        const holidaysForCategory = todayHolidays.get(holidayCategories[categoryIndex]);
+      for (let i = 0; i < allCategories.length; i++) {
+        const category = allCategories[i];
+        const holidaysForCategory = todayHolidays.get(category);
         if (!holidaysForCategory) {
           continue;
         }
-        const categoryIcon = holidayCategoryIcons[categoryIndex];
-        let categoryMessage = `${categoryIcon} ${holidayCategories[categoryIndex]}`;
+        const categoryIcon = holidayCategoryIcons[category];
+        const categoryTitle = holidayCategoryTitles[category];
+        let categoryMessage = `${categoryIcon} ${categoryTitle}`;
         holidaysForCategory.forEach(holiday =>  {
           categoryMessage += `\n- ${holiday}`;
         });
