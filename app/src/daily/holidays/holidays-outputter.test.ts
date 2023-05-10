@@ -17,7 +17,7 @@ describe('Holidays outputter', () => {
 
   test('If holidays are available and present, bot sends holidays list to chat', async () => {
     const holidaysMap: Map<HolidayCategory, string[]> = new Map();
-    holidaysMap.set('Праздники России', ['Новый год']);
+    holidaysMap.set(HolidayCategory.RUSSIAN, ['Новый год']);
     await holidaysOutputter.output(holidaysMap);
     expect(sendKeyboardSpy).toHaveBeenCalled();
     expect(sendKeyboardSpy.mock.calls[0][0].buttons[0][0].action.label).toBe('Подробнее');
