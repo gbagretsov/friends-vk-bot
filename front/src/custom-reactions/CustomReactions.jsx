@@ -15,7 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 
-import './CustomReactions.scss';
+import './CustomReactions.css';
 import CustomReactionEditor from './CustomReactionEditor';
 
 class CustomReactions extends Component{
@@ -118,8 +118,8 @@ class CustomReactions extends Component{
         </TableCell>
         <TableCell>{reaction.probability}</TableCell>
         <TableCell align="center">
-          <IconButton className="button" onClick={ () => this.editReaction(reaction) }><EditIcon fontSize="small"/></IconButton>
-          <IconButton className="button" onClick={ () => this.showDeleteConfirmationDialog(reaction) }><DeleteIcon fontSize="small"/></IconButton>
+          <IconButton className="reaction-action-button" onClick={ () => this.editReaction(reaction) }><EditIcon fontSize="small"/></IconButton>
+          <IconButton className="reaction-action-button" onClick={ () => this.showDeleteConfirmationDialog(reaction) }><DeleteIcon fontSize="small"/></IconButton>
         </TableCell>
       </TableRow>
     );

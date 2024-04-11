@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 
 import Word from './Word.jsx';
 
-import './Words.scss';
+import './Words.css';
 
 class Words extends Component{
 

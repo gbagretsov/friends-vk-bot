@@ -18,7 +18,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import './CustomReactionEditor.scss';
+import './CustomReactionEditor.css';
 
 const ResponseType = {
   TEXT: 1,
