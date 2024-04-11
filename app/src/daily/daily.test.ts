@@ -28,7 +28,7 @@ jest.mock('../db');
 jest.mock('../statistics/statistics');
 jest.mock('../statistics/outputters/final-statistics-outputter');
 
-jest.useFakeTimers('modern');
+jest.useFakeTimers();
 
 enum MessagesOrder {
   WEATHER,

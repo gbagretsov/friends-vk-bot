@@ -3,7 +3,7 @@ import {intermediateStatisticsOutputter} from './intermediate-statistics-outputt
 import vk from '../../vk/vk';
 import {Month} from '../../util';
 
-jest.useFakeTimers('modern');
+jest.useFakeTimers();
 
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 
