@@ -4,7 +4,7 @@ import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
-import './App.scss';
+import './App.css';
 
 import Token from './token/Token.jsx';
 import Settings from './settings/Settings.jsx';

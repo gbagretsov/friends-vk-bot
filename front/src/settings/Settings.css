@@ -1,0 +1,12 @@
+.setting-field {
+  margin-bottom: 1em;
+}
+
+.save-button-wrapper {
+  margin-top: 1em;
+  position: relative;
+}
+
+.save-button-wrapper .progress {
+  position: absolute;
+}

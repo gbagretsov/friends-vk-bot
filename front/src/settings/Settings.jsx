@@ -5,7 +5,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import PropTypes from 'prop-types';
 
-import './Settings.scss';
+import './Settings.css';
 
 class Settings extends Component{
 
@@ -119,7 +119,7 @@ class Settings extends Component{
             multiline={true}
             fullWidth={true}
           />
-          <div className="button-wrapper">
+          <div className="save-button-wrapper">
             <Button variant="contained" color="primary" onClick={this.trySaveSettings} disabled={pending}>
               Сохранить
               { pending && <CircularProgress size={24} className="progress"/>}

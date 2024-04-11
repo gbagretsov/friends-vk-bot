@@ -3,10 +3,6 @@ import {holidays_2020_03_01} from './test-resources/holidays-pages/2020-3-1';
 import {holidays_2020_12_31} from './test-resources/holidays-pages/2020-12-31';
 import {holidays_2021_01_01} from './test-resources/holidays-pages/2021-01-01';
 
-import holidaysModule from './holidays';
-import {Month} from '../../util';
-import {HolidayCategory} from './model/HolidayCategory';
-
 jest.doMock('needle', () => {
   const urlResult: Map<string, string> = new Map<string, string>();
   urlResult.set('https://www.calend.ru/day/2020-1-30/', holidays_2020_01_30);
@@ -18,7 +14,11 @@ jest.doMock('needle', () => {
   });
 });
 
-jest.useFakeTimers('modern');
+import holidaysModule from './holidays';
+import {Month} from '../../util';
+import {HolidayCategory} from './model/HolidayCategory';
+
+jest.useFakeTimers();
 
 async function createMocksForDate(year: number, month: number, day: number): Promise<void> {
   jest.setSystemTime(new Date(year, month, day, 10));

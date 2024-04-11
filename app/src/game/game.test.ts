@@ -14,7 +14,7 @@ config();
 const taskFromDb = { name: 'абракадабра' };
 const googleSearchResponse: { body?: unknown } = { };
 
-jest.useFakeTimers('modern');
+jest.useFakeTimers();
 jest.mock('../vk/vk');
 jest.mock('../db');
 jest.mock('./admin');

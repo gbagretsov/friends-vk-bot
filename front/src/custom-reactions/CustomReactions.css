@@ -1,0 +1,31 @@
+.custom-reactions-table-wrapper {
+  overflow-x: auto;
+}
+
+.custom-reactions-table {
+  min-width: 400px;
+}
+
+.name-column {
+  min-width: 200px;
+  width: 400px;
+}
+
+.probability-column {
+  max-width: 50px;
+  white-space: nowrap;
+  overflow-x: visible;
+}
+
+.buttons-column {
+  min-width: 140px;
+}
+
+.reaction-action-button {
+  color: rgba(0, 0, 0, .25);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reaction-action-button:hover {
+  color: rgba(0, 0, 0, .5);
+}

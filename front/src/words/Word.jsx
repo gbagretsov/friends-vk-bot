@@ -155,9 +155,9 @@ class Word extends Component{
     return (
       <div>
         <span className="word-name" ref={this.wordNameSpanRef}>{ name }</span>
-        <IconButton className="button" onClick={ () => this.enterEditMode() }><EditIcon fontSize="small"/></IconButton>
-        <IconButton className="button" onClick={ () => this.deleteWord() }><DeleteIcon fontSize="small"/></IconButton>
-        { !isApproved && <IconButton className="button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
+        <IconButton className="word-action-button" onClick={ () => this.enterEditMode() }><EditIcon fontSize="small"/></IconButton>
+        <IconButton className="word-action-button" onClick={ () => this.deleteWord() }><DeleteIcon fontSize="small"/></IconButton>
+        { !isApproved && <IconButton className="word-action-button" onClick={ () => this.approveWord() }><ThumbUpIcon fontSize="small"/></IconButton> }
       </div>
     );
   };

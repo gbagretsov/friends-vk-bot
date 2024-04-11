@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import PropTypes from 'prop-types';
 
-import './Token.scss';
+import './Token.css';
 
 class Token extends Component{
 
@@ -100,7 +100,7 @@ class Token extends Component{
           helperText={error}
           onKeyPress={this._handleKeyPress}
         />
-        <div className="button-wrapper">
+        <div className="enter-button-wrapper">
           <Button variant="contained" color="primary" onClick={this.tryAuthorize} disabled={pending}>
             Ввести токен
             { pending && <CircularProgress size={24} className="progress"/>}

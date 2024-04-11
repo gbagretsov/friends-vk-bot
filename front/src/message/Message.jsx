@@ -5,7 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
 
-import './Message.scss';
+import './Message.css';
 
 class Message extends Component{
 
