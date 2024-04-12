@@ -41,15 +41,14 @@ async function getStatisticsMessage(statisticsObject: Statistics): Promise<strin
 
   const comparisonMessage = statisticsObject.previousMonthAmount !== null ? getComparisonMessage(statisticsObject.previousMonthAmount, statisticsObject.totalAmount) : null;
 
-  let resultMessage = `⚠ Статистика беседы за ${getMonthNameInNominativeCase(previousMonthIndex)} ⚠
-
-    В ${getMonthNameInPrepositionalCase(previousMonthIndex)} было отправлено ${totalAmountMessage}, из них:
-    — ${audioMessagesAmountMessage}
-    — ${stickersAmountMessage}
-    — ${repostsAmountMessage}\n\n`;
+  let resultMessage = `⚠ Статистика беседы за ${getMonthNameInNominativeCase(previousMonthIndex)}\n\n` +
+    `В ${getMonthNameInPrepositionalCase(previousMonthIndex)} было отправлено ${totalAmountMessage}, из них:\n` +
+    `— ${audioMessagesAmountMessage}\n`+
+    `— ${stickersAmountMessage}\n`+
+    `— ${repostsAmountMessage}\n\n`;
   if (comparisonMessage) {
-    resultMessage += `По сравнению с ${getMonthNameInInstrumentalCase(previousMonthIndex - 1)}, \
-      общее количество сообщений ${comparisonMessage}.\n\n`;
+    resultMessage += `По сравнению с ${getMonthNameInInstrumentalCase(previousMonthIndex - 1)}, ` +
+      `общее количество сообщений ${comparisonMessage}.\n\n`;
   }
   if (mostActiveUserNamesMessage) {
     resultMessage += mostActiveUserNamesMessage;
@@ -77,8 +76,8 @@ function getMostActiveUserNamesMessage(mostActiveUsers: VkUser[], previousMonthI
   const mostActiveUsersNames = getMostActiveUsersNames(mostActiveUsers);
   const concatenatedMostActiveUsersNames = getConcatenatedItems(mostActiveUsersNames);
 
-  return `${mostActiveUsers.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы \
-    в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.`;
+  return `${mostActiveUsers.length > 1 ? 'Самые активные участники' : 'Самый активный участник'} беседы ` +
+    `в ${getMonthNameInPrepositionalCase(previousMonthIndex)} — ${concatenatedMostActiveUsersNames}.`;
 }
 
 function getMostActiveUsersNames(mostActiveUsers: VkUser[]): string[] {

@@ -26,7 +26,7 @@ async function getStatisticsMessage(statisticsObject: Statistics): Promise<strin
       getMostActiveUserNamesMessage(statisticsObject.mostActiveUsers) :
       null;
 
-  let resultMessage = `⚠ Промежуточная статистика беседы за ${getMonthNameInNominativeCase(currentMonthIndex)} ⚠\n\n` +
+  let resultMessage = `⚠ Промежуточная статистика беседы за ${getMonthNameInNominativeCase(currentMonthIndex)}\n\n` +
     `В ${getMonthNameInPrepositionalCase(currentMonthIndex)} было отправлено ${totalAmountMessage}.\n\n`;
 
   if (mostActiveUserNamesMessage) {
