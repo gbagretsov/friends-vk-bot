@@ -30,12 +30,11 @@ function getWeatherMessage(weather: Weather | null, forecast: WeatherForecast | 
   const hoursOffset = parseInt(process.env.TIME_ZONE_HOURS_OFFSET);
   const concatenatedWeatherForecast = forecast.reduce((sum, cur) => {
     const date = new Date(cur.dt * 1000);
-    return `${sum}
-            - в ${(date.getUTCHours() + hoursOffset) % 24}:00 ${getWeatherLine(cur)}`;
+    return `${sum}\n- в ${(date.getUTCHours() + hoursOffset) % 24}:00 ${getWeatherLine(cur)}`;
   }, '');
-  let weatherMessage = `Доброе утро!
-    Сейчас на улице ${getWeatherLine(weather)} \n
-    Прогноз погоды на сегодня: ${concatenatedWeatherForecast}`;
+  let weatherMessage = 'Доброе утро!\n' +
+    `Сейчас на улице ${getWeatherLine(weather)}\n\n` +
+    `Прогноз погоды на сегодня: ${concatenatedWeatherForecast}`;
   if (uvIndex !== null && showUvIndex()) {
     weatherMessage += `\n\n${getUvIndexInfo(uvIndex)}`;
   }
