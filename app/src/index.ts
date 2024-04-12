@@ -15,6 +15,9 @@ app.use('/api', apiRouter);
 
 vk.startLongPoll(async (updates) => {
   for (let i = 0; i < updates.length; i++) {
+    if (!updates[i].object?.message) {
+      continue;
+    }
     await handleMessage(updates[i].object.message);
   }
 });
