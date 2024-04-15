@@ -1,9 +1,16 @@
 import {VkMessage, VkMessageAttachmentType} from '../vk/model/VkMessage';
-import {getLargestPhotoSize} from '../util';
+import {getLargestPhotoSize, isBotMentioned} from '../util';
 import {createWorker} from 'tesseract.js';
 import {config} from 'dotenv';
+import {VkKeyboard} from '../vk/model/VkKeyboard';
+import vk from '../vk/vk';
+import {VkMessageReaction} from '../vk/model/VkMessageReaction';
+import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
 
 config();
+
+const EVALUATION_KEY_LABELS = ['💩', '😟', '😐', '🙂', '🤣'];
+const IS_NOT_MEME_LABEL = 'Это не мем';
 
 async function isMeme(message: VkMessage): Promise<boolean> {
   let imageUrl = null;
@@ -29,11 +36,55 @@ async function isMeme(message: VkMessage): Promise<boolean> {
   return isMeme;
 }
 
-async function handleMessage(message: VkMessage): Promise<false> {
+function getEvaluationProposalMessage(minEvaluation: string, maxEvaluation: string): string {
+  return `Оцените мем по шкале от ${minEvaluation} до ${maxEvaluation}. Голосование анонимное.`;
+}
+
+export async function handleMessage(message: VkMessage): Promise<boolean> {
   if (await isMeme(message)) {
-    console.log('Meme is found');
+    const keyboard: VkKeyboard = {
+      inline: true,
+      buttons: [
+        EVALUATION_KEY_LABELS.map((label, index) => {
+          return {
+            action: {
+              type: 'callback',
+              label,
+              payload: JSON.stringify({ evaluation: index + 1 }),
+            },
+            color: 'secondary',
+          };
+        }),
+        [
+          {
+            action: {
+              type: 'text',
+              label: IS_NOT_MEME_LABEL,
+            },
+            color: 'secondary',
+          },
+        ],
+      ],
+    };
+    vk.sendKeyboard(keyboard, getEvaluationProposalMessage(EVALUATION_KEY_LABELS[0], EVALUATION_KEY_LABELS[EVALUATION_KEY_LABELS.length - 1]));
+    return true;
   }
+
+  const text = message.text;
+  if (text && isBotMentioned(text) && text.includes(IS_NOT_MEME_LABEL)) {
+    vk.sendReaction(message.conversation_message_id, VkMessageReaction.THUMBS_UP);
+    return true;
+  }
+
   return false;
 }
 
-export default handleMessage;
+export async function handleActionWithMessage(action: ActionWithMessage): Promise<boolean> {
+  const { event_id, payload, user_id } = action;
+  if (!payload?.evaluation) {
+    return false;
+  }
+  const event_data = JSON.stringify({ type: 'show_snackbar', text: 'Оценка принята!'});
+  vk.sendMessageEventAnswer(user_id, event_id, event_data);
+  return true;
+}

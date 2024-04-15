@@ -13,8 +13,9 @@ import {VkConversation} from './model/VkConversation';
 import {VkPoll} from './model/VkPoll';
 import {VkMessage, VkMessageStickerAttachment, VkMessageAttachmentType} from './model/VkMessage';
 import {VkKeyboard} from './model/VkKeyboard';
-import {VkMessageNewEvent} from './model/VkMessageNewEvent';
 import retry, {Options} from 'async-retry';
+import {VkMessageReaction} from './model/VkMessageReaction';
+import {VkEvent} from './model/events';
 
 config();
 
@@ -24,7 +25,7 @@ const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
 const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
 const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
-const apiVersion = '5.110';
+const apiVersion = '5.199';
 
 async function sendMessage(message: string, delayMs?: number): Promise<boolean> {
   const setTypingStatusIfNeeded = async function() {
@@ -53,6 +54,30 @@ async function sendKeyboard(keyboard: VkKeyboard, text: string): Promise<boolean
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
+    return false;
+  }
+  return true;
+}
+
+async function sendMessageEventAnswer(userId: number, eventId: string, eventData: string): Promise<boolean> {
+  const randomId = Date.now();
+  console.log(`Random message ID: ${randomId}`);
+  const response = await needle('get', `${apiUrl}/messages.sendMessageEventAnswer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&random_id=${randomId}&event_id=${eventId}&event_data=${encodeURIComponent(eventData)}&user_id=${userId}`);
+  const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in sendMessageEventAnswer(): ${vkResponse.error.error_msg}`);
+    return false;
+  }
+  return true;
+}
+
+async function sendReaction(cmid: number, reaction: VkMessageReaction): Promise<boolean> {
+  const randomId = Date.now();
+  console.log(`Random message ID: ${randomId}`);
+  const response = await needle('get', `${apiUrl}/messages.sendReaction?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&random_id=${randomId}&cmid=${cmid}&reaction_id=${reaction}`);
+  const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in sendReaction(): ${vkResponse.error.error_msg}`);
     return false;
   }
   return true;
@@ -219,7 +244,7 @@ function isPoll(message: VkMessage): boolean {
   return message.attachments[0]?.type === VkMessageAttachmentType.POLL;
 }
 
-async function startLongPoll(handler: (updates: VkMessageNewEvent[]) => void) {
+async function startLongPoll(handler: (updates: VkEvent[]) => void) {
   const longPollPlannedTimeoutSeconds = 25;
   const longPollMaxTimeoutMs = (longPollPlannedTimeoutSeconds + 5) * 1000;
 
@@ -256,7 +281,7 @@ async function startLongPoll(handler: (updates: VkMessageNewEvent[]) => void) {
           wait: longPollPlannedTimeoutSeconds,
         }, requestTimeoutParams);
     }, retryParams);
-    const updates = updatesResponse.body.updates as VkMessageNewEvent[];
+    const updates = updatesResponse.body.updates as VkEvent[];
     if (!updates) {
       console.log('Long poll - error response:', updatesResponse.body);
       ({ key, server, ts } = await getLongPollServerResponse());
@@ -277,6 +302,8 @@ async function startLongPoll(handler: (updates: VkMessageNewEvent[]) => void) {
 
 export default {
   sendMessage,
+  sendReaction,
+  sendMessageEventAnswer,
   sendKeyboard,
   sendSticker,
   getUserName,

@@ -1,4 +1,4 @@
-import {VkMessage} from './VkMessage';
+import {VkMessage} from '../VkMessage';
 
 export type VkMessageNewEvent = {
   type: 'message_new',
