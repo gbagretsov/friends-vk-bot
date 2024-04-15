@@ -66,7 +66,7 @@ export async function handleMessage(message: VkMessage): Promise<boolean> {
         ],
       ],
     };
-    vk.sendKeyboard(keyboard, getEvaluationProposalMessage(EVALUATION_KEY_LABELS[0], EVALUATION_KEY_LABELS[EVALUATION_KEY_LABELS.length - 1]));
+    vk.sendKeyboard(keyboard, getEvaluationProposalMessage(EVALUATION_KEY_LABELS[0], EVALUATION_KEY_LABELS[EVALUATION_KEY_LABELS.length - 1]), message.conversation_message_id);
     return true;
   }
 

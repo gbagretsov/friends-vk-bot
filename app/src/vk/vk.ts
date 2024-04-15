@@ -47,10 +47,18 @@ async function sendMessage(message: string, delayMs?: number): Promise<boolean> 
   return true;
 }
 
-async function sendKeyboard(keyboard: VkKeyboard, text: string): Promise<boolean> {
+async function sendKeyboard(keyboard: VkKeyboard, text: string, replyToConversationMessageId?: number): Promise<boolean> {
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
-  const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(text)}&keyboard=${encodeURIComponent(JSON.stringify(keyboard))}&random_id=${randomId}`);
+  let url = `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(text)}&keyboard=${encodeURIComponent(JSON.stringify(keyboard))}&random_id=${randomId}`;
+  if (replyToConversationMessageId) {
+    url += '&forward=' + encodeURIComponent(JSON.stringify({
+      peer_id: peerID,
+      conversation_message_ids: [ replyToConversationMessageId ],
+      is_reply: true,
+    }));
+  }
+  const response = await needle('get', url);
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
