@@ -1,16 +1,17 @@
 import {VkMessage, VkMessageAttachmentType} from '../vk/model/VkMessage';
-import {getLargestPhotoSize, isBotMentioned} from '../util';
+import {getLargestPhotoSize} from '../util';
 import {createWorker} from 'tesseract.js';
 import {config} from 'dotenv';
 import {VkKeyboard} from '../vk/model/VkKeyboard';
 import vk from '../vk/vk';
-import {VkMessageReaction} from '../vk/model/VkMessageReaction';
 import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
 
 config();
 
 const EVALUATION_KEY_LABELS = ['💩', '😟', '😐', '🙂', '🤣'];
 const IS_NOT_MEME_LABEL = 'Это не мем';
+const EVALUATION_ACCEPTED = 'Оценка принята!';
+const SKIP_ACCEPTED = 'Я запомнил, что это не мем';
 
 async function isMeme(message: VkMessage): Promise<boolean> {
   let imageUrl = null;
@@ -42,6 +43,7 @@ function getEvaluationProposalMessage(minEvaluation: string, maxEvaluation: stri
 
 export async function handleMessage(message: VkMessage): Promise<boolean> {
   if (await isMeme(message)) {
+    const conversationMessageId = message.conversation_message_id;
     const keyboard: VkKeyboard = {
       inline: true,
       buttons: [
@@ -50,7 +52,7 @@ export async function handleMessage(message: VkMessage): Promise<boolean> {
             action: {
               type: 'callback',
               label,
-              payload: JSON.stringify({ evaluation: index + 1 }),
+              payload: JSON.stringify({ conversationMessageId, evaluation: index + 1 }),
             },
             color: 'secondary',
           };
@@ -58,8 +60,9 @@ export async function handleMessage(message: VkMessage): Promise<boolean> {
         [
           {
             action: {
-              type: 'text',
+              type: 'callback',
               label: IS_NOT_MEME_LABEL,
+              payload: JSON.stringify({ conversationMessageId, skip: true }),
             },
             color: 'secondary',
           },
@@ -70,21 +73,21 @@ export async function handleMessage(message: VkMessage): Promise<boolean> {
     return true;
   }
 
-  const text = message.text;
-  if (text && isBotMentioned(text) && text.includes(IS_NOT_MEME_LABEL)) {
-    vk.sendReaction(message.conversation_message_id, VkMessageReaction.THUMBS_UP);
-    return true;
-  }
-
   return false;
 }
 
 export async function handleActionWithMessage(action: ActionWithMessage): Promise<boolean> {
   const { event_id, payload, user_id } = action;
-  if (!payload?.evaluation) {
+  if (!payload?.conversationMessageId) {
     return false;
   }
-  const event_data = JSON.stringify({ type: 'show_snackbar', text: 'Оценка принята!'});
-  vk.sendMessageEventAnswer(user_id, event_id, event_data);
+  const eventData = { type: 'show_snackbar', text: '' };
+  if (payload.skip) {
+    vk.deleteMessage(payload.conversationMessageId as number + 1);
+    eventData.text = SKIP_ACCEPTED;
+  } else {
+    eventData.text = EVALUATION_ACCEPTED;
+  }
+  vk.sendMessageEventAnswer(user_id, event_id, eventData);
   return true;
 }

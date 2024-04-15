@@ -67,10 +67,10 @@ async function sendKeyboard(keyboard: VkKeyboard, text: string, replyToConversat
   return true;
 }
 
-async function sendMessageEventAnswer(userId: number, eventId: string, eventData: string): Promise<boolean> {
+async function sendMessageEventAnswer(userId: number, eventId: string, eventData: Record<string, string>): Promise<boolean> {
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
-  const response = await needle('get', `${apiUrl}/messages.sendMessageEventAnswer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&random_id=${randomId}&event_id=${eventId}&event_data=${encodeURIComponent(eventData)}&user_id=${userId}`);
+  const response = await needle('get', `${apiUrl}/messages.sendMessageEventAnswer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&random_id=${randomId}&event_id=${eventId}&event_data=${encodeURIComponent(JSON.stringify(eventData))}&user_id=${userId}`);
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendMessageEventAnswer(): ${vkResponse.error.error_msg}`);
@@ -98,6 +98,30 @@ async function sendSticker(stickerId: number | string): Promise<boolean> {
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendSticker(): ${vkResponse.error.error_msg}`);
+    return false;
+  }
+  return true;
+}
+
+async function deleteMessage(conversationMessageId: number): Promise<boolean> {
+  const randomId = Date.now();
+  console.log(`Random message ID: ${randomId}`);
+  const response = await needle('get', `${apiUrl}/messages.delete?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&cmids=${conversationMessageId}&delete_for_all=1&random_id=${randomId}`);
+  const vkResponse = response.body as VkSuccessResponse<{
+    peer_id: number;
+    conversation_message_id: number;
+    response?: number;
+    error?: {
+      code: number;
+      description: string;
+    };
+  }[]> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in deleteMessage(): ${vkResponse.error.error_msg}`);
+    return false;
+  }
+  if (vkResponse.response[0].error) {
+    console.error(`Error in deleteMessage(): ${vkResponse.response[0].error.description}`);
     return false;
   }
   return true;
@@ -327,4 +351,5 @@ export default {
   isRepost,
   isPoll,
   startLongPoll,
+  deleteMessage,
 };
