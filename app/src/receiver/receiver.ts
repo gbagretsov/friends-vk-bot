@@ -9,6 +9,7 @@ import handleBySpeechModule from '../speech/speech';
 import { handleLookForPollInIncomingMessage as handleByPollsWatchModule } from '../polls-watch/polls-watch';
 import handleByCustomReactionsModule from '../custom-reactions/custom-reactions';
 import handleByStatisticsModule from '../statistics/statistics';
+import handleByMemesModule from '../memes/memes';
 import {VkMessage} from '../vk/model/VkMessage';
 
 const peerID = process.env.VK_PEER_ID.toString();
@@ -39,6 +40,7 @@ export default async function (message: VkMessage) {
     handleByGameModule,
     handleBySpeechModule,
     handleByPollsWatchModule,
+    handleByMemesModule,
     handleByCustomReactionsModule,
     handleByChatModule,
   ];

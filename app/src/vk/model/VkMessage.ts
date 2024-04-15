@@ -1,4 +1,5 @@
 import {VkPoll} from './VkPoll';
+import {VkPhoto} from './VkPhoto';
 
 export type VkMessage = {
   from_id: number;
@@ -9,7 +10,11 @@ export type VkMessage = {
 }
 
 export type VkMessageAttachment =
-  VkMessageStickerAttachment | VkMessageAudioMessageAttachment | VkMessageWallAttachment | VkMessagePollAttachment;
+  VkMessageStickerAttachment |
+  VkMessageAudioMessageAttachment |
+  VkMessageWallAttachment |
+  VkMessagePollAttachment |
+  VkMessagePhotoAttachment;
 
 export type VkMessageStickerAttachment = {
   type: VkMessageAttachmentType.STICKER;
@@ -27,6 +32,9 @@ export type VkMessageAudioMessageAttachment = {
 
 export type VkMessageWallAttachment = {
   type: VkMessageAttachmentType.WALL;
+  wall: {
+    attachments: VkMessageAttachment[];
+  }
 }
 
 export type VkMessagePollAttachment = {
@@ -34,9 +42,16 @@ export type VkMessagePollAttachment = {
   poll: VkPoll;
 }
 
+
+export type VkMessagePhotoAttachment = {
+  type: VkMessageAttachmentType.PHOTO;
+  photo: VkPhoto;
+}
+
 export enum VkMessageAttachmentType {
   STICKER = 'sticker',
   AUDIO_MESSAGE = 'audio_message',
   WALL = 'wall',
   POLL = 'poll',
+  PHOTO = 'photo',
 }

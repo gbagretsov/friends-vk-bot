@@ -1,3 +1,5 @@
+import {VkPhoto, VkPhotoSize} from './vk/model/VkPhoto';
+
 export function getPluralForm(number: number, one: string, two: string, five: string): string {
   // src: https://gist.github.com/tomfun/830fa6d8030d16007bbab50a5b21ef97
   let n = Math.abs(number);
@@ -64,4 +66,16 @@ export enum Month {
   OCTOBER,
   NOVEMBER,
   DECEMBER,
+}
+
+export function getLargestPhotoSize(photo: VkPhoto): VkPhotoSize {
+  return photo.sizes.sort((a, b) => {
+    if (a.height > b.height && a.width > b.width) {
+      return -1;
+    }
+    if (a.height < b.height && a.width < b.width) {
+      return 1;
+    }
+    return 0;
+  })[0];
 }
