@@ -14,8 +14,10 @@ config();
 const EVALUATION_KEY_LABELS = ['💩', '😟', '😐', '🙂', '🤣'];
 const IS_NOT_MEME_LABEL = 'Это не мем';
 const EVALUATION_ACCEPTED = 'Оценка принята!';
+const EVALUATION_CHANGED = 'Оценка изменена!';
 const EVALUATION_FROM_AUTHOR_NOT_ACCEPTED = 'Оценки от автора мема не\xa0принимаются';
 const SKIP_ACCEPTED = 'Я запомнил, что это не мем';
+const ERROR_OCCURED = 'Произошла ошибка, попробуйте позже';
 
 function getPhotoSize(message: VkMessage): VkPhotoSize | null {
   let photoSize = null;
@@ -132,25 +134,30 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
   if (!payload?.conversationMessageId) {
     return false;
   }
-  const { conversationMessageId, skip } = payload;
+  const { conversationMessageId, skip, evaluation } = payload;
   const eventData = { type: 'show_snackbar', text: '' };
 
   const dbResponse = await db.query<{conversation_message_id: number, author_id: number}>
   (`SELECT conversation_message_id, author_id FROM friends_vk_bot.memes WHERE conversation_message_id = ${conversationMessageId};`);
   const savedMeme = dbResponse.rows[0];
+
   if (!savedMeme) {
     console.log(`Meme with cmid = ${conversationMessageId} not found`);
-    return false;
-  }
-
-  if (skip) {
+    eventData.text = ERROR_OCCURED;
+  } else if (skip) {
     vk.deleteMessage(conversationMessageId as number + 1);
     eventData.text = SKIP_ACCEPTED;
+  } else if (user_id === savedMeme.author_id) {
+    eventData.text = EVALUATION_FROM_AUTHOR_NOT_ACCEPTED;
   } else {
-    if (user_id === savedMeme.author_id) {
-      eventData.text = EVALUATION_FROM_AUTHOR_NOT_ACCEPTED;
-    } else {
-      eventData.text = EVALUATION_ACCEPTED;
+    try {
+      const res = await db.query<{is_changed: boolean}>(
+        `INSERT INTO friends_vk_bot.memes_evaluations (conversation_message_id, user_id, evaluation) VALUES (${conversationMessageId}, ${user_id}, ${evaluation})
+        ON CONFLICT ON CONSTRAINT one_evaluation_per_user DO UPDATE SET evaluation = EXCLUDED.evaluation, is_changed = true RETURNING is_changed`);
+      eventData.text = res.rows[0].is_changed ? EVALUATION_CHANGED : EVALUATION_ACCEPTED;
+    } catch (error: unknown) {
+      console.log(error);
+      eventData.text = ERROR_OCCURED;
     }
   }
   vk.sendMessageEventAnswer(user_id, event_id, eventData);
