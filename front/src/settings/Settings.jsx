@@ -14,6 +14,7 @@ class Settings extends Component{
     this.state = {
       ads: '',
       absentHolidaysPhrases: '',
+      memesRecognitionConfidence: '',
       pending: false,
     };
   }
@@ -27,6 +28,12 @@ class Settings extends Component{
   handleAbsentHolidaysPhrasesChange = (event) => {
     this.setState({
       absentHolidaysPhrases: event.target.value,
+    });
+  };
+
+  handleMemesRecognitionConfidenceChange = (event) => {
+    this.setState({
+      memesRecognitionConfidence: event.target.value,
     });
   };
 
@@ -45,8 +52,8 @@ class Settings extends Component{
     try {
       let response = await fetch(url, params);
       let data = await response.json();
-      if (data.ads !== null && data.ads !== undefined && data.absentHolidaysPhrases !== null && data.absentHolidaysPhrases !== undefined) {
-        this.setState({ ads: data.ads, absentHolidaysPhrases: data.absentHolidaysPhrases });
+      if (this.isResponseValid(data)) {
+        this.setState({ ...data });
       } else {
         throw new Error(data.error);
       }
@@ -58,6 +65,12 @@ class Settings extends Component{
 
   };
 
+  isResponseValid(data) {
+    return data.ads !== null && data.ads !== undefined &&
+      data.absentHolidaysPhrases !== null && data.absentHolidaysPhrases !== undefined &&
+      data.memesRecognitionConfidence !== null && data.memesRecognitionConfidence !== undefined;
+  }
+
   trySaveSettings = async () => {
     this.setState({
       pending: true,
@@ -68,6 +81,7 @@ class Settings extends Component{
       token: this.props.token,
       ads: this.state.ads,
       absentHolidaysPhrases: this.state.absentHolidaysPhrases,
+      memesRecognitionConfidence: this.state.memesRecognitionConfidence,
     };
 
     let params = {
@@ -95,7 +109,7 @@ class Settings extends Component{
   };
 
   render(){
-    let { ads, absentHolidaysPhrases, pending } = this.state;
+    let { ads, absentHolidaysPhrases, memesRecognitionConfidence, pending } = this.state;
     return(
       <div className="settings-wrapper">
         <Paper className="paper">
@@ -117,6 +131,16 @@ class Settings extends Component{
             value={absentHolidaysPhrases}
             disabled={pending}
             multiline={true}
+            fullWidth={true}
+          />
+          <TextField
+            id="memes-confidence"
+            label="Порог уверенности распознавания мемов (0 - любые картинки, >100 - фича отключена)"
+            className="setting-field"
+            onChange={this.handleMemesRecognitionConfidenceChange}
+            value={memesRecognitionConfidence}
+            disabled={pending}
+            type="number"
             fullWidth={true}
           />
           <div className="save-button-wrapper">
