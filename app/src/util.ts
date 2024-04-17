@@ -79,3 +79,7 @@ export function getLargestPhotoSize(photo: VkPhoto): VkPhotoSize {
     return 0;
   })[0];
 }
+
+export function isBotMentioned(text: string): boolean {
+  return text.toLowerCase().startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
+}

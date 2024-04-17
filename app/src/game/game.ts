@@ -3,7 +3,7 @@ import {config} from 'dotenv';
 import vk from '../vk/vk';
 import dbClient from '../db';
 import admin from './admin';
-import {getPluralForm} from '../util';
+import {getPluralForm, isBotMentioned} from '../util';
 import {VkMessage} from '../vk/model/VkMessage';
 import {AddWordResult} from './model/AddWordResult';
 
@@ -257,10 +257,6 @@ async function handlePlayingState(): Promise<boolean> {
     }
     return !!word && !botMentioned;
   }
-}
-
-function isBotMentioned(text: string): boolean {
-  return text.toLowerCase().startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
 }
 
 function isGameRequestMessage(text: string): boolean {
