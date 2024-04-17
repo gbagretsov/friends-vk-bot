@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS friends_vk_bot.memes_evaluations
 (
     id SERIAL NOT NULL PRIMARY KEY,
     conversation_message_id INTEGER NOT NULL REFERENCES friends_vk_bot.memes(conversation_message_id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
+    user_id TEXT NOT NULL,
     evaluation INTEGER NOT NULL,
     is_changed BOOLEAN NOT NULL DEFAULT false
 );

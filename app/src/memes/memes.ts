@@ -8,6 +8,7 @@ import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
 import db from '../db';
 import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
+import crypto from 'crypto';
 
 config();
 
@@ -152,8 +153,9 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
     eventData.text = EVALUATION_FROM_AUTHOR_NOT_ACCEPTED;
   } else {
     try {
+      const userHash = crypto.createHash('md5').update(`${conversationMessageId}_${user_id}`).digest('hex');
       const res = await db.query<{is_changed: boolean}>(
-        `INSERT INTO friends_vk_bot.memes_evaluations (conversation_message_id, user_id, evaluation) VALUES (${conversationMessageId}, ${user_id}, ${evaluation})
+        `INSERT INTO friends_vk_bot.memes_evaluations (conversation_message_id, user_id, evaluation) VALUES (${conversationMessageId}, '${userHash}', ${evaluation})
         ON CONFLICT ON CONSTRAINT one_evaluation_per_user DO UPDATE SET evaluation = EXCLUDED.evaluation, is_changed = true RETURNING is_changed`);
       eventData.text = res.rows[0].is_changed ? EVALUATION_CHANGED : EVALUATION_ACCEPTED;
     } catch (error: unknown) {
