@@ -145,6 +145,7 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
     console.log(`Meme with cmid = ${conversationMessageId} not found`);
     eventData.text = ERROR_OCCURED;
   } else if (skip) {
+    db.query(`DELETE FROM friends_vk_bot.memes WHERE conversation_message_id = ${conversationMessageId}`);
     vk.deleteMessage(conversationMessageId as number + 1);
     eventData.text = SKIP_ACCEPTED;
   } else if (user_id === savedMeme.author_id) {
