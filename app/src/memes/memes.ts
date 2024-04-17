@@ -56,7 +56,7 @@ function getRectangles(photoSize: VkPhotoSize): Rectangle[] {
 async function isMeme(message: VkMessage): Promise<boolean> {
   const photoSize = getPhotoSize(message);
 
-  if (!photoSize) {
+  if (!photoSize || !process.env.MEMES_RECOGNITION_CONFIDENCE) {
     return false;
   }
 
