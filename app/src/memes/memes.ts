@@ -8,6 +8,7 @@ import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
 import db from '../db';
 import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
+import crypto from 'crypto';
 
 config();
 
@@ -57,8 +58,15 @@ function getRectangles(photoSize: VkPhotoSize): Rectangle[] {
 
 async function isMeme(message: VkMessage): Promise<boolean> {
   const photoSize = getPhotoSize(message);
+  const state = await db.query<{key: string, value: string}>
+  ('SELECT value FROM friends_vk_bot.state WHERE key = \'memes_recognition_confidence\';');
+  const requiredConfidence = state.rows[0].value;
 
-  if (!photoSize || !process.env.MEMES_RECOGNITION_CONFIDENCE) {
+  if (!photoSize) {
+    return false;
+  }
+  if (requiredConfidence === '' || +requiredConfidence > 100) {
+    console.log('Memes feature is disabled');
     return false;
   }
 
@@ -76,8 +84,8 @@ async function isMeme(message: VkMessage): Promise<boolean> {
   await worker.terminate();
 
   const confidence = Math.max(...confidenceValues);
-  const isMeme = confidence > process.env.MEMES_RECOGNITION_CONFIDENCE;
-  console.log(`#${message.conversation_message_id} - meme confidence is [${confidenceValues}], is meme = ${isMeme}`);
+  const isMeme = confidence > +requiredConfidence;
+  console.log(`#${message.conversation_message_id} - meme confidence is [${confidenceValues}], required = ${requiredConfidence}, is meme = ${isMeme}`);
   return isMeme;
 }
 
@@ -152,8 +160,9 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
     eventData.text = EVALUATION_FROM_AUTHOR_NOT_ACCEPTED;
   } else {
     try {
+      const userHash = crypto.createHash('md5').update(`${conversationMessageId}_${user_id}`).digest('hex');
       const res = await db.query<{is_changed: boolean}>(
-        `INSERT INTO friends_vk_bot.memes_evaluations (conversation_message_id, user_id, evaluation) VALUES (${conversationMessageId}, ${user_id}, ${evaluation})
+        `INSERT INTO friends_vk_bot.memes_evaluations (conversation_message_id, user_id, evaluation) VALUES (${conversationMessageId}, '${userHash}', ${evaluation})
         ON CONFLICT ON CONSTRAINT one_evaluation_per_user DO UPDATE SET evaluation = EXCLUDED.evaluation, is_changed = true RETURNING is_changed`);
       eventData.text = res.rows[0].is_changed ? EVALUATION_CHANGED : EVALUATION_ACCEPTED;
     } catch (error: unknown) {
