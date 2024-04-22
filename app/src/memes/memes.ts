@@ -10,7 +10,7 @@ import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
 import {MemesStatistics, TopMeme} from './model/MemesStatistics';
-import {writeFile, mkdir, access} from 'fs/promises';
+import {writeFile, mkdir, access, rm} from 'fs/promises';
 import {readFileSync} from 'fs';
 
 config();
@@ -248,5 +248,12 @@ export async function getMemesStatistics(): Promise<MemesStatistics> {
 }
 
 export async function resetMemesStatistics(): Promise<void> {
-
+  console.log('Resetting memes statistics...');
+  try {
+    await db.query('TRUNCATE TABLE friends_vk_bot.memes, friends_vk_bot.memes_skip, friends_vk_bot.memes_evaluations');
+    await rm(MEMES_DIR, { recursive: true, force: true });
+  } catch (error) {
+    console.log(error);
+  }
+  console.log('Resetting memes statistics done');
 }
