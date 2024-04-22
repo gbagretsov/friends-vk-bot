@@ -9,7 +9,9 @@ import db from '../db';
 import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
-import {MemesStatistics} from './model/MemesStatistics';
+import {MemesStatistics, TopMeme} from './model/MemesStatistics';
+import {writeFile, mkdir, access} from 'fs/promises';
+import {readFileSync} from 'fs';
 
 config();
 
@@ -32,6 +34,7 @@ const MEME_IS_SKIPPED = 'Я запомнил, что это не\xa0мем';
 const ERROR_OCCURED = 'Произошла ошибка, попробуйте позже';
 
 const REQUIRED_SKIP_REQUESTS = 2;
+const MEMES_DIR = 'memes';
 
 function getPhotoSize(message: VkMessage): VkPhotoSize | null {
   let photoSize = null;
@@ -85,6 +88,13 @@ async function isMeme(message: VkMessage): Promise<boolean> {
 
   const imageLoadResponse = await needle('get', photoSize.url, null, { follow_max: 1 });
   const imageBuffer = imageLoadResponse.body;
+
+  try {
+    await access(MEMES_DIR);
+  } catch (e) {
+    await mkdir(MEMES_DIR);
+  }
+  await writeFile(getMemePath(message.conversation_message_id), imageBuffer);
 
   const worker = await createWorker('rus');
   const rectangles = getRectangles(photoSize);
@@ -200,9 +210,40 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
   return true;
 }
 
+function getMemePath(conversationMessageId: number) {
+  return `${MEMES_DIR}/${conversationMessageId}.jpg`;
+}
+
 export async function getMemesStatistics(): Promise<MemesStatistics> {
+  const result = await db.query<{
+    conversation_message_id: number;
+    author_id: number;
+    rating: number;
+  }>(`
+    SELECT memes.conversation_message_id, memes.author_id, avg(evaluation) AS rating
+    FROM friends_vk_bot.memes
+    JOIN friends_vk_bot.memes_evaluations me ON memes.conversation_message_id = me.conversation_message_id
+    GROUP BY memes.conversation_message_id
+    ORDER BY rating DESC
+    LIMIT 5
+  `);
+
+  const topMemes = result.rows.map<TopMeme | null>(row => {
+    try {
+      const image = readFileSync(getMemePath(row.conversation_message_id));
+      return {
+        author_id: row.author_id,
+        rating: +row.rating,
+        image,
+      };
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  });
+
   return {
-    topMemes: [],
+    topMemes: topMemes.filter(topMeme => !!topMeme) as TopMeme[],
   };
 }
 
