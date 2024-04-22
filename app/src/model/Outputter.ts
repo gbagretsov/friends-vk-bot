@@ -1,3 +1,3 @@
 export type Outputter<T> = {
-    output: (data: T) => void;
+    output: (data: T) => Promise<void>;
 }

@@ -19,6 +19,7 @@ declare global {
       VK_LEADERBOARD_ALBUM_ID?: string;
       DEBUG_FINAL_STATISTICS?: '0' | '1';
       DEBUG_INTERMEDIATE_STATISTICS?: '0' | '1';
+      DEBUG_MEMES_STATISTICS?: '0' | '1';
     }
   }
 }

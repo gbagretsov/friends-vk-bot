@@ -9,6 +9,7 @@ import db from '../db';
 import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
+import {MemesStatistics} from './model/MemesStatistics';
 
 config();
 
@@ -197,4 +198,14 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
   }
   vk.sendMessageEventAnswer(user_id, event_id, eventData);
   return true;
+}
+
+export async function getMemesStatistics(): Promise<MemesStatistics> {
+  return {
+    topMemes: [],
+  };
+}
+
+export async function resetMemesStatistics(): Promise<void> {
+
 }
