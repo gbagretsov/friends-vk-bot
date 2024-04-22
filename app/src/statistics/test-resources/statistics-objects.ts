@@ -9,6 +9,7 @@ export const commonExample: Statistics = {
   mostActiveUsers: [],
   previousMonthAmount: 100,
   leaderboardPhotos: [],
+  memesAmount: 5,
 };
 
 export const totalEqualToPrevMonth: Statistics = {

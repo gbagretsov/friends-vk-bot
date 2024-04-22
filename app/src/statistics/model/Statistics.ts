@@ -5,6 +5,7 @@ export type Statistics = {
   audioMessagesAmount: number;
   stickersAmount: number;
   repostsAmount: number;
+  memesAmount: number;
   previousMonthAmount: number | null;
   mostActiveUsers: VkUser[];
   leaderboardPhotos: Buffer[];

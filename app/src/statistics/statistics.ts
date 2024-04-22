@@ -57,6 +57,10 @@ async function getStatistics(): Promise<Statistics | null> {
     return null;
   }
 
+  const memesResult = await db.query<{
+    memes_amount: number;
+  }>('SELECT count(*) AS memes_amount FROM friends_vk_bot.memes');
+
   return {
     totalAmount: rows.find(row => row.id === StatisticsId.TOTAL_AMOUNT)!.value,
     audioMessagesAmount: rows.find(row => row.id === StatisticsId.AUDIO_MESSAGES_AMOUNT)!.value,
@@ -65,6 +69,7 @@ async function getStatistics(): Promise<Statistics | null> {
     mostActiveUsers: mostActiveUsers as VkUser[],
     previousMonthAmount: previousMonthAmount >= 0 ? previousMonthAmount : null,
     leaderboardPhotos: await getUserLeaderboardPhotos(mostActiveUsers as VkUser[]),
+    memesAmount: memesResult.rows[0].memes_amount,
   };
 }
 

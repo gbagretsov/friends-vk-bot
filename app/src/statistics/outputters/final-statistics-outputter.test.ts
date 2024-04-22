@@ -24,7 +24,7 @@ describe('Final statistics outputter', () => {
     expect(message).toMatch('100 сообщений');
     expect(message).toMatch('10 голосовых сообщений');
     expect(message).toMatch('20 стикеров');
-    expect(message).toMatch('5 репостов');
+    expect(message).toMatch('5 мемов');
   });
 
   test('Bot correctly displays changes in comparison to month before previous one (case when equals)', async () => {
