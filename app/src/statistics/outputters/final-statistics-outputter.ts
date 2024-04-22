@@ -32,7 +32,7 @@ async function getStatisticsMessage(statisticsObject: Statistics): Promise<strin
   const totalAmountMessage = getTotalAmountMessage(statisticsObject.totalAmount);
   const audioMessagesAmountMessage = getAudioMessagesAmountMessage(statisticsObject.audioMessagesAmount);
   const stickersAmountMessage = getStickersAmountMessage(statisticsObject.stickersAmount);
-  const repostsAmountMessage = getRepostsAmountMessage(statisticsObject.repostsAmount);
+  const memesAmountMessage = getMemesAmountMessage(statisticsObject.memesAmount);
 
   const mostActiveUserNamesMessage =
     statisticsObject.mostActiveUsers.length > 0 ?
@@ -45,7 +45,7 @@ async function getStatisticsMessage(statisticsObject: Statistics): Promise<strin
     `В ${getMonthNameInPrepositionalCase(previousMonthIndex)} было отправлено ${totalAmountMessage}, из них:\n` +
     `— ${audioMessagesAmountMessage}\n`+
     `— ${stickersAmountMessage}\n`+
-    `— ${repostsAmountMessage}\n\n`;
+    `— ${memesAmountMessage}\n\n`;
   if (comparisonMessage) {
     resultMessage += `По сравнению с ${getMonthNameInInstrumentalCase(previousMonthIndex - 1)}, ` +
       `общее количество сообщений ${comparisonMessage}.\n\n`;
@@ -68,8 +68,8 @@ function getStickersAmountMessage(stickersAmount: number): string {
   return `${stickersAmount} ${getPluralForm(stickersAmount, 'стикер', 'стикера', 'стикеров')}`;
 }
 
-function getRepostsAmountMessage(repostsAmount: number): string {
-  return `${repostsAmount} ${getPluralForm(repostsAmount, 'репост', 'репоста', 'репостов')}`;
+function getMemesAmountMessage(memesAmount: number): string {
+  return memesAmount === 0 ? '0 мемов' : `не менее ${memesAmount} ${getPluralForm(memesAmount, 'мема', 'мемов', 'мемов')}`;
 }
 
 function getMostActiveUserNamesMessage(mostActiveUsers: VkUser[], previousMonthIndex: number): string {

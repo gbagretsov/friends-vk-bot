@@ -212,6 +212,10 @@ describe('Statistics', () => {
         result = {rows: [{conversation_message_id: 9999}]} as QueryResult;
       } else if (_query.includes('SELECT * FROM friends_vk_bot.statistics')) {
         result = statistics as QueryResult;
+      } else if (_query.includes('FROM friends_vk_bot.memes')) {
+        result = { rows: [{
+          memes_amount: 5,
+        }]} as QueryResult;
       } else {
         result = { rows: new Array(0)} as QueryResult;
       }

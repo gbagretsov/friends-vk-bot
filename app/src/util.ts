@@ -1,4 +1,5 @@
 import {VkPhoto, VkPhotoSize} from './vk/model/VkPhoto';
+import {createCanvas, Image, loadImage, registerFont} from 'canvas';
 
 export function getPluralForm(number: number, one: string, two: string, five: string): string {
   // src: https://gist.github.com/tomfun/830fa6d8030d16007bbab50a5b21ef97
@@ -82,4 +83,76 @@ export function getLargestPhotoSize(photo: VkPhoto): VkPhotoSize {
 
 export function isBotMentioned(text: string): boolean {
   return text.toLowerCase().startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`);
+}
+
+export async function getLeaderBoardPhoto(winnerPhotoBuffer: Buffer, mainText: string, secondaryText: string, tertiaryText: string): Promise<Buffer> {
+  const templateImage = await loadImage('assets/leaderboardPhotoTemplate.jpg');
+  registerFont('assets/book-antiqua.ttf', { family: 'Book Antiqua', weight: 'normal' });
+  registerFont('assets/book-antiqua-bold.ttf', { family: 'Book Antiqua', weight: 'bold' });
+
+  const canvas = createCanvas(templateImage.width, templateImage.height);
+  const context = canvas.getContext('2d');
+  context.quality = 'best';
+  context.patternQuality = 'best';
+  context.drawImage(templateImage, 0, 0, templateImage.width, templateImage.height);
+
+  const winnerImage = await loadImage(winnerPhotoBuffer);
+  const winnerImageDrawArea = getWinnerImageDrawArea(winnerImage);
+  const padding = 20;
+  context.fillStyle = '#b5a08b';
+  context.fillRect(
+    winnerImageDrawArea.x,
+    winnerImageDrawArea.y,
+    winnerImageDrawArea.width,
+    winnerImageDrawArea.height
+  );
+  context.drawImage(
+    winnerImage,
+    winnerImageDrawArea.x + padding,
+    winnerImageDrawArea.y + padding,
+    winnerImageDrawArea.width - 2 * padding,
+    winnerImageDrawArea.height - 2 * padding
+  );
+
+  context.font = 'bold 18pt \'Book Antiqua\'';
+  context.textAlign = 'center';
+  context.fillStyle = '#3c3429';
+  context.fillText(mainText, templateImage.width / 2, 113);
+  context.fillText(secondaryText, templateImage.width / 2, 658);
+
+  context.font = '14pt \'Book Antiqua\'';
+  context.fillText(tertiaryText, templateImage.width / 2, 682);
+
+  return canvas.toBuffer('image/jpeg');
+}
+
+function getWinnerImageDrawArea(winnerImage: Image) {
+  const winnerImageAvailableDrawArea = {
+    x: 98,
+    y: 165,
+    width: 440,
+    height: 440,
+  };
+
+  const actualWidth = winnerImage.width;
+  const actualHeight = winnerImage.height;
+
+  let resultWidth = winnerImageAvailableDrawArea.width;
+  let resultX = winnerImageAvailableDrawArea.x;
+  let resultHeight = resultWidth / actualWidth * actualHeight;
+  let resultY = (winnerImageAvailableDrawArea.height - resultHeight) / 2 + winnerImageAvailableDrawArea.y;
+
+  if (resultHeight > winnerImageAvailableDrawArea.height) {
+    resultHeight = winnerImageAvailableDrawArea.height;
+    resultY = winnerImageAvailableDrawArea.y;
+    resultWidth = resultHeight / actualHeight * actualWidth;
+    resultX = (winnerImageAvailableDrawArea.width - resultWidth) / 2 + winnerImageAvailableDrawArea.x;
+  }
+
+  return {
+    x: resultX,
+    y: resultY,
+    width: resultWidth,
+    height: resultHeight,
+  };
 }

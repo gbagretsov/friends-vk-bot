@@ -11,6 +11,8 @@ import {WeatherForecast} from './weather/model/WeatherForecast';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
 import {holidaysOutputter} from './holidays/holidays-outputter';
+import {getMemesStatistics, resetMemesStatistics} from '../memes/memes';
+import {memesStatisticsOutputter} from '../memes/outputters/memes-statistics-outputter';
 
 config();
 
@@ -98,8 +100,16 @@ function intermediateStatisticsShouldBeShown(): boolean {
   return process.env.DEBUG_INTERMEDIATE_STATISTICS === '1' || today.getDate() === 11 || today.getDate() === 21;
 }
 
+function memesStatisticsShouldBeShown(): boolean {
+  return process.env.DEBUG_MEMES_STATISTICS === '1' || new Date().getDate() === 1;
+}
+
 function statisticsShouldBeReset(): boolean {
   return process.env.DEBUG_FINAL_STATISTICS !== '1' && new Date().getDate() === 1;
+}
+
+function memesStatisticsShouldBeReset(): boolean {
+  return process.env.DEBUG_MEMES_STATISTICS !== '1' && new Date().getDate() === 1;
 }
 
 export default async () => {
@@ -136,13 +146,21 @@ export default async () => {
   const statisticsObject = await getStatistics();
   if (statisticsObject) {
     if (finalStatisticsShouldBeShown()) {
-      finalStatisticsOutputter.output(statisticsObject);
+      await finalStatisticsOutputter.output(statisticsObject);
     } else if (intermediateStatisticsShouldBeShown()) {
-      intermediateStatisticsOutputter.output(statisticsObject);
+      await intermediateStatisticsOutputter.output(statisticsObject);
     }
   }
   if (statisticsShouldBeReset()) {
     await resetStatistics();
+  }
+
+  if (memesStatisticsShouldBeShown()) {
+    const memesStatistics = await getMemesStatistics();
+    await memesStatisticsOutputter.output(memesStatistics);
+  }
+  if (memesStatisticsShouldBeReset()) {
+    await resetMemesStatistics();
   }
 
 };

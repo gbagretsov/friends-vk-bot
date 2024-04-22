@@ -151,36 +151,52 @@ async function getUserInfo(uid: number): Promise<VkUser | null> {
   return vkResponse.response[0];
 }
 
-async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
-  // Получаем адрес сервера для загрузки фото
-  const uploadUrlResponse =
-    await needle('get', `${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
+async function sendMessageWithPhotos(photoBuffers: Buffer[], text?: string): Promise<void> {
+  const attachments: string[] = [];
 
-  // Загружаем фотографию
-  const uploadUrl = uploadUrlResponse.body.response.upload_url;
-  const data = {
-    file: {
-      buffer: photoBuffer,
-      filename: 'filename.jpg',
-      content_type: 'image/jpeg',
-    }
-  };
+  for (const photoBuffer of photoBuffers) {
+    // Получаем адрес сервера для загрузки фото
+    const uploadUrlResponse =
+      await needle('get', `${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
 
-  const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
+    // Загружаем фотографию
+    const uploadUrl = uploadUrlResponse.body.response.upload_url;
+    const data = {
+      file: {
+        buffer: photoBuffer,
+        filename: 'filename.jpg',
+        content_type: 'image/jpeg',
+      }
+    };
 
-  // Сохраняем фотографию
-  const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
-  const savedPhotoInfoResponse =
-    await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+    const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
 
-  // Прикрепляем фотографию
-  const photoInfo = savedPhotoInfoResponse.body.response[0];
-  const ownerID = photoInfo.owner_id;
-  const mediaID = photoInfo.id;
-  const attachment = `photo${ownerID}_${mediaID}`;
+    // Сохраняем фотографию
+    const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
+    const savedPhotoInfoResponse =
+      await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+
+    // Прикрепляем фотографию
+    const photoInfo = savedPhotoInfoResponse.body.response[0];
+    const ownerID = photoInfo.owner_id;
+    const mediaID = photoInfo.id;
+    const attachment = `photo${ownerID}_${mediaID}`;
+    attachments.push(attachment);
+  }
+
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
-  await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${attachment}&random_id=${randomId}`);
+
+  let messageSendUrl = `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${encodeURIComponent(attachments.join(','))}&random_id=${randomId}`;
+  if (text) {
+    messageSendUrl += `&message=${encodeURI(text)}`;
+  }
+
+  await needle('get', messageSendUrl);
+}
+
+async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
+  await sendMessageWithPhotos([photoBuffer]);
 }
 
 async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<void> {
@@ -341,6 +357,7 @@ export default {
   getUserName,
   getUserInfo,
   sendPhotoToChat,
+  sendMessageWithPhotos,
   addPhotoToAlbum,
   getPolls,
   getConversationMembers,

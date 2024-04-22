@@ -15,6 +15,7 @@ import {HolidayCategory} from './holidays/model/HolidayCategory';
 import {finalStatisticsOutputter} from '../statistics/outputters/final-statistics-outputter';
 import {intermediateStatisticsOutputter} from '../statistics/outputters/intermediate-statistics-outputter';
 import {holidaysOutputter} from './holidays/holidays-outputter';
+import * as memes from '../memes/memes';
 
 process.env.DEBUG_FINAL_STATISTICS = '0';
 process.env.DEBUG_INTERMEDIATE_STATISTICS = '0';
@@ -26,6 +27,7 @@ jest.mock('./holidays/holidays');
 jest.mock('../vk/vk');
 jest.mock('../db');
 jest.mock('../statistics/statistics');
+jest.mock('../memes/memes');
 jest.mock('../statistics/outputters/final-statistics-outputter');
 
 jest.useFakeTimers();
@@ -37,10 +39,14 @@ enum MessagesOrder {
 
 const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
-const holidaysOutputterSpy = jest.spyOn(holidaysOutputter, 'output').mockReturnValue();
-const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output').mockReturnValue();
-const intermediateStatisticsOutputterSpy = jest.spyOn(intermediateStatisticsOutputter, 'output').mockReturnValue();
+const holidaysOutputterSpy = jest.spyOn(holidaysOutputter, 'output').mockResolvedValue();
+const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output').mockResolvedValue();
+const intermediateStatisticsOutputterSpy = jest.spyOn(intermediateStatisticsOutputter, 'output').mockResolvedValue();
 let getUvIndexSpy: jest.SpyInstance;
+
+jest.spyOn(memes, 'getMemesStatistics').mockResolvedValue({
+  topMemes: [],
+});
 
 function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
   jest.spyOn(weather, 'getCurrentWeather').mockResolvedValue(weatherResponse);
