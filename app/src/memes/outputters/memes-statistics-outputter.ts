@@ -22,7 +22,8 @@ export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
       const author = await vk.getUserInfo(meme.author_id) as VkUser;
       const dateLine = `${monthNomCase} ${year}`;
       const authorInfo = `${author.first_name} ${author.last_name}`;
-      const ratingInfo = `${meme.rating.toFixed(1)}`; // TODO: поменять на 2
+      // Посмотрим, будет ли понятно через пару лет, почему у меня бомбило с этого бага и зачем здесь нужен replace
+      const ratingInfo = `${meme.rating.toFixed(2).replace('.', '.\u{2060}')}`;
 
       topMemesText += `${i + 1} место — ${authorInfo}, средний балл ${ratingInfo}\n`;
 
