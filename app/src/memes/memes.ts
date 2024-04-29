@@ -34,6 +34,7 @@ const MEME_IS_SKIPPED = 'Я запомнил, что это не\xa0мем';
 const ERROR_OCCURED = 'Произошла ошибка, попробуйте позже';
 
 const REQUIRED_SKIP_REQUESTS = 2;
+const REQUIRED_EVALUATIONS = 3;
 const MEMES_DIR = 'memes';
 
 function getPhotoSize(message: VkMessage): VkPhotoSize | null {
@@ -224,6 +225,7 @@ export async function getMemesStatistics(): Promise<MemesStatistics> {
     FROM friends_vk_bot.memes
     JOIN friends_vk_bot.memes_evaluations me ON memes.conversation_message_id = me.conversation_message_id
     GROUP BY memes.conversation_message_id
+    HAVING count(*) >= ${REQUIRED_EVALUATIONS}
     ORDER BY rating DESC
     LIMIT 5
   `);
