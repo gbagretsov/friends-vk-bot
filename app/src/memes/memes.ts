@@ -35,6 +35,7 @@ const ERROR_OCCURED = 'Произошла ошибка, попробуйте п�
 
 const REQUIRED_SKIP_REQUESTS = 2;
 const REQUIRED_EVALUATIONS = 3;
+const TOP_MEMES_AMOUNT_LIMIT = 10;
 const MEMES_DIR = 'memes';
 
 function getPhotoSize(message: VkMessage): VkPhotoSize | null {
@@ -227,7 +228,7 @@ export async function getMemesStatistics(): Promise<MemesStatistics> {
     GROUP BY memes.conversation_message_id
     HAVING count(*) >= ${REQUIRED_EVALUATIONS}
     ORDER BY rating DESC
-    LIMIT 5
+    LIMIT ${TOP_MEMES_AMOUNT_LIMIT}
   `);
 
   const topMemes = result.rows.map<TopMeme | null>(row => {
