@@ -33,11 +33,11 @@ jest.mock('../statistics/outputters/final-statistics-outputter');
 jest.useFakeTimers();
 
 enum MessagesOrder {
+  STICKER,
   WEATHER,
   CUSTOM_DAILY_MESSAGE,
 } 
 
-const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
 const holidaysOutputterSpy = jest.spyOn(holidaysOutputter, 'output').mockResolvedValue();
 const finalStatisticsOutputterSpy = jest.spyOn(finalStatisticsOutputter, 'output').mockResolvedValue();
@@ -46,6 +46,7 @@ let getUvIndexSpy: jest.SpyInstance;
 
 jest.spyOn(memes, 'getMemesStatistics').mockResolvedValue({
   topMemes: [],
+  memesPerAuthor: {},
 });
 
 function mockWeather(weatherResponse: Weather | null, weatherForecastResponse: WeatherForecast | null, uvIndex: number | null) {
@@ -80,7 +81,7 @@ describe('Sticker', () => {
     mockDatabaseCalls('');
     mockDate(new Date(2020, Month.JANUARY, 10));
     await daily();
-    expect(sendStickerSpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy.mock.calls[MessagesOrder.STICKER][0].stickerId).toBeDefined();
   });
 });
 
@@ -94,13 +95,13 @@ describe('Weather forecast', () => {
   test('If weather is available, bot sends weather to chat', async () => {
     mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
     await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Прогноз погоды на сегодня/);
+    expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Прогноз погоды на сегодня/);
   });
 
   test('If weather is not available, bot sends failure message to chat', async () => {
     mockWeather(null, null, null);
     await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Я не смог узнать прогноз погоды/);
+    expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Я не смог узнать прогноз погоды/);
   });
 
   describe('UV Index', () => {
@@ -111,31 +112,31 @@ describe('Weather forecast', () => {
     test('Bot shows info about UV index during warm months', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Индекс УФ-излучения/);
     });
 
     test('Bot shows recommendations for low UV index', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 0);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 0, уровень опасности низкий/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Индекс УФ-излучения = 0, уровень опасности низкий/);
     });
 
     test('Bot shows recommendations for medium UV index', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 3);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 3, уровень опасности средний/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Индекс УФ-излучения = 3, уровень опасности средний/);
     });
 
     test('Bot shows recommendations for high UV index', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 6);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/Индекс УФ-излучения = 6, уровень опасности высокий/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/Индекс УФ-излучения = 6, уровень опасности высокий/);
     });
 
     test('Bot does not show UV info if UV index is not available', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/Индекс УФ излучения/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).not.toMatch(/Индекс УФ излучения/);
       expect(getUvIndexSpy).toHaveBeenCalled();
     });
 
@@ -143,7 +144,7 @@ describe('Weather forecast', () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, 1);
       mockDate(new Date(2020, Month.JANUARY, 10));
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/Индекс УФ-излучения/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).not.toMatch(/Индекс УФ-излучения/);
     });
   });
 
@@ -151,31 +152,31 @@ describe('Weather forecast', () => {
     test('Bot shows warning icon if wind speed is high', async () => {
       mockWeather(weatherResponses.weatherResponseHighWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/⚠ ветер 10 м\/с/);
 
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseHighWindSpeedHighGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/⚠ ветер 10 м\/с/);
     });
 
     test('Bot shows warning icon if gust speed is high', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedHighGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ порывы до 10 м\/с/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/⚠ порывы до 10 м\/с/);
     });
 
     test('Bot shows only one warning icon if both wind speed and gust speed are high', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseHighWindSpeedHighGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/⚠ ветер 10 м\/с/);
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).toMatch(/порывы/);
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/⚠ порывы/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/⚠ ветер 10 м\/с/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).toMatch(/порывы/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).not.toMatch(/⚠ порывы/);
     });
 
     test('Bot does not show warning icon if both wind speed and gust speed are low', async () => {
       mockWeather(weatherResponses.weatherResponseLowWindSpeed, weatherResponses.weatherForecastResponseLowWindSpeedLowGustSpeed, null);
       await daily();
-      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0]).not.toMatch(/⚠/);
+      expect(sendMessageSpy.mock.calls[MessagesOrder.WEATHER][0].text).not.toMatch(/⚠/);
     });
 
   });
@@ -205,7 +206,7 @@ describe('Custom daily message', () => {
     const customDailyMessage = 'Custom daily message';
     mockDatabaseCalls(customDailyMessage);
     await daily();
-    expect(sendMessageSpy.mock.calls[MessagesOrder.CUSTOM_DAILY_MESSAGE][0]).toMatch(customDailyMessage);
+    expect(sendMessageSpy.mock.calls[MessagesOrder.CUSTOM_DAILY_MESSAGE][0].text).toMatch(customDailyMessage);
   });
 
   test('If custom daily message is not set, bot does not send custom daily message to chat', async () => {

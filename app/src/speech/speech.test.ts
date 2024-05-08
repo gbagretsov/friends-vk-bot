@@ -53,16 +53,16 @@ describe('Speech', () => {
     setMocks();
     await speech(testMessages.messageWithAudioAttachmentFromMaleUser);
     const sentMessage = sendMessageSpy.mock.calls[0][0];
-    expect(sentMessage).toMatch(/"Расшифровка записи"/);
-    expect(sentMessage).toMatch(/95%/);
+    expect(sentMessage.text).toMatch(/"Расшифровка записи"/);
+    expect(sentMessage.text).toMatch(/95%/);
   });
 
   test('When bot receives an audio message and text is recognized, bot sends a message considering sender\'s name and sex', async () => {
     setMocks();
     await speech(testMessages.messageWithAudioAttachmentFromMaleUser);
     await speech(testMessages.messageWithAudioAttachmentFromFemaleUser);
-    expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Иван сказал:/);
-    expect(sendMessageSpy.mock.calls[1][0]).toMatch(/Анна сказала:/);
+    expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Иван сказал:/);
+    expect(sendMessageSpy.mock.calls[1][0].text).toMatch(/Анна сказала:/);
     expect(getUserInfoSpy.mock.calls[0][0]).toBe(123);
     expect(getUserInfoSpy.mock.calls[1][0]).toBe(456);
   });

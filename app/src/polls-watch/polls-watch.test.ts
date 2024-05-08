@@ -135,9 +135,9 @@ describe('Polls observer', () => {
       });
       await watchPolls();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/@vsevolod_the_great \(Всеволод\)/);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/@gavr \(Гавриил\)/);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/@dobryi_chelovek \(Добрыня\)/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/@vsevolod_the_great \(Всеволод\)/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/@gavr \(Гавриил\)/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/@dobryi_chelovek \(Добрыня\)/);
     });
 
     test('Information message about a poll contains topic of the poll', async () => {
@@ -152,7 +152,7 @@ describe('Polls observer', () => {
       });
       await watchPolls();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Ваш любимый актёр/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Ваш любимый актёр/);
     });
 
     test('Information message about a poll contains link to the poll', async () => {
@@ -168,7 +168,7 @@ describe('Polls observer', () => {
       });
       await watchPolls();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/https:\/\/vk.com\/poll222_1000123/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/https:\/\/vk.com\/poll222_1000123/);
     });
 
     test('Information message about a poll does not contain names or mentions of users who have already voted in the poll', async () => {
@@ -183,10 +183,10 @@ describe('Polls observer', () => {
       });
       await watchPolls();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).not.toMatch(/Афанасий/);
-      expect(sendMessageSpy.mock.calls[0][0]).not.toMatch(/Бонифаций/);
-      expect(sendMessageSpy.mock.calls[0][0]).not.toMatch(/@super_afonya/);
-      expect(sendMessageSpy.mock.calls[0][0]).not.toMatch(/@i_am_bonya/);
+      expect(sendMessageSpy.mock.calls[0][0].text).not.toMatch(/Афанасий/);
+      expect(sendMessageSpy.mock.calls[0][0].text).not.toMatch(/Бонифаций/);
+      expect(sendMessageSpy.mock.calls[0][0].text).not.toMatch(/@super_afonya/);
+      expect(sendMessageSpy.mock.calls[0][0].text).not.toMatch(/@i_am_bonya/);
     });
 
     test('Bot can observe several polls', async () => {

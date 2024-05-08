@@ -42,6 +42,6 @@ describe('Chat', () => {
   test('When bot recognizes its mention, it sends a greeting message with correct name in response', async () => {
     chat(testResources.messagesWithBotMentionInNaturalLanguageAtTheBeginning[0]);
     await Promise.resolve();
-    expect(sendMessageSpy.mock.calls[0][0]).toBe('Привет, Павел!');
+    expect(sendMessageSpy.mock.calls[0][0].text).toBe('Привет, Павел!');
   });
 });
