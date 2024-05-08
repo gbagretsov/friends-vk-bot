@@ -58,7 +58,9 @@ async function sendResult(result: AudioTranscript, uid: number): Promise<void> {
     `${ user.first_name }, у тебя очень красивый голос! 😊 А фразу "${ transcript }" с вероятностью ${ confidence }% будут цитировать наши потомки`,
   ];
 
-  await vk.sendMessage(messages[Math.floor(Math.random() * messages.length)]);
+  await vk.sendMessage({
+    text: messages[Math.floor(Math.random() * messages.length)],
+  });
 }
 
 export default async function (message: VkMessage) {

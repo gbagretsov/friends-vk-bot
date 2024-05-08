@@ -12,7 +12,9 @@ export const intermediateStatisticsOutputter: Outputter<Statistics> = {
   output: async data => {
     const statisticsMessage = await getStatisticsMessage(data);
     console.log(`Statistics: ${statisticsMessage}`);
-    console.log(`Statistics message sent response: ${await vk.sendMessage(statisticsMessage)}`);
+    console.log(`Statistics message sent response: ${await vk.sendMessage({
+      text: statisticsMessage,
+    })}`);
   }
 };
 

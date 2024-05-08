@@ -129,18 +129,24 @@ export default async () => {
   console.log(`Forecast: ${ util.inspect(forecast) }`);
   const weatherMessage = getWeatherMessage(currentWeather, forecast, uvIndex);
 
-  const randomID = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
-  console.log(`Sticker sent response: ${ await vk.sendSticker(randomID) }`);
+  const randomStickerId = stickersIDs[Math.floor(Math.random() * stickersIDs.length)];
+  console.log(`Sticker sent response: ${ await vk.sendMessage({
+    stickerId: randomStickerId,
+  }) }`);
 
   console.log(`Weather message: ${ weatherMessage }`);
-  console.log(`Weather message sent response: ${ await vk.sendMessage(weatherMessage) }`);
+  console.log(`Weather message sent response: ${ await vk.sendMessage({
+    text: weatherMessage,
+  }) }`);
 
   await holidaysOutputter.output(todayHolidays);
 
   const ads = await getAdsMessage();
   console.log(`Ads: ${ ads }`);
   if (ads) {
-    console.log(`Ads message sent response: ${ await vk.sendMessage(ads) }`);
+    console.log(`Ads message sent response: ${ await vk.sendMessage({
+      text: ads,
+    }) }`);
   }
 
   const statisticsObject = await getStatistics();

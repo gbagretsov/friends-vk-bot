@@ -27,7 +27,15 @@ const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.com/method';
 const apiVersion = '5.199';
 
-async function sendMessage(message: string, delayMs?: number): Promise<boolean> {
+export type MessagePayload = {
+  text?: string;
+  stickerId?: number | string;
+  keyboard?: VkKeyboard;
+  photos?: Buffer[];
+  replyToConversationMessageId?: number;
+};
+
+async function sendMessage(message: MessagePayload, delayMs?: number): Promise<boolean> {
   const setTypingStatusIfNeeded = async function() {
     if (delayMs) {
       await needle('get', `${apiUrl}/messages.setActivity?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&type=typing`);
@@ -38,28 +46,68 @@ async function sendMessage(message: string, delayMs?: number): Promise<boolean> 
   await setTypingStatusIfNeeded();
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
-  const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(message)}&random_id=${randomId}`);
-  const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
-  if (isVkErrorResponse(vkResponse)) {
-    console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
-    return false;
-  }
-  return true;
-}
 
-async function sendKeyboard(keyboard: VkKeyboard, text: string, replyToConversationMessageId?: number): Promise<boolean> {
-  const randomId = Date.now();
-  console.log(`Random message ID: ${randomId}`);
-  let url = `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&message=${encodeURIComponent(text)}&keyboard=${encodeURIComponent(JSON.stringify(keyboard))}&random_id=${randomId}`;
-  if (replyToConversationMessageId) {
-    url += '&forward=' + encodeURIComponent(JSON.stringify({
+  let sendMessageUrl = `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&random_id=${randomId}`;
+
+  if (message.text) {
+    sendMessageUrl += `&message=${encodeURIComponent(message.text)}`;
+  }
+
+  if (message.stickerId) {
+    sendMessageUrl += `&sticker_id=${message.stickerId}`;
+  }
+
+  if (message.keyboard) {
+    sendMessageUrl += `&keyboard=${encodeURIComponent(JSON.stringify(message.keyboard))}`;
+  }
+
+  if (message.photos) {
+    const attachments: string[] = [];
+
+    for (const photoBuffer of message.photos) {
+      // Получаем адрес сервера для загрузки фото
+      const uploadUrlResponse =
+        await needle('get', `${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
+
+      // Загружаем фотографию
+      const uploadUrl = uploadUrlResponse.body.response.upload_url;
+      const data = {
+        file: {
+          buffer: photoBuffer,
+          filename: 'filename.jpg',
+          content_type: 'image/jpeg',
+        }
+      };
+
+      const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
+
+      // Сохраняем фотографию
+      const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
+      const savedPhotoInfoResponse =
+        await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+
+      // Прикрепляем фотографию
+      const photoInfo = savedPhotoInfoResponse.body.response[0];
+      const ownerID = photoInfo.owner_id;
+      const mediaID = photoInfo.id;
+      const attachment = `photo${ownerID}_${mediaID}`;
+      attachments.push(attachment);
+    }
+
+    sendMessageUrl += `&attachment=${encodeURIComponent(attachments.join(','))}`;
+  }
+
+  if (message.replyToConversationMessageId) {
+    sendMessageUrl += '&forward=' + encodeURIComponent(JSON.stringify({
       peer_id: peerID,
-      conversation_message_ids: [ replyToConversationMessageId ],
+      conversation_message_ids: [ message.replyToConversationMessageId ],
       is_reply: true,
     }));
   }
-  const response = await needle('get', url);
+
+  const response = await needle('get', sendMessageUrl);
   const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
+
   if (isVkErrorResponse(vkResponse)) {
     console.error(`Error in sendMessage(): ${vkResponse.error.error_msg}`);
     return false;
@@ -91,18 +139,6 @@ async function sendReaction(cmid: number, reaction: VkMessageReaction): Promise<
   return true;
 }
 
-async function sendSticker(stickerId: number | string): Promise<boolean> {
-  const randomId = Date.now();
-  console.log(`Random message ID: ${randomId}`);
-  const response = await needle('get', `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&sticker_id=${stickerId}&random_id=${randomId}`);
-  const vkResponse = response.body as VkSuccessResponse<number> | VkErrorResponse;
-  if (isVkErrorResponse(vkResponse)) {
-    console.error(`Error in sendSticker(): ${vkResponse.error.error_msg}`);
-    return false;
-  }
-  return true;
-}
-
 async function deleteMessage(conversationMessageId: number): Promise<boolean> {
   const randomId = Date.now();
   console.log(`Random message ID: ${randomId}`);
@@ -127,6 +163,19 @@ async function deleteMessage(conversationMessageId: number): Promise<boolean> {
   return true;
 }
 
+async function getMessageByConversationMessageId(cmid: number): Promise<VkMessage | null> {
+  const response = await needle('get', `${apiUrl}/messages.getByConversationMessageId?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&conversation_message_ids=${cmid}`);
+  const vkResponse = response.body as VkSuccessResponse<{
+    count: number;
+    items: VkMessage[];
+  }> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in deleteMessage(): ${vkResponse.error.error_msg}`);
+    return null;
+  }
+  return vkResponse.response.items[0];
+}
+
 /**
  * @deprecated use getUserInfo
  */
@@ -149,54 +198,6 @@ async function getUserInfo(uid: number): Promise<VkUser | null> {
     return null;
   }
   return vkResponse.response[0];
-}
-
-async function sendMessageWithPhotos(photoBuffers: Buffer[], text?: string): Promise<void> {
-  const attachments: string[] = [];
-
-  for (const photoBuffer of photoBuffers) {
-    // Получаем адрес сервера для загрузки фото
-    const uploadUrlResponse =
-      await needle('get', `${apiUrl}/photos.getMessagesUploadServer?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}`);
-
-    // Загружаем фотографию
-    const uploadUrl = uploadUrlResponse.body.response.upload_url;
-    const data = {
-      file: {
-        buffer: photoBuffer,
-        filename: 'filename.jpg',
-        content_type: 'image/jpeg',
-      }
-    };
-
-    const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
-
-    // Сохраняем фотографию
-    const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
-    const savedPhotoInfoResponse =
-      await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
-
-    // Прикрепляем фотографию
-    const photoInfo = savedPhotoInfoResponse.body.response[0];
-    const ownerID = photoInfo.owner_id;
-    const mediaID = photoInfo.id;
-    const attachment = `photo${ownerID}_${mediaID}`;
-    attachments.push(attachment);
-  }
-
-  const randomId = Date.now();
-  console.log(`Random message ID: ${randomId}`);
-
-  let messageSendUrl = `${apiUrl}/messages.send?v=${apiVersion}&access_token=${accessToken}&peer_id=${peerID}&attachment=${encodeURIComponent(attachments.join(','))}&random_id=${randomId}`;
-  if (text) {
-    messageSendUrl += `&message=${encodeURI(text)}`;
-  }
-
-  await needle('get', messageSendUrl);
-}
-
-async function sendPhotoToChat(photoBuffer: Buffer): Promise<void> {
-  await sendMessageWithPhotos([photoBuffer]);
 }
 
 async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<void> {
@@ -352,12 +353,9 @@ export default {
   sendMessage,
   sendReaction,
   sendMessageEventAnswer,
-  sendKeyboard,
-  sendSticker,
+  getMessageByConversationMessageId,
   getUserName,
   getUserInfo,
-  sendPhotoToChat,
-  sendMessageWithPhotos,
   addPhotoToAlbum,
   getPolls,
   getConversationMembers,

@@ -9,9 +9,7 @@ import db from '../db';
 import {VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
-import {MemesStatistics, TopMeme} from './model/MemesStatistics';
-import {writeFile, mkdir, access, rm} from 'fs/promises';
-import {readFileSync} from 'fs';
+import {MemesPerAuthor, MemesStatistics, TopMeme} from './model/MemesStatistics';
 
 config();
 
@@ -38,7 +36,7 @@ const REQUIRED_EVALUATIONS = 3;
 const TOP_MEMES_AMOUNT_LIMIT = 10;
 const MEMES_DIR = 'memes';
 
-function getPhotoSize(message: VkMessage): VkPhotoSize | null {
+export function getPhotoSize(message: VkMessage): VkPhotoSize | null {
   let photoSize = null;
   const attachment = message.attachments[0];
   if (attachment?.type === VkMessageAttachmentType.WALL) {
@@ -91,13 +89,6 @@ async function isMeme(message: VkMessage): Promise<boolean> {
   const imageLoadResponse = await needle('get', photoSize.url, null, { follow_max: 1 });
   const imageBuffer = imageLoadResponse.body;
 
-  try {
-    await access(MEMES_DIR);
-  } catch (e) {
-    await mkdir(MEMES_DIR);
-  }
-  await writeFile(getMemePath(message.conversation_message_id), imageBuffer);
-
   const worker = await createWorker('rus');
   const rectangles = getRectangles(photoSize);
 
@@ -143,7 +134,11 @@ export async function handleMessage(message: VkMessage): Promise<boolean> {
       ],
     };
     const evaluationProposalMessage = await getEvaluationProposalMessage(EVALUATION_KEY_LABELS[0], EVALUATION_KEY_LABELS[EVALUATION_KEY_LABELS.length - 1], message.from_id);
-    vk.sendKeyboard(keyboard, evaluationProposalMessage, message.conversation_message_id);
+    vk.sendMessage({
+      keyboard,
+      text: evaluationProposalMessage,
+      replyToConversationMessageId: message.conversation_message_id,
+    });
 
     try {
       await db.query(`INSERT INTO friends_vk_bot.memes VALUES (${conversationMessageId}, ${message.from_id})`);
@@ -221,32 +216,41 @@ export async function getMemesStatistics(): Promise<MemesStatistics> {
     conversation_message_id: number;
     author_id: number;
     rating: number;
+    evaluations_count: number;
+    memes_count: number;
   }>(`
-    SELECT memes.conversation_message_id, memes.author_id, avg(evaluation) AS rating
+    SELECT memes.conversation_message_id,
+           memes.author_id,
+           avg(evaluation) AS rating,
+           count(*) as evaluations_count,
+           memes_count
     FROM friends_vk_bot.memes
     JOIN friends_vk_bot.memes_evaluations me ON memes.conversation_message_id = me.conversation_message_id
-    GROUP BY memes.conversation_message_id
+    JOIN (
+        SELECT memes.author_id, count(*) as memes_count
+        FROM friends_vk_bot.memes
+        GROUP BY memes.author_id
+    ) mc ON memes.author_id = mc.author_id
+    GROUP BY memes.conversation_message_id, memes_count
     HAVING count(*) >= ${REQUIRED_EVALUATIONS}
-    ORDER BY rating DESC
+    ORDER BY rating DESC, evaluations_count DESC, memes_count
     LIMIT ${TOP_MEMES_AMOUNT_LIMIT}
   `);
 
-  const topMemes = result.rows.map<TopMeme | null>(row => {
-    try {
-      const image = readFileSync(getMemePath(row.conversation_message_id));
-      return {
-        author_id: row.author_id,
-        rating: +row.rating,
-        image,
-      };
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
+  const memesPerAuthor: MemesPerAuthor = { };
+  const topMemes: TopMeme[] = result.rows.map<TopMeme>(row => {
+    memesPerAuthor[row.author_id] = row.memes_count;
+    return {
+      cmidId: row.conversation_message_id,
+      authorId: row.author_id,
+      rating: +row.rating,
+      evaluationsCount: row.evaluations_count,
+    };
   });
 
   return {
-    topMemes: topMemes.filter(topMeme => !!topMeme) as TopMeme[],
+    topMemes,
+    memesPerAuthor,
   };
 }
 
@@ -254,7 +258,6 @@ export async function resetMemesStatistics(): Promise<void> {
   console.log('Resetting memes statistics...');
   try {
     await db.query('TRUNCATE TABLE friends_vk_bot.memes, friends_vk_bot.memes_skip, friends_vk_bot.memes_evaluations');
-    await rm(MEMES_DIR, { recursive: true, force: true });
   } catch (error) {
     console.log(error);
   }

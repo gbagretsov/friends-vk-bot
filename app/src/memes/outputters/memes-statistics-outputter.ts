@@ -3,10 +3,14 @@ import vk from '../../vk/vk';
 import {MemesStatistics} from '../model/MemesStatistics';
 import {getLeaderBoardPhoto, getMonthNameInNominativeCase, Month} from '../../util';
 import {VkUser} from '../../vk/model/VkUser';
+import {getPhotoSize} from '../memes';
+import needle from 'needle';
 
 export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
-  output: async data => {
-    if (data.topMemes.length === 0) {
+  output: async memesStats => {
+    const {topMemes, memesPerAuthor} = memesStats;
+
+    if (topMemes.length === 0) {
       return;
     }
 
@@ -14,23 +18,44 @@ export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
     const monthNomCase = getMonthNameInNominativeCase(date.getMonth() - 1);
     const year = date.getMonth() === Month.JANUARY ? date.getFullYear() - 1 : date.getFullYear();
 
-    let topMemesText = `⭐ Топ мемов за ${monthNomCase} ${year}\n\n`;
+    const topMemesText = `⭐ Топ мемов за ${monthNomCase} ${year}`;
     const memeLeaderBoardPhotos: Buffer[] = [];
 
-    for (let i = 0; i < data.topMemes.length; i++) {
-      const meme = data.topMemes[i];
-      const author = await vk.getUserInfo(meme.author_id) as VkUser;
+    for (let i = 0; i < topMemes.length; i++) {
+      const meme = topMemes[i];
+      const author = await vk.getUserInfo(meme.authorId) as VkUser;
       const dateLine = `${monthNomCase} ${year}`;
       const authorInfo = `${author.first_name} ${author.last_name}`;
-      // Посмотрим, будет ли понятно через пару лет, почему у меня бомбило с этого бага и зачем здесь нужен replace
-      const ratingInfo = `${meme.rating.toFixed(2).replace('.', '.\u{2060}')}`;
+      const ratingInfo = `${meme.rating.toFixed(2)}`;
 
-      topMemesText += `${i + 1} место — ${authorInfo}, средний балл ${ratingInfo}\n`;
+      const message = await vk.getMessageByConversationMessageId(meme.cmidId);
+      if (!message) {
+        continue;
+      }
 
-      const memeLeaderBoardPhoto = await getLeaderBoardPhoto(meme.image, `Лучший мем месяца #${i + 1}`, authorInfo, dateLine);
+      const photoSize = getPhotoSize(message);
+      if (!photoSize) {
+        continue;
+      }
+
+      const imageLoadResponse = await needle('get', photoSize.url, null, { follow_max: 1 });
+      const imageBuffer = imageLoadResponse.body;
+      const memeLeaderBoardPhoto = await getLeaderBoardPhoto(imageBuffer, `Лучший мем месяца #${i + 1}`, authorInfo, dateLine);
       memeLeaderBoardPhotos.push(memeLeaderBoardPhoto);
     }
 
-    await vk.sendMessageWithPhotos(memeLeaderBoardPhotos, topMemesText);
+    await vk.sendMessage({
+      photos: memeLeaderBoardPhotos,
+      text: topMemesText,
+      keyboard: {
+        inline: true,
+        buttons: [[{
+          action: {
+            type: 'text',
+            label: 'Подробный отчёт',
+          },
+        }]]
+      }
+    });
   }
 };
