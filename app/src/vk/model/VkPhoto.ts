@@ -5,5 +5,8 @@ export type VkPhotoSize = {
 }
 
 export type VkPhoto = {
+  id: number;
+  owner_id: number;
+  access_key?: string;
   sizes: VkPhotoSize[];
 };

@@ -6,7 +6,7 @@ import {VkKeyboard} from '../vk/model/VkKeyboard';
 import vk from '../vk/vk';
 import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
 import db from '../db';
-import {VkPhotoSize} from '../vk/model/VkPhoto';
+import {VkPhoto, VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
 import {MemesPerAuthor, MemesStatistics, TopMeme} from './model/MemesStatistics';
@@ -36,19 +36,26 @@ const REQUIRED_EVALUATIONS = 3;
 const TOP_MEMES_AMOUNT_LIMIT = 10;
 const MEMES_DIR = 'memes';
 
-export function getPhotoSize(message: VkMessage): VkPhotoSize | null {
-  let photoSize = null;
+export function getPhotoAttachment(message: VkMessage): VkPhoto | null {
   const attachment = message.attachments[0];
   if (attachment?.type === VkMessageAttachmentType.WALL) {
     const wallAttachment = attachment.wall.attachments[0];
     if (wallAttachment?.type === VkMessageAttachmentType.PHOTO) {
-      photoSize = getLargestPhotoSize(wallAttachment.photo);
+      return wallAttachment.photo;
     }
   }
   if (attachment?.type === VkMessageAttachmentType.PHOTO) {
-    photoSize = getLargestPhotoSize(attachment.photo);
+    return attachment.photo;
   }
-  return photoSize;
+  return null;
+}
+
+export function getPhotoSize(message: VkMessage): VkPhotoSize | null {
+  const photo = getPhotoAttachment(message);
+  if (photo) {
+    return getLargestPhotoSize(photo);
+  }
+  return null;
 }
 
 function getRectangles(photoSize: VkPhotoSize): Rectangle[] {

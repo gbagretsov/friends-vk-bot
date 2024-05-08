@@ -8,6 +8,7 @@ export type VkKeyboard = {
       label: string;
       payload?: string;
       app_id?: number;
+      hash?: string;
     },
     color?: 'primary' | 'secondary' | 'positive' | 'negative';
   }[][];

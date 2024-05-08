@@ -3,12 +3,15 @@ import vk from '../../vk/vk';
 import {MemesStatistics} from '../model/MemesStatistics';
 import {getLeaderBoardPhoto, getMonthNameInNominativeCase, Month} from '../../util';
 import {VkUser} from '../../vk/model/VkUser';
-import {getPhotoSize} from '../memes';
+import {getPhotoAttachment, getPhotoSize} from '../memes';
 import needle from 'needle';
+
+const MEMES_STATS_APP_ID = 51865720;
 
 export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
   output: async memesStats => {
     const {topMemes, memesPerAuthor} = memesStats;
+    const topMemesTransfer: string[] = [];
 
     if (topMemes.length === 0) {
       return;
@@ -26,15 +29,15 @@ export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
       const author = await vk.getUserInfo(meme.authorId) as VkUser;
       const dateLine = `${monthNomCase} ${year}`;
       const authorInfo = `${author.first_name} ${author.last_name}`;
-      const ratingInfo = `${meme.rating.toFixed(2)}`;
 
       const message = await vk.getMessageByConversationMessageId(meme.cmidId);
       if (!message) {
         continue;
       }
 
+      const photo = getPhotoAttachment(message);
       const photoSize = getPhotoSize(message);
-      if (!photoSize) {
+      if (!photo || !photoSize) {
         continue;
       }
 
@@ -42,7 +45,25 @@ export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
       const imageBuffer = imageLoadResponse.body;
       const memeLeaderBoardPhoto = await getLeaderBoardPhoto(imageBuffer, `Лучший мем месяца #${i + 1}`, authorInfo, dateLine);
       memeLeaderBoardPhotos.push(memeLeaderBoardPhoto);
+
+      const shortUrl = await vk.getShortLink(photoSize.url);
+      if (!shortUrl) {
+        console.log('No short url for image provided');
+        continue;
+      }
+
+      topMemesTransfer.push(
+        shortUrl.key + ';' +
+        meme.authorId + ';' +
+        meme.rating.toFixed(2) + ';' +
+        meme.evaluationsCount + ';' +
+        memesPerAuthor[meme.authorId]
+      );
     }
+
+    const topMemesTransferJoined = topMemesTransfer.join(';');
+    console.log(topMemesTransferJoined);
+    console.log(`Hash length = ${topMemesTransferJoined.length}`);
 
     await vk.sendMessage({
       photos: memeLeaderBoardPhotos,
@@ -51,8 +72,10 @@ export const memesStatisticsOutputter: Outputter<MemesStatistics> = {
         inline: true,
         buttons: [[{
           action: {
-            type: 'text',
+            type: 'open_app',
             label: 'Подробный отчёт',
+            app_id: MEMES_STATS_APP_ID,
+            hash: topMemesTransferJoined
           },
         }]]
       }

@@ -16,6 +16,7 @@ import {VkKeyboard} from './model/VkKeyboard';
 import retry, {Options} from 'async-retry';
 import {VkMessageReaction} from './model/VkMessageReaction';
 import {VkEvent} from './model/events';
+import {VkShortLink} from './model/VkShortLink';
 
 config();
 
@@ -81,17 +82,22 @@ async function sendMessage(message: MessagePayload, delayMs?: number): Promise<b
 
       const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
 
-      // Сохраняем фотографию
-      const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
-      const savedPhotoInfoResponse =
-        await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
+      try {
+        // Сохраняем фотографию
+        const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
+        const savedPhotoInfoResponse =
+          await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
 
-      // Прикрепляем фотографию
-      const photoInfo = savedPhotoInfoResponse.body.response[0];
-      const ownerID = photoInfo.owner_id;
-      const mediaID = photoInfo.id;
-      const attachment = `photo${ownerID}_${mediaID}`;
-      attachments.push(attachment);
+        // Прикрепляем фотографию
+        const photoInfo = savedPhotoInfoResponse.body.response[0];
+        const ownerID = photoInfo.owner_id;
+        const mediaID = photoInfo.id;
+        const attachment = `photo${ownerID}_${mediaID}`;
+        attachments.push(attachment);
+      } catch (e) {
+        console.error(`Error in sendMessage() with photos: ${e}`);
+        console.error(photoInfoResponse.body);
+      }
     }
 
     sendMessageUrl += `&attachment=${encodeURIComponent(attachments.join(','))}`;
@@ -269,6 +275,16 @@ async function sendYouTubeVideo(youTubeVideoId: string): Promise<boolean> {
   return true;
 }
 
+async function getShortLink(url: string): Promise<VkShortLink | null> {
+  const response = await needle('get', `${apiUrl}/utils.getShortLink?v=${apiVersion}&access_token=${accessToken}&url=${encodeURIComponent(url)}&private=0`);
+  const vkResponse = response.body as VkSuccessResponse<{ short_url: string }> | VkErrorResponse;
+  if (isVkErrorResponse(vkResponse)) {
+    console.error(`Error in getShortLink(): ${vkResponse.error.error_msg}`);
+    return null;
+  }
+  return vkResponse.response as VkShortLink;
+}
+
 function getStickerId(message: VkMessage): number | null {
   if (isStickerMessage(message)) {
     return (message.attachments[0] as VkMessageStickerAttachment).sticker.sticker_id;
@@ -367,4 +383,5 @@ export default {
   isPoll,
   startLongPoll,
   deleteMessage,
+  getShortLink,
 };
