@@ -28,9 +28,7 @@ jest.mock('needle', () => (method: string, url: string) => {
 });
 
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
-const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
 const getUserNameSpy = jest.spyOn(vk, 'getUserName').mockResolvedValue('Евлампий');
-const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 
 const dbQuerySpy = jest.spyOn(db, 'query').mockImplementation(_query => {
   return Promise.resolve({ rows: _query.includes('SELECT') ? [ taskFromDb ] : []} as QueryResult);
@@ -52,9 +50,9 @@ describe('Game', () => {
       '(bot generates a task and sends a greeting message and a picture with task)', async () => {
       await game(testMessages.messageWithGameRequest);
       expect(dbQuerySpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Игра начинается/);
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(1);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(2);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Игра начинается/);
+      expect(sendMessageSpy.mock.calls[1][0].photos).toBeDefined();
     });
 
     test('When bot receives a game start request and game is not started, bot does not pass the message further', async () => {
@@ -66,8 +64,7 @@ describe('Game', () => {
       await game(testMessages.messageWithGameRequest);
       await game(testMessages.messageWithGameRequest);
       expect(dbQuerySpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(1);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(2);
     });
 
     test('When bot receives a game start request and game is running, bot does not pass the message further', async () => {
@@ -82,8 +79,8 @@ describe('Game', () => {
       await game(testMessages.messageWithGameRequest);
       await game(testMessages.messageWithCorrectAnswer);
       expect(getUserNameSpy).toHaveBeenCalledWith(1);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/Евлампий/);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/абракадабра/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/Евлампий/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/абракадабра/);
     });
 
     test('When a game is running and bot receives correct answer, ' +
@@ -95,7 +92,6 @@ describe('Game', () => {
       await endCurrentRound();
       expect(getUserNameSpy).not.toHaveBeenCalled();
       expect(sendMessageSpy).not.toHaveBeenCalled();
-      expect(sendPhotoToChatSpy).not.toHaveBeenCalled();
       expect(adminAddWordSpy).not.toHaveBeenCalled();
     });
 
@@ -104,8 +100,8 @@ describe('Game', () => {
       await game(testMessages.messageWithGameRequest);
       await game(testMessages.messageWithCorrectAnswerInUppercase);
       expect(getUserNameSpy).toHaveBeenCalledWith(1);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/Евлампий/);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/абракадабра/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/Евлампий/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/абракадабра/);
     });
 
     test('When a game is running and bot receives more than one correct answer, ' +
@@ -115,9 +111,9 @@ describe('Game', () => {
       await game(testMessages.messageWithCorrectAnswer);
       await game(testMessages.messageWithCorrectAnswer);
       expect(getUserNameSpy).toHaveBeenCalledWith(1);
-      expect(sendMessageSpy).toHaveBeenCalledTimes(2);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/Евлампий/);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/абракадабра/);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(3);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/Евлампий/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/абракадабра/);
     });
   });
 
@@ -128,9 +124,9 @@ describe('Game', () => {
       await game(testMessages.messageWithGameRequest);
       await endCurrentRound();
       await endCurrentRound();
-      expect(sendMessageSpy).toHaveBeenCalledTimes(4);
-      expect(sendMessageSpy.mock.calls[3][0]).toMatch(/Не разгадали?/);
-      expect(sendMessageSpy.mock.calls[3][0]).toMatch(/абракадабра/);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(6);
+      expect(sendMessageSpy.mock.calls[5][0].text).toMatch(/Не разгадали?/);
+      expect(sendMessageSpy.mock.calls[5][0].text).toMatch(/абракадабра/);
     });
 
     test('When a game is running and bot does not get correct answer during second round, ' +
@@ -143,7 +139,6 @@ describe('Game', () => {
       await game(testMessages.messageWithIncorrectAnswer);
       await game(testMessages.messageWithCorrectAnswer);
       expect(sendMessageSpy).not.toHaveBeenCalled();
-      expect(sendPhotoToChatSpy).not.toHaveBeenCalled();
       expect(getUserNameSpy).not.toHaveBeenCalled();
       expect(adminAddWordSpy).not.toHaveBeenCalled();
     });
@@ -180,14 +175,14 @@ describe('Game', () => {
       setMocks();
       await game(testMessages.messageWithGameRequest);
       await endCurrentRound();
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/подсказка/);
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(2);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/подсказка/);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(5);
     });
 
     test('Bot can send an additional hint with first letter in first round', async () => {
       setMocks({ letterHintInFirstRound: true });
       await game(testMessages.messageWithGameRequest);
-      expect(sendMessageSpy.mock.calls[1][0]).toMatch(/В моём слове 11 букв, первая — А/);
+      expect(sendMessageSpy.mock.calls[2][0].text).toMatch(/В моём слове 11 букв, первая — А/);
     });
 
     test('If bot did not send an additional hint with first letter in first round, ' +
@@ -195,7 +190,7 @@ describe('Game', () => {
       setMocks({ letterHintInFirstRound: false });
       await game(testMessages.messageWithGameRequest);
       await endCurrentRound();
-      expect(sendMessageSpy.mock.calls[2][0]).toMatch(/В моём слове 11 букв, первая — А/);
+      expect(sendMessageSpy.mock.calls[4][0].text).toMatch(/В моём слове 11 букв, первая — А/);
     });
   });
 
@@ -204,17 +199,16 @@ describe('Game', () => {
       'new game does not start (task is not sent)', async () => {
       setMocks({ searchQuotaExceeded: true });
       await game(testMessages.messageWithGameRequest);
-      expect(sendPhotoToChatSpy).not.toHaveBeenCalled();
+      expect(sendMessageSpy).toHaveBeenCalledTimes(2);
     });
 
     test('When bot receives a game start request and game is not started and daily quota of pictures search is exceeded, ' +
       'bot sends a \'tired\' sticker and a refusal message', async () => {
       setMocks({ searchQuotaExceeded: true });
       await game(testMessages.messageWithGameRequest);
-      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/устал/);
-      expect(sendStickerSpy).toHaveBeenCalledTimes(1);
-      expect(sendStickerSpy.mock.calls[0][0]).toBe(13);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(2);
+      expect(sendMessageSpy.mock.calls[0][0].stickerId).toBe(13);
+      expect(sendMessageSpy.mock.calls[1][0].text).toMatch(/устал/);
     });
   });
 
@@ -225,7 +219,7 @@ describe('Game', () => {
       expect(adminAddWordSpy).toHaveBeenCalledTimes(1);
       expect(adminAddWordSpy).toHaveBeenCalledWith('покемон', true);
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Я запомнил слово "покемон"/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Я запомнил слово "покемон"/);
     });
 
     test('When bot receives a word addition request and this word exists already, ' +
@@ -235,7 +229,7 @@ describe('Game', () => {
       expect(adminAddWordSpy).toHaveBeenCalledTimes(1);
       expect(adminAddWordSpy).toHaveBeenCalledWith('покемон', true);
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Я уже знаю слово "покемон"/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Я уже знаю слово "покемон"/);
     });
 
     test('When bot receives a word deletion request, bot extracts a word, deletes it and sends a success message', async () => {
@@ -244,7 +238,7 @@ describe('Game', () => {
       expect(adminDeleteWordSpy).toHaveBeenCalledTimes(1);
       expect(adminDeleteWordSpy).toHaveBeenCalledWith('покемон');
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/Я забыл слово "покемон"/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/Я забыл слово "покемон"/);
     });
   });
 

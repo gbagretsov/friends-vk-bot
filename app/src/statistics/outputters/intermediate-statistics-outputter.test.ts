@@ -16,30 +16,30 @@ describe('Intermediate statistics outputter', () => {
   test('Bot correctly displays statistics for current month', async () => {
     await intermediateStatisticsOutputter.output(statisticsObjects.commonExample);
     const message = sendMessageSpy.mock.calls[0][0];
-    expect(message).toMatch('Промежуточная статистика беседы за январь');
-    expect(message).toMatch('100 сообщений');
+    expect(message.text).toMatch('Промежуточная статистика беседы за январь');
+    expect(message.text).toMatch('100 сообщений');
   });
 
   test('Bot correctly shows most active users (case with one user)', async () => {
     await intermediateStatisticsOutputter.output(statisticsObjects.oneMostActiveUser);
     const message = sendMessageSpy.mock.calls[0][0];
-    expect(message).toMatch('Самый активный участник');
-    expect(message).toMatch('Арсений');
+    expect(message.text).toMatch('Самый активный участник');
+    expect(message.text).toMatch('Арсений');
   });
 
   test('Bot correctly shows most active users (case with two users)', async () => {
     await intermediateStatisticsOutputter.output(statisticsObjects.twoMostActiveUsers);
     const message = sendMessageSpy.mock.calls[0][0];
-    expect(message).toMatch('Самые активные участники');
-    expect(message).toMatch('Арсений');
-    expect(message).toMatch('Борис');
+    expect(message.text).toMatch('Самые активные участники');
+    expect(message.text).toMatch('Арсений');
+    expect(message.text).toMatch('Борис');
   });
 
   test('Bot does not show most active users if there were no messages in previous month', async () => {
     await intermediateStatisticsOutputter.output(statisticsObjects.zeroMessagesInTotal);
     const message = sendMessageSpy.mock.calls[0][0];
-    expect(message).not.toMatch('Самые активные участники');
-    expect(message).not.toMatch('Самый активный участник');
+    expect(message.text).not.toMatch('Самые активные участники');
+    expect(message.text).not.toMatch('Самый активный участник');
   });
 
 });

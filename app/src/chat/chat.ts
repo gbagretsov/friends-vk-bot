@@ -9,7 +9,9 @@ export default function (message: VkMessage) {
 
   if (text.startsWith('бот,') || text.includes(`club${process.env.VK_GROUP_ID}`)) {
     const uid = message.from_id;
-    vk.getUserName(uid).then(response => vk.sendMessage(`Привет, ${response}!`, 5000));
+    vk.getUserName(uid).then(response => vk.sendMessage({
+      text: `Привет, ${response}!`,
+    }, 5000));
     return true;
   }
 

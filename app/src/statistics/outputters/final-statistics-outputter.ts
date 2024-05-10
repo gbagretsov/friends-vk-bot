@@ -13,12 +13,16 @@ export const finalStatisticsOutputter: Outputter<Statistics> = {
   output: async data => {
     const statisticsMessage = await getStatisticsMessage(data);
     console.log(`Statistics: ${statisticsMessage}`);
-    console.log(`Statistics message sent response: ${await vk.sendMessage(statisticsMessage)}`);
+    console.log(`Statistics message sent response: ${await vk.sendMessage({
+      text: statisticsMessage,
+    })}`);
     const leaderboardPhotos = data.leaderboardPhotos;
 
     const albumId = process.env.VK_LEADERBOARD_ALBUM_ID;
     for (const photoBuffer of leaderboardPhotos) {
-      await vk.sendPhotoToChat(photoBuffer);
+      await vk.sendMessage({
+        photos: [photoBuffer],
+      });
       if (albumId) {
         await vk.addPhotoToAlbum(photoBuffer, albumId);
       }

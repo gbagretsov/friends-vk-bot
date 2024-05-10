@@ -21,7 +21,7 @@ export const holidaysOutputter: Outputter<Map<HolidayCategory, string[]> | null>
 
     if (!todayHolidays) {
       console.log(`Holidays not available - message sent response: ${
-        await vk.sendMessage('Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен')
+        await vk.sendMessage({ text: 'Я не смог узнать, какие сегодня праздники 😞 Мой источник calend.ru был недоступен' })
       }`);
     } else if (todayHolidays.size > 0) {
       console.log(`Holidays: ${ util.inspect(todayHolidays) }`);
@@ -46,13 +46,18 @@ export const holidaysOutputter: Outputter<Map<HolidayCategory, string[]> | null>
         });
         holidaysMessage += `\n\n${categoryMessage}`;
       }
-      await vk.sendKeyboard(DETAILS_BUTTON_KEYBOARD, holidaysMessage);
+      await vk.sendMessage({
+        keyboard: DETAILS_BUTTON_KEYBOARD,
+        text: holidaysMessage,
+      });
     } else {
       const response = await db.query<{key: string, value: string}>
       ('SELECT value FROM friends_vk_bot.state WHERE key = \'absent_holidays_phrases\';');
       const absentHolidaysPhrases = response.rows[0].value.split('\n');
       console.log(`Holidays list is empty - message sent response: ${
-        await vk.sendMessage(absentHolidaysPhrases[Math.floor(Math.random() * absentHolidaysPhrases.length)])
+        await vk.sendMessage({
+          text: absentHolidaysPhrases[Math.floor(Math.random() * absentHolidaysPhrases.length)],
+        })
       }`);
     }
   }

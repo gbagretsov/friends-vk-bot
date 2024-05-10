@@ -3,10 +3,12 @@ export type VkKeyboard = {
   one_time?: boolean,
   buttons: {
     action: {
-      type: 'open_link' | 'text' | 'callback';
+      type: 'open_link' | 'text' | 'callback' | 'open_app';
       link?: string;
       label: string;
       payload?: string;
+      app_id?: number;
+      hash?: string;
     },
     color?: 'primary' | 'secondary' | 'positive' | 'negative';
   }[][];

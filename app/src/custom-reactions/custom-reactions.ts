@@ -47,7 +47,9 @@ async function handleMessage(message: VkMessage): Promise<boolean> {
   console.log(`Custom reaction type is ${customReaction.type}, content is ${customReaction.content}`);
 
   if (customReaction.type === CustomReactionType.TEXT) {
-    vk.sendMessage(customReaction.content, 5000);
+    vk.sendMessage({
+      text: customReaction.content,
+    }, 5000);
   }
 
   if (customReaction.type === CustomReactionType.PICTURE) {
@@ -55,7 +57,9 @@ async function handleMessage(message: VkMessage): Promise<boolean> {
     const downloadLink = getDownloadLinkByGoogleDiskWebViewLink(customReaction.content);
     needle('get', downloadLink, null, redirectOptions).then(response => {
       const imageBuffer = response.body;
-      vk.sendPhotoToChat(imageBuffer);
+      vk.sendMessage({
+        photos: [imageBuffer],
+      });
     });
   }
 
@@ -64,7 +68,9 @@ async function handleMessage(message: VkMessage): Promise<boolean> {
   }
 
   if (customReaction.type === CustomReactionType.STICKER) {
-    vk.sendSticker(customReaction.content);
+    vk.sendMessage({
+      stickerId: customReaction.content,
+    });
   }
 
   return true;

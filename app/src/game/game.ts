@@ -65,13 +65,19 @@ async function handleAddWordRequest(text: string): Promise<void> {
   if (word) {
     const result = await admin.addWord(word, true);
     if (result === AddWordResult.DUPLICATE_WORD) {
-      await vk.sendMessage(`Я уже знаю слово "${ word }"! 😊`, 3000);
+      await vk.sendMessage({
+        text: `Я уже знаю слово "${ word }"! 😊`,
+      }, 3000);
     } else if (result === AddWordResult.SUCCESS) {
-      await vk.sendMessage(`👍 Я запомнил слово "${ word }"!`, 3000);
+      await vk.sendMessage({
+        text: `👍 Я запомнил слово "${ word }"!`,
+      }, 3000);
     }
   } else {
     const userName = await vk.getUserName(message.from_id);
-    await vk.sendMessage(`${userName}, я тебя не понимаю 😒`, 3000);
+    await vk.sendMessage({
+      text: `${userName}, я тебя не понимаю 😒`,
+    }, 3000);
   }
 }
 
@@ -86,10 +92,14 @@ async function handleDeleteWordRequest(text: string): Promise<void> {
 
   if (word) {
     await admin.deleteWord(word);
-    await vk.sendMessage(`👍 Я забыл слово "${ word }"!`, 3000);
+    await vk.sendMessage({
+      text: `👍 Я забыл слово "${ word }"!`,
+    }, 3000);
   } else {
     const userName = await vk.getUserName(message.from_id);
-    await vk.sendMessage(`${userName}, я тебя не понимаю 😒`, 3000);
+    await vk.sendMessage({
+      text: `${userName}, я тебя не понимаю 😒`
+    }, 3000);
   }
 }
 
@@ -116,10 +126,16 @@ async function handleGameRequestMessage(): Promise<void> {
       'Игра начинается, отгадывать могут все! 😏 Какое слово я загадал?',
       'Я люблю играть! 😊 Я загадал слово, которое описывает эту картинку. Сможете угадать это слово?',
     ];
-    await vk.sendMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)], 3000);
-    await vk.sendPhotoToChat(taskImgBuffer!);
+    await vk.sendMessage({
+      text: welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
+    }, 3000);
+    await vk.sendMessage({
+      photos: [taskImgBuffer!]
+    });
     if (Math.random() > 0.5) {
-      await vk.sendMessage(getLettersHintMessage());
+      await vk.sendMessage({
+        text: getLettersHintMessage(),
+      });
       lettersHintSent = true;
     }
     timeoutObj = setTimeout(async () => await giveHint(gameId), STEP_INTERVAL);
@@ -135,8 +151,12 @@ async function handleGameRequestMessage(): Promise<void> {
 
       const limitsStickers = [13, 85, 2091, 5135, 5629];
 
-      await vk.sendSticker(limitsStickers[Math.floor(Math.random() * limitsStickers.length)]);
-      await vk.sendMessage(limitsMessages[Math.floor(Math.random() * limitsMessages.length)], 5000);
+      await vk.sendMessage({
+        stickerId: limitsStickers[Math.floor(Math.random() * limitsStickers.length)],
+      });
+      await vk.sendMessage({
+        text: limitsMessages[Math.floor(Math.random() * limitsMessages.length)],
+      }, 5000);
     } else {
       console.log(error);
     }
@@ -181,10 +201,16 @@ async function giveHint(previousGameId: string): Promise<void> {
     'Я не думал, что будет так сложно... 😥 Держите подсказку',
   ];
 
-  await vk.sendMessage(hintMessages[Math.floor(Math.random() * hintMessages.length)]);
-  await vk.sendPhotoToChat(hintImgBuffer!);
+  await vk.sendMessage({
+    text: hintMessages[Math.floor(Math.random() * hintMessages.length)],
+  });
+  await vk.sendMessage({
+    photos: [hintImgBuffer!],
+  });
   if (!lettersHintSent) {
-    await vk.sendMessage(getLettersHintMessage());
+    await vk.sendMessage({
+      text: getLettersHintMessage(),
+    });
   }
 
   if (previousGameId === gameId) {
@@ -208,7 +234,9 @@ async function handleGameLoss(previousGameId: string): Promise<void> {
 
   resetGame();
 
-  await vk.sendMessage(answerMessages[Math.floor(Math.random() * answerMessages.length)]);
+  await vk.sendMessage({
+    text: answerMessages[Math.floor(Math.random() * answerMessages.length)],
+  });
 }
 
 function resetGame():void {
@@ -233,7 +261,9 @@ async function handleCorrectAnswer(): Promise<void> {
     `Я увидел правильный ответ — ${previousAnswer}! ${name}, как тебе это удаётся? 🙀`,
   ];
   const successMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
-  await vk.sendMessage(successMessage);
+  await vk.sendMessage({
+    text: successMessage,
+  });
 }
 
 async function handlePlayingState(): Promise<boolean> {

@@ -146,7 +146,9 @@ export async function watchPolls(): Promise<void> {
     const generateMessage = missingVoteMessageGenerators[Math.floor(Math.random() * missingVoteMessageGenerators.length)];
     const message = generateMessage(poll.poll_info, missingVoters, conversationMembers);
     console.log(`Sending message with missing voters for poll "${poll.poll_info.question}"`);
-    vk.sendMessage(message);
+    vk.sendMessage({
+      text: message,
+    });
 
   });
 

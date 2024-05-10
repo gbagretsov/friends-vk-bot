@@ -12,8 +12,6 @@ jest.mock('../db');
 jest.mock('needle', () => () => Promise.resolve({}));
 
 const sendMessageSpy = jest.spyOn(vk, 'sendMessage').mockResolvedValue(true);
-const sendPhotoToChatSpy = jest.spyOn(vk, 'sendPhotoToChat').mockResolvedValue();
-const sendStickerSpy = jest.spyOn(vk, 'sendSticker').mockResolvedValue(true);
 const sendYouTubeVideoSpy = jest.spyOn(vk, 'sendYouTubeVideo').mockResolvedValue(true);
 
 let dbQuerySpy: SpyInstance;
@@ -29,7 +27,7 @@ describe('Custom reactions', () => {
       await Promise.resolve();
       expect(dbQuerySpy.mock.calls[0][0]).toMatch(testMessages.messageWithAppropriatePhrase.text);
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toEqual(reactions[0].content);
+      expect(sendMessageSpy.mock.calls[0][0].text).toEqual(reactions[0].content);
     });
 
     test('When bot receives a text message and finds appropriate rule, ' +
@@ -41,7 +39,7 @@ describe('Custom reactions', () => {
       await Promise.resolve();
       expect(dbQuerySpy.mock.calls[0][0]).toMatch(testMessages.messageWithAppropriatePhrase.text);
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toEqual(reactions[0].content);
+      expect(sendMessageSpy.mock.calls[0][0].text).toEqual(reactions[0].content);
     });
 
     test('When bot receives a sticker and finds appropriate rule, and random check is successful, ' +
@@ -54,7 +52,7 @@ describe('Custom reactions', () => {
       await Promise.resolve();
       expect(dbQuerySpy.mock.calls[0][0]).toMatch(stickerId);
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toEqual(reactions[0].content);
+      expect(sendMessageSpy.mock.calls[0][0].text).toEqual(reactions[0].content);
     });
 
     test('When bot finds appropriate rule to react, and random check is successful, ' +
@@ -63,7 +61,7 @@ describe('Custom reactions', () => {
       await customReactions(testMessages.messageWithAppropriatePhrase);
       await Promise.resolve();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0]).toMatch(/This is custom reaction/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/This is custom reaction/);
     });
 
     test('When bot finds appropriate rule to react, and random check is successful, ' +
@@ -198,7 +196,8 @@ describe('Custom reactions', () => {
       setMocks({ randomCheck: 0.001, reactions: testReactions.onePictureReaction });
       await customReactions(testMessages.messageWithAppropriatePhrase);
       await Promise.resolve();
-      expect(sendPhotoToChatSpy).toHaveBeenCalledTimes(1);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
+      expect(sendMessageSpy.mock.calls[0][0].photos).toBeDefined();
     });
 
     test('Bot can send a YouTube video as a reaction', async () => {
@@ -213,8 +212,8 @@ describe('Custom reactions', () => {
       setMocks({ randomCheck: 0.001, reactions: testReactions.oneStickerReaction });
       await customReactions(testMessages.messageWithAppropriatePhrase);
       await Promise.resolve();
-      expect(sendStickerSpy).toHaveBeenCalledTimes(1);
-      expect(sendStickerSpy).toHaveBeenCalledWith(testReactions.oneStickerReaction[0].content);
+      expect(sendMessageSpy).toHaveBeenCalledTimes(1);
+      expect(sendMessageSpy.mock.calls[0][0].stickerId).toEqual(testReactions.oneStickerReaction[0].content);
     });
 
   });
