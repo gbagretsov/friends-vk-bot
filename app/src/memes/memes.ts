@@ -191,9 +191,9 @@ export async function handleReaction(reaction: MessageReaction): Promise<boolean
   return false;
 }
 
-async function handleSkipRequest(conversationMessageId: number, userId: string): Promise<string> {
+async function handleSkipRequest(memeCmid: number, evaluationRequestCmid: number, userId: string): Promise<string> {
   const dbResponse = await db.query<{ user_id: string }>
-  (`SELECT user_id FROM friends_vk_bot.memes_skip WHERE conversation_message_id = ${conversationMessageId};`);
+  (`SELECT user_id FROM friends_vk_bot.memes_skip WHERE conversation_message_id = ${memeCmid};`);
   const skips = dbResponse.rows.map(r => r.user_id);
 
   if (skips.includes(userId)) {
@@ -201,12 +201,12 @@ async function handleSkipRequest(conversationMessageId: number, userId: string):
   }
 
   if (skips.length >= REQUIRED_SKIP_REQUESTS - 1) {
-    db.query(`DELETE FROM friends_vk_bot.memes WHERE conversation_message_id = ${conversationMessageId}`);
-    vk.deleteMessage(conversationMessageId as number + 1);
+    db.query(`DELETE FROM friends_vk_bot.memes WHERE conversation_message_id = ${memeCmid}`);
+    vk.deleteMessage(evaluationRequestCmid);
     return MEME_IS_SKIPPED;
   }
 
-  db.query(`INSERT INTO friends_vk_bot.memes_skip (conversation_message_id, user_id) VALUES (${conversationMessageId}, '${userId}')
+  db.query(`INSERT INTO friends_vk_bot.memes_skip (conversation_message_id, user_id) VALUES (${memeCmid}, '${userId}')
                 ON CONFLICT ON CONSTRAINT one_skip_per_user DO NOTHING`);
   return SKIP_REQUEST_ACCEPTED;
 }
@@ -228,7 +228,7 @@ export async function handleActionWithMessage(action: ActionWithMessage): Promis
     console.log(`Meme with cmid = ${conversationMessageId} not found`);
     eventData.text = ERROR_OCCURED;
   } else if (skip) {
-    eventData.text = await handleSkipRequest(conversationMessageId as number, userHash);
+    eventData.text = await handleSkipRequest(conversationMessageId as number, action.conversation_message_id, userHash);
   } else if (user_id === savedMeme.author_id) {
     eventData.text = EVALUATION_FROM_AUTHOR_NOT_ACCEPTED;
   } else {
