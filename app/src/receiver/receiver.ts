@@ -9,9 +9,14 @@ import handleBySpeechModule from '../speech/speech';
 import { handleLookForPollInIncomingMessage as handleByPollsWatchModule } from '../polls-watch/polls-watch';
 import handleByCustomReactionsModule from '../custom-reactions/custom-reactions';
 import handleByStatisticsModule from '../statistics/statistics';
-import {handleActionWithMessage as handleActionWithMessageByMemesModule, handleMessage as handleByMemesModule} from '../memes/memes';
+import {
+  handleActionWithMessage as handleActionWithMessageByMemesModule,
+  handleMessage as handleByMemesModule,
+  handleReaction as handleReactionByMemesModule
+} from '../memes/memes';
 import {VkMessage} from '../vk/model/VkMessage';
 import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
+import {MessageReaction} from '../vk/model/events/VkMessageReactionEvent';
 
 const peerID = process.env.VK_PEER_ID.toString();
 
@@ -24,6 +29,16 @@ export async function handleActionWithMessage(action: ActionWithMessage) {
   }
 
   handleActionWithMessageByMemesModule(action);
+}
+
+export async function handleReaction(reaction: MessageReaction) {
+  if (peerID !== reaction.peer_id.toString()) {
+    console.log(`Reaction for message #${reaction.cmid} is not for me`);
+    return;
+  }
+
+  console.log(`Handling reaction ${reaction.reaction_id} for message: #${reaction.cmid}`);
+  handleReactionByMemesModule(reaction);
 }
 
 export async function handleMessage(message: VkMessage) {

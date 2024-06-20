@@ -5,11 +5,13 @@ import {config} from 'dotenv';
 import {VkKeyboard} from '../vk/model/VkKeyboard';
 import vk from '../vk/vk';
 import {ActionWithMessage} from '../vk/model/events/VkActionWithMessageEvent';
-import db from '../db';
+import db, {DUPLICATE_KEY_PG_ERROR} from '../db';
 import {VkPhoto, VkPhotoSize} from '../vk/model/VkPhoto';
 import needle from 'needle';
 import crypto from 'crypto';
 import {MemesPerAuthor, MemesStatistics, TopMeme} from './model/MemesStatistics';
+import {MessageReaction} from '../vk/model/events/VkMessageReactionEvent';
+import {VkReaction} from '../vk/model/VkReaction';
 
 config();
 
@@ -31,8 +33,8 @@ const MEME_IS_SKIPPED = 'Я запомнил, что это не\xa0мем';
 
 const ERROR_OCCURED = 'Произошла ошибка, попробуйте позже';
 
-const REQUIRED_SKIP_REQUESTS = 2;
-const REQUIRED_EVALUATIONS = 3;
+const REQUIRED_SKIP_REQUESTS = 1;
+const REQUIRED_EVALUATIONS = 1;
 const TOP_MEMES_AMOUNT_LIMIT = 10;
 const MEMES_DIR = 'memes';
 
@@ -79,18 +81,23 @@ function getRectangles(photoSize: VkPhotoSize): Rectangle[] {
   ];
 }
 
-async function isMeme(message: VkMessage): Promise<boolean> {
+async function isMeme(message: VkMessage, skipTextRecognition = false): Promise<boolean> {
   const photoSize = getPhotoSize(message);
   const state = await db.query<{key: string, value: string}>
   ('SELECT value FROM friends_vk_bot.state WHERE key = \'memes_recognition_confidence\';');
   const requiredConfidence = state.rows[0].value;
 
   if (!photoSize) {
+    console.log(`No photos in message #${message.conversation_message_id}`);
     return false;
   }
   if (requiredConfidence === '' || +requiredConfidence > 100) {
-    console.log('Memes feature is disabled');
+    console.log(`Memes feature is disabled, skip message #${message.conversation_message_id}`);
     return false;
+  }
+
+  if (skipTextRecognition) {
+    return true;
   }
 
   const imageLoadResponse = await needle('get', photoSize.url, null, { follow_max: 1 });
@@ -112,47 +119,72 @@ async function isMeme(message: VkMessage): Promise<boolean> {
   return isMeme;
 }
 
-export async function handleMessage(message: VkMessage): Promise<boolean> {
-  if (await isMeme(message)) {
-    const conversationMessageId = message.conversation_message_id;
-    const keyboard: VkKeyboard = {
-      inline: true,
-      buttons: [
-        EVALUATION_KEY_LABELS.map((label, index) => {
-          return {
-            action: {
-              type: 'callback',
-              label,
-              payload: JSON.stringify({ conversationMessageId, evaluation: index + 1 }),
-            },
-            color: 'secondary',
-          };
-        }),
-        [
-          {
-            action: {
-              type: 'callback',
-              label: IS_NOT_MEME_LABEL,
-              payload: JSON.stringify({ conversationMessageId, skip: true }),
-            },
-            color: 'secondary',
+async function handleMessageWithMeme(message: VkMessage) {
+  const conversationMessageId = message.conversation_message_id;
+  const keyboard: VkKeyboard = {
+    inline: true,
+    buttons: [
+      EVALUATION_KEY_LABELS.map((label, index) => {
+        return {
+          action: {
+            type: 'callback',
+            label,
+            payload: JSON.stringify({conversationMessageId, evaluation: index + 1}),
           },
-        ],
+          color: 'secondary',
+        };
+      }),
+      [
+        {
+          action: {
+            type: 'callback',
+            label: IS_NOT_MEME_LABEL,
+            payload: JSON.stringify({conversationMessageId, skip: true}),
+          },
+          color: 'secondary',
+        },
       ],
-    };
+    ],
+  };
+
+  try {
+    await db.query(`INSERT INTO friends_vk_bot.memes VALUES (${conversationMessageId}, ${message.from_id})`);
     const evaluationProposalMessage = await getEvaluationProposalMessage(EVALUATION_KEY_LABELS[0], EVALUATION_KEY_LABELS[EVALUATION_KEY_LABELS.length - 1], message.from_id);
     vk.sendMessage({
       keyboard,
       text: evaluationProposalMessage,
       replyToConversationMessageId: message.conversation_message_id,
     });
-
-    try {
-      await db.query(`INSERT INTO friends_vk_bot.memes VALUES (${conversationMessageId}, ${message.from_id})`);
-    } catch (error) {
+  } catch (error) {
+    const isDuplicateMeme = (error as any).code === DUPLICATE_KEY_PG_ERROR;
+    if (isDuplicateMeme) {
+      console.log(`Meme #${message.conversation_message_id} was already saved`);
+    } else {
       console.error(error);
     }
+  }
+}
 
+export async function handleMessage(message: VkMessage): Promise<boolean> {
+  if (await isMeme(message)) {
+    handleMessageWithMeme(message);
+    return true;
+  }
+
+  return false;
+}
+
+export async function handleReaction(reaction: MessageReaction): Promise<boolean> {
+  const reactionId = reaction.reaction_id;
+  const reactionUserId = reaction.reacted_id;
+  const message = await vk.getMessageByConversationMessageId(reaction.cmid);
+
+  if (!message || reactionId !== VkReaction.QUESTION || reactionUserId !== message.from_id) {
+    return false;
+  }
+
+  if (await isMeme(message, true)) {
+    handleMessageWithMeme(message);
     return true;
   }
 
