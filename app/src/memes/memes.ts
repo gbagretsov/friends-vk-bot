@@ -33,8 +33,8 @@ const MEME_IS_SKIPPED = 'Я запомнил, что это не\xa0мем';
 
 const ERROR_OCCURED = 'Произошла ошибка, попробуйте позже';
 
-const REQUIRED_SKIP_REQUESTS = 1;
-const REQUIRED_EVALUATIONS = 1;
+const REQUIRED_SKIP_REQUESTS = 2;
+const REQUIRED_EVALUATIONS = 3;
 const TOP_MEMES_AMOUNT_LIMIT = 10;
 const MEMES_DIR = 'memes';
 
