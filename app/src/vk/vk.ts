@@ -84,7 +84,7 @@ async function sendMessage(message: MessagePayload, delayMs?: number): Promise<b
 
       try {
         // Сохраняем фотографию
-        const { server, photo, hash } = JSON.parse(photoInfoResponse.body);
+        const { server, photo, hash } = photoInfoResponse.body;
         const savedPhotoInfoResponse =
           await needle('get', `${apiUrl}/photos.saveMessagesPhoto?v=${apiVersion}&photo=${photo}&server=${server}&hash=${hash}&access_token=${accessToken}`);
 
