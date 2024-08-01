@@ -223,7 +223,7 @@ async function addPhotoToAlbum(photoBuffer: Buffer, albumId: string): Promise<vo
   const photoInfoResponse = await needle('post', uploadUrl, data, { multipart: true });
 
   // Сохраняем фотографию
-  const { server, photos_list, hash } = JSON.parse(photoInfoResponse.body);
+  const { server, photos_list, hash } = photoInfoResponse.body;
   await needle('get', `${apiUrl}/photos.save?v=${apiVersion}&album_id=${albumId}&group_id=${groupID}&photos_list=${photos_list}&server=${server}&hash=${hash}&access_token=${personalAccessToken}`);
 
 }
