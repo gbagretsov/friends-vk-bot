@@ -2,7 +2,7 @@ import {getConcatenatedItems, getPluralForm} from './util';
 
 describe('Plural form', () => {
   test('Plural form for 0', () => {
-    expect(getPluralForm(0, 'сообщение', 'сообщения', 'сообщений')).toBe('сообщений');
+    expect(getPluralForm(0, 'сообщение', 'сообщения', 'сообщений')).toBe('ошибка теста');
   });
 
   test('Plural form for 1', () => {
