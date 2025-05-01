@@ -41,7 +41,7 @@ const MEMES_DIR = 'memes';
 export function getPhotoAttachment(message: VkMessage): VkPhoto | null {
   const attachment = message.attachments[0];
   if (attachment?.type === VkMessageAttachmentType.WALL) {
-    const wallAttachment = attachment.wall.attachments[0];
+    const wallAttachment = attachment.wall.attachments?.[0];
     if (wallAttachment?.type === VkMessageAttachmentType.PHOTO) {
       return wallAttachment.photo;
     }
