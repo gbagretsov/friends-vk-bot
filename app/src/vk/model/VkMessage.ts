@@ -33,7 +33,7 @@ export type VkMessageAudioMessageAttachment = {
 export type VkMessageWallAttachment = {
   type: VkMessageAttachmentType.WALL;
   wall: {
-    attachments: VkMessageAttachment[];
+    attachments?: VkMessageAttachment[];
   }
 }
 
