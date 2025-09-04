@@ -1,5 +1,5 @@
 import {Outputter} from '../../model/Outputter';
-import vk from '../../vk/vk';
+import vk, {MessageFormatting, MessageFormattingType} from '../../vk/vk';
 import {allCategories, HolidayCategory, holidayCategoryIcons, holidayCategoryTitles} from './model/HolidayCategory';
 import util from 'util';
 import db from '../../db';
@@ -31,7 +31,10 @@ export const holidaysOutputter: Outputter<Map<HolidayCategory, string[]> | null>
         '🎉 Готов поспорить, вы не могли дождаться, когда наступят эти праздники:',
         '🎉 Напишите мне в ответ, как вы будете отмечать эти праздники:',
       ];
+
       let holidaysMessage = holidaysIntroductionMessages[Math.floor(Math.random() * holidaysIntroductionMessages.length)];
+      let formatting: MessageFormatting[] = [];
+
       for (let i = 0; i < allCategories.length; i++) {
         const category = allCategories[i];
         const holidaysForCategory = todayHolidays.get(category);
@@ -44,11 +47,21 @@ export const holidaysOutputter: Outputter<Map<HolidayCategory, string[]> | null>
         holidaysForCategory.forEach(holiday =>  {
           categoryMessage += `\n- ${holiday}`;
         });
+
+        // Смещение с учётом перехода на новую строку и пробела после иконки
+        const offset = holidaysMessage.length + 2 + categoryIcon.length + 1;
         holidaysMessage += `\n\n${categoryMessage}`;
+
+        formatting.push({
+          type: MessageFormattingType.Bold,
+          offset,
+          length: categoryTitle.length,
+        })
       }
       await vk.sendMessage({
         keyboard: DETAILS_BUTTON_KEYBOARD,
         text: holidaysMessage,
+        formatting,
       });
     } else {
       const response = await db.query<{key: string, value: string}>
