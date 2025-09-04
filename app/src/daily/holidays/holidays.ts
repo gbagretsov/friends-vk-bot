@@ -1,7 +1,9 @@
 import cheerio from 'cheerio';
 import needle from 'needle';
 import {HolidayCategory, holidayCategoryLinks} from './model/HolidayCategory';
-import {Month} from '../../util';
+import {getPluralForm, Month} from '../../util';
+
+const BOT_BIRTHDAY = new Date(2018, Month.SEPTEMBER, 27)
 
 async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
 
@@ -14,6 +16,8 @@ async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
 
     const isNewYearHandling = today.getMonth() === Month.DECEMBER && today.getDate() === 31 ||
       today.getMonth() === Month.JANUARY && today.getDate() === 1;
+    const isBotBirthday = today.getMonth() === BOT_BIRTHDAY.getMonth()
+        && today.getDate() === BOT_BIRTHDAY.getDate()
 
     const $ = cheerio.load(body);
 
@@ -31,8 +35,17 @@ async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
     });
 
     const holidaysByCategory: Map<HolidayCategory, string[]> = new Map();
+
+    const addHolidayToCategory = (holiday: string, category: HolidayCategory) => {
+      if (holidaysByCategory.has(category)) {
+        holidaysByCategory.get(category)!.push(holiday);
+      } else {
+        holidaysByCategory.set(category, [holiday]);
+      }
+    }
+
     if (isNewYearHandling) {
-      holidaysByCategory.set(HolidayCategory.WORLD, ['Новый год']);
+      addHolidayToCategory('Новый год', HolidayCategory.WORLD);
     }
 
     suitableHolidayElements.forEach(element => {
@@ -45,12 +58,15 @@ async function getHolidays(): Promise<Map<HolidayCategory, string[]> | null> {
       if (isNewYearHandling && /[н|Н]овы[й|м]/.test(holiday)) {
         return;
       }
-      if (holidaysByCategory.has(category)) {
-        holidaysByCategory.get(category)!.push(holiday);
-      } else {
-        holidaysByCategory.set(category, [holiday]);
-      }
+
+      addHolidayToCategory(holiday, category);
     });
+
+    if (isBotBirthday) {
+      const botAge = today.getFullYear() - BOT_BIRTHDAY.getFullYear();
+      const botAgeSuffix = getPluralForm(botAge, 'год', 'года', 'лет');
+      addHolidayToCategory(`Мой день рождения ☺ (сегодня мне исполняется ${botAge} ${botAgeSuffix})`, HolidayCategory.RUSSIAN);
+    }
 
     return holidaysByCategory;
   } catch (error) {
