@@ -382,7 +382,7 @@ class CustomReactionEditor extends Component{
       return `https://youtube.com/watch?v=${content}`;
     }
     if (type === ResponseType.STICKER) {
-      return `https://vk.com/sticker/1-${content}-256`;
+      return `https://vk.ru/sticker/1-${content}-256`;
     }
     return '';
   }

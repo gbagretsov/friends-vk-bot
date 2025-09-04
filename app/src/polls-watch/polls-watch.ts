@@ -14,7 +14,7 @@ const shuffleArray = (array: unknown[]) => {
 };
 
 function getPollLink(pollInfo: VkPoll) {
-  return `https://vk.com/poll${pollInfo.owner_id}_${pollInfo.id}`;
+  return `https://vk.ru/poll${pollInfo.owner_id}_${pollInfo.id}`;
 }
 
 const singleMissingVoteMessageGenerators: MissingVoteMessageGenerator[] = [

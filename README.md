@@ -18,4 +18,4 @@
 - Создайте БД и укажите URL для доступа к БД в файле `.env`. Схема БД и пример данных в папке `migrations`. Запуск миграций: `npm run migrate up`
 - Запустите локальный сервер: ```npm start```
 
-Получение токена пользователя для ВК API: `https://oauth.vk.com/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.com/blank.html&display=popup&scope=friends,wall,offline,video,photos&response_type=token`
+Получение токена пользователя для ВК API: `https://oauth.vk.ru/authorize?client_id=<APP_ID>&redirect_uri=https://oauth.vk.ru/blank.html&display=popup&scope=friends,wall,offline,video,photos&response_type=token`

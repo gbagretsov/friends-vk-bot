@@ -168,7 +168,7 @@ describe('Polls observer', () => {
       });
       await watchPolls();
       expect(sendMessageSpy).toHaveBeenCalledTimes(1);
-      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/https:\/\/vk.com\/poll222_1000123/);
+      expect(sendMessageSpy.mock.calls[0][0].text).toMatch(/https:\/\/vk.ru\/poll222_1000123/);
     });
 
     test('Information message about a poll does not contain names or mentions of users who have already voted in the poll', async () => {

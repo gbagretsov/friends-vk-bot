@@ -25,7 +25,7 @@ const peerID = process.env.VK_PEER_ID;
 const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
 const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
 const groupID = process.env.VK_GROUP_ID;
-const apiUrl = 'https://api.vk.com/method';
+const apiUrl = 'https://api.vk.ru/method';
 const apiVersion = '5.199';
 
 export type MessagePayload = {
