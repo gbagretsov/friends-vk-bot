@@ -26,7 +26,19 @@ const personalAccessToken = process.env.VK_PERSONAL_ACCESS_TOKEN;
 const personalPeerID = process.env.VK_PERSONAL_PEER_ID;
 const groupID = process.env.VK_GROUP_ID;
 const apiUrl = 'https://api.vk.ru/method';
-const apiVersion = '5.199';
+const apiVersion = '5.258';
+
+export enum MessageFormattingType {
+  Bold = 'bold',
+  Italic = 'italic',
+  Underline = 'underline'
+}
+
+export type MessageFormatting = {
+  type: MessageFormattingType;
+  offset: number;
+  length: number;
+};
 
 export type MessagePayload = {
   text?: string;
@@ -34,6 +46,7 @@ export type MessagePayload = {
   keyboard?: VkKeyboard;
   photos?: Buffer[];
   replyToConversationMessageId?: number;
+  formatting?: MessageFormatting[];
 };
 
 async function sendMessage(message: MessagePayload, delayMs?: number): Promise<boolean> {
@@ -109,6 +122,13 @@ async function sendMessage(message: MessagePayload, delayMs?: number): Promise<b
       conversation_message_ids: [ message.replyToConversationMessageId ],
       is_reply: true,
     }));
+  }
+
+  if (message.formatting && message.formatting.length > 0) {
+    sendMessageUrl += `&format_data=${encodeURIComponent(JSON.stringify({
+      version: 1,
+      items: message.formatting,
+    }))}`;
   }
 
   const response = await needle('get', sendMessageUrl);
